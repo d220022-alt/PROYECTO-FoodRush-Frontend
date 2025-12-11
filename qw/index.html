@@ -19,7 +19,7 @@
         /* Estilo para los botones de categoría superiores */
         .filter-btn.active { background-color: #b91c1c; color: white; border-color: #b91c1c; }
 
-        /* Estilos para los Chips del Modal (Píldoras) */
+        /* Estilos para los Chips del Modal */
         .modal-chip {
             padding: 8px 16px;
             border-radius: 9999px;
@@ -28,16 +28,14 @@
             cursor: pointer;
             transition: all 0.2s;
             border: 1px solid transparent;
-            background-color: #f3f4f6; /* gris claro */
+            background-color: #f3f4f6;
             color: #4b5563;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .modal-chip:hover {
-            background-color: #e5e7eb;
-        }
+        .modal-chip:hover { background-color: #e5e7eb; }
 
         .modal-chip.selected {
             background-color: #fff;
@@ -76,7 +74,6 @@
         <div class="absolute inset-0 z-0">
             <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop" class="w-full h-full object-cover brightness-50">
         </div>
-        
         <div class="relative z-10 w-full max-w-2xl px-4">
             <div class="bg-white rounded-lg flex shadow-2xl overflow-hidden p-1">
                 <div class="pl-4 flex items-center text-gray-400">
@@ -89,7 +86,6 @@
     </section>
 
     <section class="container mx-auto px-4 md:px-12 py-8">
-        
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
             <button onclick="app.openModal()" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
                 <span>Filter</span>
@@ -112,32 +108,33 @@
     </section>
 
     <footer class="bg-[#BD0A0A] text-white mt-auto">
-        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between gap-8">
-            <div class="md:w-1/3">
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
+            
+            <div class="mb-8 md:mb-0">
                  <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded">
                     <span class="text-orange-500 font-bold text-xl italic">Food</span>
                     <span class="text-slate-800 font-bold text-xl italic -ml-1">Rush</span>
                 </div>
-                <p class="text-white/80 text-sm mb-6">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
+                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
 
-            <div class="flex gap-12 text-sm">
+            <div class="flex gap-16 text-sm text-left md:text-right">
                 <div>
-                    <h4 class="font-bold mb-4">Ayuda</h4>
-                    <ul class="space-y-2 text-white/80">
+                    <h4 class="font-bold mb-4 text-lg">Ayuda</h4>
+                    <ul class="space-y-3 text-white/90 font-medium">
                         <li><a href="#" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
                         <li><a href="#" class="hover:text-white hover:underline">Soporte</a></li>
                         <li><a href="#" class="hover:text-white hover:underline">Términos</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold mb-4">Empresa</h4>
-                    <ul class="space-y-2 text-white/80">
+                    <h4 class="font-bold mb-4 text-lg">Empresa</h4>
+                    <ul class="space-y-3 text-white/90 font-medium">
                         <li><a href="#" class="hover:text-white hover:underline">Sobre Nosotros</a></li>
                         <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
                         <li><a href="#" class="hover:text-white hover:underline">Afíliate</a></li>
@@ -145,13 +142,6 @@
                 </div>
             </div>
 
-            <div class="md:w-1/3">
-                <h4 class="font-bold mb-4">Suscríbete al Newsletter</h4>
-                <div class="flex flex-col gap-2">
-                    <input type="email" placeholder="Tu correo electrónico" class="bg-white/10 border border-white/20 text-white px-4 py-2 rounded focus:outline-none focus:bg-white/20 placeholder-white/50">
-                    <button class="bg-white text-[#BD0A0A] hover:bg-gray-100 py-2 rounded font-bold transition">Suscribirme</button>
-                </div>
-            </div>
         </div>
         <div class="border-t border-white/20 text-center py-4 text-xs text-white/60">
             &copy; 2025 FoodRush Inc. Todos los derechos reservados.
@@ -160,31 +150,17 @@
 
     <div id="filterModal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center fade-in">
         <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4 relative shadow-2xl">
-            
-            <button onclick="app.closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition">
-                <i class="fa-solid fa-xmark text-2xl"></i>
-            </button>
-
+            <button onclick="app.closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <h2 class="text-3xl font-bold text-center mb-8 text-slate-800">Filter</h2>
-
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Ordenar</h3>
                 <div class="flex flex-wrap gap-2">
-                    <button class="modal-chip selected" onclick="app.setSort('sugeridos', this)">
-                        <i class="fa-solid fa-arrow-down-up-across-line text-xs"></i> Sugeridos
-                    </button>
-                    <button class="modal-chip" onclick="app.setSort('rating', this)">
-                        <i class="fa-regular fa-star text-xs"></i> Mejor puntuados
-                    </button>
-                    <button class="modal-chip" onclick="app.setSort('cercanos', this)">
-                        <i class="fa-solid fa-location-dot text-xs"></i> Más cercanos
-                    </button>
-                    <button class="modal-chip" onclick="app.setSort('rapidos', this)">
-                        <i class="fa-solid fa-clock text-xs"></i> Más rápidos
-                    </button>
+                    <button class="modal-chip selected" onclick="app.setSort('sugeridos', this)"><i class="fa-solid fa-arrow-down-up-across-line text-xs"></i> Sugeridos</button>
+                    <button class="modal-chip" onclick="app.setSort('rating', this)"><i class="fa-regular fa-star text-xs"></i> Mejor puntuados</button>
+                    <button class="modal-chip" onclick="app.setSort('cercanos', this)"><i class="fa-solid fa-location-dot text-xs"></i> Más cercanos</button>
+                    <button class="modal-chip" onclick="app.setSort('rapidos', this)"><i class="fa-solid fa-clock text-xs"></i> Más rápidos</button>
                 </div>
             </div>
-
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Filtrar</h3>
                 <div class="flex flex-wrap gap-2">
@@ -192,7 +168,6 @@
                     <button class="modal-chip" onclick="app.toggleFilter('pickup', this)">Retiro en local</button>
                 </div>
             </div>
-
             <div class="mb-8">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Promociones</h3>
                 <div class="flex flex-wrap gap-2">
@@ -202,17 +177,14 @@
                     <button class="modal-chip" onclick="app.toggleFilter('favs', this)">Favoritos</button>
                 </div>
             </div>
-
-            <button onclick="app.applyModalFilters()" class="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 rounded-xl transition shadow-md text-lg">
-                Guardar
-            </button>
+            <button onclick="app.applyModalFilters()" class="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 rounded-xl transition shadow-md text-lg">Guardar</button>
         </div>
     </div>
 
     <script>
         const app = {
             currentCategory: 'all',
-            // Datos con propiedades simuladas para que el filtro funcione
+            // Datos
             data: [
                 { id: 1, name: "Starbucks Coffee", category: "Bebidas", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", pickup: true, promo: true },
                 { id: 2, name: "McDonald's", category: "Hamburguesa", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", pickup: true, promo: false },
@@ -234,7 +206,7 @@
             // Estado del Modal
             modalState: {
                 sort: 'sugeridos',
-                filters: [] // 'pickup', 'descuentos', etc.
+                filters: []
             },
 
             init: function() {
@@ -249,7 +221,9 @@
                 }
                 container.innerHTML = items.map(item => `
                     <div class="bg-white rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm border border-transparent hover:border-orange-200 card-hover transition cursor-pointer fade-in group relative overflow-hidden" 
-                        onclick="app.goToPage(${item.id}, '${item.name}')"> ${item.promo ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Promo</span>' : ''}
+                        onclick="app.goToPage(${item.id}, '${item.name}')">
+                        
+                        ${item.promo ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Promo</span>' : ''}
 
                         <div class="w-24 h-24 mb-4 flex items-center justify-center relative z-10">
                             <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain">
@@ -266,24 +240,18 @@
                 `).join('');
             },
 
-            // --- ESTA ES LA FUNCIÓN NUEVA QUE DEBES AGREGAR ---
+            // --- FUNCIÓN DE REDIRECCIÓN ---
             goToPage: function(id, name) {
                 if (id === 1) {
-                    window.location.href = 'Starbukz.html';
+                    window.location.href = 'starbucks.html';
                 } else if (id === 2) {
-                    // Aquí rediriges a la página de McDonalds
-                    // Asegúrate de crear el archivo mcdonalds.html
-                    window.location.href = 'mcdonal.html'; 
+                    window.location.href = 'mcdonalds.html'; 
                 } else {
-                    // Si agregas KFC en el futuro, sería: else if (id === 3)...
                     alert('Has seleccionado ' + name);
                 }
             },
-            // ----------------------------------------------------
 
             filterCategory: function(category, btnElement) {
-                // ... el resto de tu código sigue igual
-
                 this.currentCategory = category;
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.remove('active', 'bg-red-700', 'text-white');
@@ -291,8 +259,6 @@
                 });
                 btnElement.classList.add('active', 'bg-red-700', 'text-white');
                 btnElement.classList.remove('text-red-700');
-
-                // Al cambiar categoría, reaplicamos todo (incluyendo lo del modal si estuviera activo)
                 this.runAllFilters();
             },
 
@@ -302,18 +268,11 @@
             },
 
             // --- LÓGICA DEL MODAL ---
-
-            openModal: function() {
-                document.getElementById('filterModal').classList.remove('hidden');
-            },
-
-            closeModal: function() {
-                document.getElementById('filterModal').classList.add('hidden');
-            },
+            openModal: function() { document.getElementById('filterModal').classList.remove('hidden'); },
+            closeModal: function() { document.getElementById('filterModal').classList.add('hidden'); },
 
             setSort: function(sortType, btn) {
                 this.modalState.sort = sortType;
-                // UI update
                 btn.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected'));
                 btn.classList.add('selected');
             },
@@ -337,17 +296,14 @@
             runAllFilters: function() {
                 let result = [...this.data];
 
-                // 1. Filtro de Categoría
                 if (this.currentCategory !== 'all') {
                     result = result.filter(item => item.category === this.currentCategory);
                 }
 
-                // 2. Buscador
                 if (this.searchTerm) {
                     result = result.filter(item => item.name.toLowerCase().includes(this.searchTerm) || item.category.toLowerCase().includes(this.searchTerm));
                 }
 
-                // 3. Filtros del Modal (Retiro, Promociones)
                 if (this.modalState.filters.includes('pickup')) {
                     result = result.filter(item => item.pickup === true);
                 }
@@ -355,11 +311,10 @@
                     result = result.filter(item => item.promo === true);
                 }
 
-                // 4. Ordenamiento (Sort)
                 if (this.modalState.sort === 'rating') {
-                    result.sort((a, b) => b.rating - a.rating); // Mayor a menor
+                    result.sort((a, b) => b.rating - a.rating);
                 } else if (this.modalState.sort === 'sugeridos') {
-                    result.sort((a, b) => a.id - b.id); // Default
+                    result.sort((a, b) => a.id - b.id);
                 }
 
                 this.renderGrid(result);
