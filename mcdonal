@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodRush - Bienvenido</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- RESET Y BASES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* --- COLORES OFICIALES --- */
+        :root {
+            --primary-red: #C62828; /* Rojo FoodRush */
+            --dark-red: #8E0000;    /* Para el footer */
+            --yellow-accent: #FDD835;
+            --beige-bg: #F9F5E8;    /* Fondo crema de la sección marcas */
+        }
+
+        /* --- 1. BARRA SUPERIOR Y NAV --- */
+        .top-bar {
+            background-color: var(--yellow-accent);
+            text-align: center;
+            padding: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #d32f2f;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 5%;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-img {
+            height: 60px; /* Ajusta esto según tu logo */
+            width: auto;
+        }
+
+        .nav-actions a {
+            text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
+        }
+
+        .link-login { color: #333; transition: color 0.3s; }
+        .link-login:hover { color: var(--primary-red); }
+
+        .btn-black {
+            background-color: #222;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 5px;
+            transition: transform 0.2s;
+        }
+        .btn-black:hover { transform: scale(1.05); background-color: #000; }
+
+        /* --- 2. HERO SECTION (Hamburguesa) --- */
+        .hero {
+            height: 600px;
+            background-image: url('https://img.freepik.com/free-photo/delicious-burger-with-fresh-ingredients_23-2150857908.jpg'); /* Imagen de hamburguesa con fuego similar */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end; /* Alinea el cuadro a la derecha */
+            padding-right: 10%;
+            position: relative;
+        }
+
+        /* Oscurecer un poco la imagen para que resalte el texto */
+        .hero::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.2);
+        }
+
+        .hero-card {
+            background: white;
+            padding: 30px;
+            width: 450px;
+            border-radius: 20px 0 20px 20px; /* Forma estilizada */
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .hero-card h1 {
+            font-family: 'Titan One', cursive; /* Fuente del logo */
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .hero-card p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .btn-red {
+            background-color: var(--primary-red);
+            color: white;
+            text-decoration: none;
+            padding: 10px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .btn-red:hover { background-color: #a51b1b; }
+
+        /* --- 3. SECCIÓN MARCAS (Fondo Beige) --- */
+        .brands-section {
+            background-color: var(--beige-bg);
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .logos-grid {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .brand-box {
+            width: 200px;
+            height: 200px;
+            background: white;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .brand-box:hover { transform: translateY(-10px); }
+
+        .brand-box img {
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* --- 4. SECCIÓN EXPERIENCIA (Oscura) --- */
+        .experience-section {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://img.freepik.com/premium-photo/burger-fries-coke_1040174-88.jpg'); /* Fondo comida oscura */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* Efecto Parallax elegante */
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .experience-text {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .star { color: var(--yellow-accent); margin: 0 10px; }
+
+        /* --- 5. MISIÓN / VISIÓN / VALORES --- */
+        .values-section {
+            padding: 80px 10%;
+            background: white;
+        }
+
+        .values-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            text-align: center;
+        }
+
+        .value-card i {
+            font-size: 50px;
+            color: var(--primary-red); /* Iconos rojos como en el diseño */
+            margin-bottom: 20px;
+        }
+
+        .value-card h3 {
+            font-family: 'Titan One', cursive;
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+
+        .value-card p {
+            font-size: 14px;
+            color: #777;
+            line-height: 1.5;
+        }
+
+        /* --- 6. FOOTER (Rojo Oscuro) --- */
+        footer {
+            background-color: var(--primary-red); /* Rojo principal */
+            color: white;
+            padding: 50px 10%;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.3);
+            padding-bottom: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-logo img {
+            height: 70px;
+            background: white;
+            padding: 5px;
+            border-radius: 10px;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 50px;
+        }
+
+        .footer-col h4 {
+            margin-bottom: 15px;
+            font-family: 'Roboto', sans-serif;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .footer-col ul { list-style: none; }
+        .footer-col ul li { margin-bottom: 8px; font-size: 13px; }
+        .footer-col ul li a { color: rgba(255,255,255,0.8); text-decoration: none; }
+        .footer-col ul li a:hover { color: white; text-decoration: underline; }
+
+        .social-icons i { margin-right: 15px; font-size: 20px; cursor: pointer; }
+
+        /* RESPONSIVE (Para celulares) */
+        @media (max-width: 768px) {
+            .hero { justify-content: center; padding: 20px; }
+            .hero-card { width: 100%; text-align: center; }
+            .values-grid, .footer-content, .logos-grid { flex-direction: column; align-items: center; }
+            .footer-links { flex-direction: column; gap: 20px; text-align: center; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        una mundo, muchas posibilidades
+    </div>
+
+    <nav>
+        <a href="#">
+            <img src="image_693200.png" alt="FoodRush Logo" class="logo-img">
+        </a>
+        
+        <div class="nav-actions">
+            <a href="login.html" class="link-login">Iniciar Sesión</a>
+            <a href="login.html" class="btn-black">Registrarse</a>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-card">
+            <h1>Bienvenidos !</h1>
+            <p>
+                FoodRush es la plataforma definitiva para gestionar tus pedidos de comida rápida. 
+                Conectamos tus marcas favoritas como McDonald's, KFC y Burger King en un solo lugar.
+                Vive la experiencia rápida, segura y deliciosa.
+            </p>
+            <a href="#" class="btn-red" onclick="alert('¡Video promocional próximamente!')">Ver Video</a>
+        </div>
+    </header>
+
+    <section class="brands-section">
+        <div class="logos-grid">
+            <div class="brand-box">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png" alt="McDonalds">
+            </div>
+            <div class="brand-box">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png" alt="KFC">
+            </div>
+            <div class="brand-box">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/2024px-Burger_King_logo_%281999%29.svg.png" alt="Burger King">
+            </div>
+        </div>
+        
+        <a href="#" class="btn-red" style="padding: 12px 50px;">VER MAS !!</a>
+    </section>
+
+    <section class="experience-section">
+        <div class="experience-text">
+            <i class="fa-solid fa-star star"></i>
+            Vive la experiencia FoodRush
+            <i class="fa-solid fa-star star"></i>
+        </div>
+    </section>
+
+    <section class="values-section">
+        <div class="values-grid">
+            <div class="value-card">
+                <i class="fa-solid fa-puzzle-piece"></i>
+                <h3>Misión</h3>
+                <p>Nuestra misión es conectar a las personas con sus comidas favoritas de manera rápida y eficiente, sin complicaciones.</p>
+            </div>
+            
+            <div class="value-card">
+                <i class="fa-regular fa-eye"></i> <h3>Visión</h3>
+                <p>Ser la plataforma líder mundial en gestión de pedidos multi-franquicia, innovando en cada entrega.</p>
+            </div>
+
+            <div class="value-card">
+                <i class="fa-solid fa-bullseye"></i>
+                <h3>Objetivo</h3>
+                <p>Optimizar el tiempo de espera y mejorar la satisfacción del cliente a través de tecnología de punta.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <img src="image_693200.png" alt="FoodRush Logo">
+                <div class="social-icons" style="margin-top: 20px;">
+                    <i class="fa-brands fa-facebook"></i>
+                    <i class="fa-brands fa-instagram"></i>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Soporte</a></li>
+                        <li><a href="#">Envíos</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="#">Nuestra Historia</a></li>
+                        <li><a href="#">Carreras</a></li>
+                        <li><a href="#">Prensa</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <p style="text-align: center; font-size: 12px; opacity: 0.7;">
+            © 2025 FoodRush. Todos los derechos reservados.
+        </p>
+    </footer>
+
+</body>
+</html>
