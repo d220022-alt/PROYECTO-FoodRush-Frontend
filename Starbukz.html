@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starbucks | FoodRush</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        
+        .bg-starbucks { background-color: #00704A; }
+        .text-starbucks { color: #00704A; }
+        .border-starbucks { border-color: #00704A; }
+        .bg-footer-red { background-color: #D50032; }
+        
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Estilos para el selector de vasos */
+        .cup-selector:hover svg { fill: #00704A; }
+        .cup-selector.selected svg { fill: #00704A; }
+        .cup-selector.selected p { color: #00704A; font-weight: bold; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 bg-white">
+
+    <header class="bg-white border-b sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-1 group">
+                <div class="flex flex-col items-center leading-none">
+                    <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
+                    <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
+                </div>
+            </a>
+            <nav class="hidden md:flex gap-8 font-medium text-slate-600">
+                <a href="#" class="text-black font-bold border-b-2 border-black pb-1" onclick="app.goBack()">Shop</a>
+                <a href="#" class="hover:text-starbucks transition">Subscribe</a>
+                <a href="#" class="hover:text-starbucks transition">About</a>
+            </nav>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex items-center border rounded-full px-4 py-1.5 w-64 shadow-sm focus-within:border-starbucks">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3"></i>
+                    <input type="text" id="searchInput" placeholder="Search product" class="outline-none w-full text-sm" onkeyup="app.search(this.value)">
+                </div>
+                <div class="flex gap-4 text-xl items-center">
+                    <button class="hover:text-starbucks transition relative">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button class="hover:text-starbucks transition"><i class="fa-regular fa-user"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="catalog-view" class="fade-in">
+        <section class="flex flex-col md:flex-row h-[350px] w-full">
+            <div class="w-full md:w-2/5 bg-white flex items-center justify-center p-8">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png" 
+                     alt="Starbucks Logo" class="h-40 md:h-56 object-contain drop-shadow-xl">
+            </div>
+            <div class="w-full md:w-3/5 relative">
+                <img src="https://stories.starbucks.com/uploads/2021/11/SBX20211102-Holiday-Beverages-Featured-Image.jpg" 
+                     alt="Holiday Drinks" class="absolute inset-0 w-full h-full object-cover">
+            </div>
+        </section>
+
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-6 py-6 flex flex-col md:flex-row items-start md:items-center gap-6">
+                <h2 class="text-2xl font-bold">Filter</h2>
+                <div class="flex gap-3" id="top-filters">
+                    <button onclick="app.setCategory('Drinks', this)" class="filter-tab active bg-starbucks text-white px-6 py-2 rounded font-semibold shadow transition">Drinks</button>
+                    <button onclick="app.setCategory('Food', this)" class="filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover:border-starbucks hover:text-starbucks transition">Food</button>
+                    <button onclick="app.setCategory('At Home Coffee', this)" class="filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover:border-starbucks hover:text-starbucks transition">At Home Coffee</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside class="md:col-span-1 space-y-4 select-none">
+                <details class="border-b border-gray-200 pb-3 cursor-pointer group" open>
+                    <summary class="flex justify-between font-semibold list-none group-hover:text-starbucks">Tea type <i class="fa-solid fa-chevron-down text-xs mt-1"></i></summary>
+                    <div class="mt-2 text-sm text-gray-600 pl-2">
+                        <p class="hover:text-starbucks cursor-pointer py-1" onclick="app.filterByType('Green Tea')">Green Tea</p>
+                        <p class="hover:text-starbucks cursor-pointer py-1" onclick="app.filterByType('Black Tea')">Black Tea</p>
+                    </div>
+                </details>
+                <div class="border-b border-gray-200 pb-4">
+                    <div class="flex justify-between font-semibold mb-3">Caffeine <i class="fa-solid fa-chevron-up text-xs mt-1"></i></div>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-starbucks">
+                            <input type="checkbox" onchange="app.toggleCaffeine('caffeinated', this.checked)" class="accent-[#00704A] w-4 h-4"> <span class="text-sm text-gray-600">Caffeinated</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover:text-starbucks">
+                            <input type="checkbox" onchange="app.toggleCaffeine('decaf', this.checked)" class="accent-[#00704A] w-4 h-4"> <span class="text-sm text-gray-600">Decaffeinated</span>
+                        </label>
+                    </div>
+                </div>
+                <button onclick="app.resetFilters()" class="text-xs text-red-600 underline hover:text-red-800">Reset all filters</button>
+            </aside>
+
+            <main id="product-grid" class="md:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-6">
+                </main>
+        </div>
+    </div>
+    <div id="product-detail-view" class="hidden fade-in container mx-auto px-6 py-8">
+        
+        <button onclick="app.goBack()" class="mb-6 flex items-center text-sm font-bold text-gray-500 hover:text-starbucks transition">
+            <i class="fa-solid fa-chevron-left mr-2"></i> Back
+        </button>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div class="bg-gray-100 rounded-xl flex items-center justify-center p-8 h-[500px]">
+                <img id="detail-img" src="" alt="Product" class="max-h-full max-w-full object-contain drop-shadow-2xl">
+            </div>
+
+            <div class="flex flex-col">
+                <h1 id="detail-title" class="text-4xl font-bold text-slate-900 mb-2">Producto</h1>
+                <h2 class="text-lg font-bold text-gray-500 mb-4">Matcha Proteico Helado</h2> <div class="flex items-center mb-6">
+                    <div class="flex text-gray-400 text-xs">
+                        <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
+                    </div>
+                    <span class="text-xs text-gray-400 ml-2">260 Reviews</span>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                    Rico en proteínas. Sabor a matcha. Con 35g de proteína por porción grande, este suave latte helado combina nuestro matcha sin azúcar con leche enriquecida.
+                </p>
+
+                <div class="flex items-baseline gap-4 mb-8 border-b border-gray-200 pb-6">
+                    <span class="text-xl font-medium text-gray-600">Precio:</span>
+                    <span id="detail-price-display" class="text-3xl font-bold text-slate-800 bg-gray-100 px-3 py-1 rounded">$0</span>
+                </div>
+
+                <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                    <span class="text-xl font-bold">Quantity:</span>
+                    <div class="flex items-center gap-4 text-2xl font-bold text-gray-600">
+                        <button onclick="app.changeQty(-1)" class="hover:text-starbucks">-</button>
+                        <span id="detail-qty">1</span>
+                        <button onclick="app.changeQty(1)" class="hover:text-starbucks">+</button>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl text-gray-600 mb-4 border-b-2 border-green-100 pb-1 w-full">Opciones de tamaño</h3>
+                    <div class="flex justify-center gap-8 mt-4">
+                        <div class="cup-selector text-center cursor-pointer" onclick="app.selectSize(this)">
+                            <i class="fa-solid fa-glass-water text-3xl text-gray-300 mb-2"></i>
+                            <p class="text-xs font-medium text-gray-400">Alto<br>12 oz</p>
+                        </div>
+                        <div class="cup-selector selected text-center cursor-pointer" onclick="app.selectSize(this)">
+                            <i class="fa-solid fa-glass-water text-4xl text-gray-300 mb-2"></i> <p class="text-xs font-medium text-gray-400">Grande<br>16 oz</p>
+                        </div>
+                        <div class="cup-selector text-center cursor-pointer" onclick="app.selectSize(this)">
+                            <i class="fa-solid fa-glass-water text-5xl text-gray-300 mb-2"></i> <p class="text-xs font-medium text-gray-400">Venti<br>24 oz</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl text-gray-600 mb-4">¿Qué incluye?</h3>
+                    
+                    <div class="border rounded-lg p-4 mb-3">
+                        <span class="text-xs text-gray-500 block mb-1">Complementos</span>
+                        <div class="flex justify-between items-center">
+                            <span class="font-medium text-slate-700">Hielo</span>
+                            <i class="fa-solid fa-chevron-down text-starbucks"></i>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4 mb-3 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-500 block mb-1">Té</span>
+                            <span class="font-medium text-slate-700 w-48 block">Cucharas medidoras de polvo de matcha</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-starbucks text-xl">
+                            <i class="fa-regular fa-circle-left cursor-pointer"></i>
+                            <span class="font-bold text-slate-700">4</span>
+                            <i class="fa-regular fa-circle-right cursor-pointer"></i>
+                        </div>
+                    </div>
+
+                    <div class="border rounded-lg p-4 flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-gray-500 block mb-1">Edulcorantes</span>
+                            <span class="font-medium text-slate-700">Bombas de jarabe clásicas</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-starbucks text-xl">
+                            <i class="fa-regular fa-circle-left cursor-pointer"></i>
+                            <span class="font-bold text-slate-700">4</span>
+                            <i class="fa-regular fa-circle-right cursor-pointer"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-bold">Total:</span>
+                        <span id="detail-total-price" class="text-2xl font-bold bg-gray-100 px-3 py-1 rounded">$0</span>
+                    </div>
+                    <button onclick="app.addToCartFromDetail()" class="w-full bg-starbucks hover:bg-[#005c3d] text-white font-bold py-4 rounded-lg shadow-lg text-lg transition transform hover:scale-[1.01]">
+                        Añadir al carrito
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <footer class="bg-footer-red text-white mt-auto">
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between">
+            <div class="md:w-1/3 mb-8 md:mb-0">
+                <h4 class="font-bold mb-4">Let's stay in touch! Sign up to our newsletter!</h4>
+                <div class="bg-white w-32 py-4 px-2 text-center mb-6">
+                    <div class="flex flex-col items-center leading-none">
+                        <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
+                        <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-16">
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Help</h3>
+                    <ul class="space-y-2 text-sm opacity-90">
+                        <li><a href="#" class="hover:underline">Contact us</a></li>
+                        <li><a href="#" class="hover:underline">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Other</h3>
+                    <ul class="space-y-2 text-sm opacity-90">
+                        <li><a href="#" class="hover:underline">Privacy Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const app = {
+            cart: 0,
+            currentCategory: 'Drinks',
+            caffeineFilter: { caffeinated: false, decaf: false },
+            
+            // Variables para el detalle del producto
+            currentProduct: null,
+            currentQty: 1,
+
+            products: [
+                { id: 1, name: "Iced Black Tea", category: "Drinks", type: "Black Tea", price: 15, caffeinated: true, img: "https://globalassets.starbucks.com/assets/f12bc8af498d45ed92c5d6f1dac64062.jpg" },
+                { id: 2, name: "Hot Chai Tea", category: "Drinks", type: "Black Tea", price: 31, caffeinated: true, img: "https://globalassets.starbucks.com/assets/2d52f16a22fb40ff898be1815ecc685e.jpg" },
+                { id: 3, name: "Cold Brew", category: "Drinks", type: "Coffee", price: 12, caffeinated: true, img: "https://globalassets.starbucks.com/assets/f6979e7ea81944cb89d7b42c4c78c3b9.jpg" },
+                { id: 4, name: "Caffè Americano", category: "Drinks", type: "Coffee", price: 12, caffeinated: true, img: "https://globalassets.starbucks.com/assets/05e26719b3314643b090623ce1b08865.jpg" },
+                { id: 5, name: "Bottled Matcha", category: "Drinks", type: "Green Tea", price: 10, caffeinated: true, img: "https://globalassets.starbucks.com/assets/957e8416688f4d92a00c61830605e55e.jpg" },
+                { id: 6, name: "Mocha Frappuccino", category: "Drinks", type: "Coffee", price: 10, caffeinated: true, img: "https://globalassets.starbucks.com/assets/5c515339667943ce84dc56effdf5fc1b.jpg" },
+                { id: 7, name: "Hot Chocolate", category: "Drinks", type: "Chocolate", price: 12, caffeinated: false, img: "https://globalassets.starbucks.com/assets/f4b14d8eb00c406ba266596a2d98c253.jpg" },
+                { id: 8, name: "Pink Drink", category: "Drinks", type: "Refresher", price: 17, caffeinated: true, img: "https://globalassets.starbucks.com/assets/05a63c09e3a647d6be209b5550c6d67b.jpg" },
+                { id: 9, name: "Croissant de Jamón", category: "Food", type: "Bakery", price: 5, caffeinated: false, img: "https://globalassets.starbucks.com/assets/2362e79aa0ab4c37a930956c67ab557a.jpg" },
+                { id: 10, name: "Cake Pop", category: "Food", type: "Bakery", price: 3, caffeinated: false, img: "https://globalassets.starbucks.com/assets/2c9fa55bd9624513a010461b58536968.jpg" },
+                { id: 11, name: "Sandwich de Pollo", category: "Food", type: "Lunch", price: 8, caffeinated: false, img: "https://globalassets.starbucks.com/assets/02ea801e3aca42bcad2f6ef33c944899.jpg" },
+                { id: 12, name: "Café Veracruz", category: "At Home Coffee", type: "Beans", price: 25, caffeinated: true, img: "https://globalassets.starbucks.com/assets/652b1450c265431693e506d8601c2576.jpg" },
+                { id: 13, name: "Decaf Espresso", category: "At Home Coffee", type: "Beans", price: 24, caffeinated: false, img: "https://globalassets.starbucks.com/assets/81c82822a1044432857507c57700a400.jpg" }
+            ],
+
+            init: function() {
+                this.render(this.products.filter(p => p.category === 'Drinks'));
+            },
+
+            // --- FUNCIONES DEL CATÁLOGO ---
+            render: function(items) {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = "";
+                
+                if (items.length === 0) {
+                    grid.innerHTML = `<div class="col-span-4 text-center py-10 text-gray-400">No products found.</div>`;
+                    return;
+                }
+
+                items.forEach(item => {
+                    const html = `
+                    <div class="fade-in border rounded-lg p-4 flex flex-col items-center justify-between h-[320px] hover:shadow-lg hover:border-starbucks transition cursor-pointer bg-white group" onclick="app.openProductDetail(${item.id})">
+                        <div class="h-40 w-full flex items-center justify-center mb-2 overflow-hidden">
+                            <img src="${item.img}" alt="${item.name}" class="h-full object-contain group-hover:scale-110 transition duration-300">
+                        </div>
+                        <div class="text-center w-full">
+                            <h3 class="font-medium text-slate-800 mb-4 group-hover:text-starbucks group-hover:font-bold">${item.name}</h3>
+                            <div class="flex justify-between items-center w-full px-2">
+                                <span class="bg-gray-100 text-slate-700 font-bold px-3 py-1 rounded text-sm">$${item.price}</span>
+                                <button class="w-8 h-8 rounded-full bg-starbucks text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                    grid.innerHTML += html;
+                });
+            },
+
+            setCategory: function(cat, btn) {
+                this.currentCategory = cat;
+                document.querySelectorAll('.filter-tab').forEach(b => {
+                    b.className = "filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover:border-starbucks hover:text-starbucks transition";
+                });
+                btn.className = "filter-tab active bg-starbucks text-white px-6 py-2 rounded font-semibold shadow transition";
+                this.applyFilters();
+            },
+
+            search: function(text) { this.applyFilters(text); },
+
+            toggleCaffeine: function(type, isChecked) {
+                this.caffeineFilter[type] = isChecked;
+                this.applyFilters();
+            },
+
+            applyFilters: function(searchText = document.getElementById('searchInput').value) {
+                let filtered = this.products.filter(p => p.category === this.currentCategory);
+                if (searchText) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
+                if (this.caffeineFilter.caffeinated && !this.caffeineFilter.decaf) filtered = filtered.filter(p => p.caffeinated === true);
+                else if (!this.caffeineFilter.caffeinated && this.caffeineFilter.decaf) filtered = filtered.filter(p => p.caffeinated === false);
+                this.render(filtered);
+            },
+            
+            resetFilters: function() {
+                document.getElementById('searchInput').value = '';
+                document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+                this.caffeineFilter = { caffeinated: false, decaf: false };
+                this.applyFilters();
+            },
+
+            // --- FUNCIONES DEL DETALLE DEL PRODUCTO ---
+            
+            openProductDetail: function(id) {
+                // 1. Buscar el producto
+                const product = this.products.find(p => p.id === id);
+                if (!product) return;
+                
+                this.currentProduct = product;
+                this.currentQty = 1;
+
+                // 2. Llenar los datos en el HTML
+                document.getElementById('detail-img').src = product.img;
+                document.getElementById('detail-title').innerText = product.name;
+                document.getElementById('detail-price-display').innerText = `$${product.price}`;
+                document.getElementById('detail-qty').innerText = "1";
+                this.updateTotal();
+
+                // 3. Ocultar catálogo y mostrar detalle
+                document.getElementById('catalog-view').classList.add('hidden');
+                document.getElementById('product-detail-view').classList.remove('hidden');
+                
+                // Scroll arriba
+                window.scrollTo(0,0);
+            },
+
+            goBack: function() {
+                document.getElementById('product-detail-view').classList.add('hidden');
+                document.getElementById('catalog-view').classList.remove('hidden');
+            },
+
+            changeQty: function(amount) {
+                if (this.currentQty + amount >= 1) {
+                    this.currentQty += amount;
+                    document.getElementById('detail-qty').innerText = this.currentQty;
+                    this.updateTotal();
+                }
+            },
+
+            updateTotal: function() {
+                if(this.currentProduct) {
+                    const total = this.currentProduct.price * this.currentQty;
+                    document.getElementById('detail-total-price').innerText = `$${total}`;
+                }
+            },
+
+            selectSize: function(element) {
+                document.querySelectorAll('.cup-selector').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+                // Aquí podrías cambiar el precio si quisieras
+            },
+
+            addToCartFromDetail: function() {
+                this.cart += this.currentQty;
+                const badge = document.getElementById('cart-count');
+                badge.innerText = this.cart;
+                badge.classList.remove('hidden');
+
+                if(typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Añadido',
+                        text: `Se añadieron ${this.currentQty} x ${this.currentProduct.name} al carrito.`,
+                        confirmButtonColor: '#00704A'
+                    });
+                } else {
+                    alert('Añadido al carrito');
+                }
+                
+                // Volver al catálogo (opcional)
+                // this.goBack(); 
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
