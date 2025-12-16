@@ -34,6 +34,9 @@ const handleLogin = async () => {
         const response = await api.login(loginForm.value.email, loginForm.value.password);
         if (response.token) {
             localStorage.setItem('auth_token', response.token);
+            if (response.user && response.user.nombre) {
+                localStorage.setItem('user_name', response.user.nombre);
+            }
             // Navigate to home
             router.push('/');
         }

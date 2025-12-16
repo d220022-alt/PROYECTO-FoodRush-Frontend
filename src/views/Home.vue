@@ -3,13 +3,40 @@ import { ref, onMounted, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 
+// Image Imports
+import heroBg from '@/assets/images/hero-bg.png';
+import logoStarbucks from '@/assets/images/logo-starbucks.png';
+import logoMcDonalds from '@/assets/images/logo-mcdonalds.png';
+import logoKFC from '@/assets/images/logo-kfc.png';
+import logoBurgerKing from '@/assets/images/logo-burgerking.png';
+import logoLittleCaesars from '@/assets/images/logo-littlecaesars.png';
+import logoDominos from '@/assets/images/logo-dominos.png';
+import logoPizzaHut from '@/assets/images/logo-pizzahut.png';
+import logoKrispyKreme from '@/assets/images/logo-krispykreme.png';
+import logoRicoHotDog from '@/assets/images/logo-ricohotdog.png';
+import logoPizzarelli from '@/assets/images/logo-pizzarelli.png';
+import logoBarraPayan from '@/assets/images/logo-barrapayan.png';
+import logoTacoBell from '@/assets/images/logo-tacobell.png';
+import logoHeladosBon from '@/assets/images/logo-heladosbon.png';
+import logoChilis from '@/assets/images/logo-chilis.png';
+import logoPandaExpress from '@/assets/images/logo-pandaexpress.png';
+
 // State
 const franchises = ref([]);
 const loading = ref(true);
 const error = ref(null);
 const searchTerm = ref('');
 const currentCategory = ref('all');
+
 const router = useRouter();
+const userName = ref(localStorage.getItem('user_name') || '');
+
+const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_name');
+    userName.value = '';
+    window.location.reload();
+};
 
 // Modal State
 const isModalOpen = ref(false);
@@ -20,49 +47,49 @@ const activeFilters = ref([]);
 
 const franchiseMetadata = {
     // 1. Starbucks
-    "Starbucks Coffee": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1024px-Starbucks_Corporation_Logo_2011.svg.png", category: "Bebidas", rating: 4.8, pickup: true, promo: true },
+    "Starbucks Coffee": { img: logoStarbucks, category: "Bebidas", rating: 4.8, pickup: true, promo: true },
     
     // 2. McDonald's
-    "McDonald's": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", category: "Hamburguesa", rating: 4.7, pickup: true, promo: false },
+    "McDonald's": { img: logoMcDonalds, category: "Hamburguesa", rating: 4.7, pickup: true, promo: false },
     
     // 3. KFC
-    "KFC": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1024px-KFC_logo.svg.png", category: "Pollo", rating: 4.6, pickup: false, promo: true },
+    "KFC": { img: logoKFC, category: "Pollo", rating: 4.6, pickup: false, promo: true },
     
     // 4. Burger King
-    "Burger King": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/1024px-Burger_King_logo_%281999%29.svg.png", category: "Hamburguesa", rating: 4.3, pickup: true, promo: true },
+    "Burger King": { img: logoBurgerKing, category: "Hamburguesa", rating: 4.3, pickup: true, promo: true },
     
     // 5. Little Caesars
-    "Little Caesars": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/4/43/Little_Caesars_pizza_logo.svg/1200px-Little_Caesars_pizza_logo.svg.png", category: "Pizza", rating: 4.5, pickup: true, promo: false },
+    "Little Caesars": { img: logoLittleCaesars, category: "Pizza", rating: 4.5, pickup: true, promo: false },
     
     // 6. Domino's
-    "Domino's Pizza": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", category: "Pizza", rating: 4.8, pickup: true, promo: true },
+    "Domino's Pizza": { img: logoDominos, category: "Pizza", rating: 4.8, pickup: true, promo: true },
     
     // 7. Pizza Hut
-    "Pizza Hut": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/sco/thumb/d/d2/Pizza_Hut_logo.svg/1200px-Pizza_Hut_logo.svg.png", category: "Pizza", rating: 4.6, pickup: false, promo: false },
+    "Pizza Hut": { img: logoPizzaHut, category: "Pizza", rating: 4.6, pickup: false, promo: false },
     
     // 8. Krispy Kreme
-    "Krispy Kreme": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/6/66/Krispy_Kreme_logo.svg/1200px-Krispy_Kreme_logo.svg.png", category: "Postres", rating: 4.9, pickup: true, promo: true },
+    "Krispy Kreme": { img: logoKrispyKreme, category: "Postres", rating: 4.9, pickup: true, promo: true },
     
     // 9. Rico Hot Dog
-    "Rico Hot Dog": { img: "https://images.weserv.nl/?url=seeklogo.com/images/R/rico-hot-dog-logo-272097746D-seeklogo.com.png", category: "Criolla", rating: 4.2, pickup: true, promo: false },
+    "Rico Hot Dog": { img: logoRicoHotDog, category: "Criolla", rating: 4.2, pickup: true, promo: false },
     
     // 10. Pizzarelli
-    "Pizzarelli": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/e/e5/Pizzarelli_Logo.png", category: "Pizza", rating: 4.7, pickup: true, promo: true },
+    "Pizzarelli": { img: logoPizzarelli, category: "Pizza", rating: 4.7, pickup: true, promo: true },
     
     // 11. Barra Payán
-    "Barra Payán": { img: "https://images.weserv.nl/?url=encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRz-hX6x-SAvYyD5XvG-7U5K3qO5zO5Xw5XwA&s", category: "Criolla", rating: 4.9, pickup: true, promo: false },
+    "Barra Payán": { img: logoBarraPayan, category: "Criolla", rating: 4.9, pickup: true, promo: false },
     
     // 12. Taco Bell
-    "Taco Bell": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/b/b3/Taco_Bell_2016.svg/1200px-Taco_Bell_2016.svg.png", category: "Tacos", rating: 4.4, pickup: false, promo: true },
+    "Taco Bell": { img: logoTacoBell, category: "Tacos", rating: 4.4, pickup: false, promo: true },
     
     // 13. Helados Bon
-    "Helados Bon": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/commons/f/f6/Helados_Bon_Logo.jpg", category: "Postres", rating: 4.8, pickup: true, promo: true },
+    "Helados Bon": { img: logoHeladosBon, category: "Postres", rating: 4.8, pickup: true, promo: true },
     
     // 14. Chili's
-    "Chili's Grill & Bar": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/1/14/Chili%27s_Grill_%26_Bar_logo.svg/1200px-Chili%27s_Grill_%26_Bar_logo.svg.png", category: "Mexicana", rating: 4.5, pickup: false, promo: false },
+    "Chili's Grill & Bar": { img: logoChilis, category: "Mexicana", rating: 4.5, pickup: false, promo: false },
     
     // 15. Panda Express
-    "Panda Express": { img: "https://images.weserv.nl/?url=upload.wikimedia.org/wikipedia/en/thumb/2/29/Panda_Express_logo.svg/1200px-Panda_Express_logo.svg.png", category: "Asiática", rating: 4.7, pickup: true, promo: true }
+    "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
 };
 
 const fetchFranchises = async () => {
@@ -200,7 +227,16 @@ const goToFranchise = (id, name) => {
             <a href="#" class="hover:text-orange-600 transition">Contactos</a>
         </nav>
 
-        <router-link to="/login" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition">
+        <div v-if="userName" class="flex items-center gap-3">
+            <div class="flex flex-col items-end">
+                <span class="font-bold text-slate-700 text-sm">Hola, {{ userName }}</span>
+                <button @click="handleLogout" class="text-xs text-red-500 hover:underline">Cerrar sesión</button>
+            </div>
+            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 border border-orange-200">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        </div>
+        <router-link v-else to="/login" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition" title="Iniciar Sesión">
             <i class="fa-solid fa-user"></i>
         </router-link>
     </header>
@@ -208,7 +244,7 @@ const goToFranchise = (id, name) => {
     <!-- HERO SECTION -->
     <section class="relative h-[300px] md:h-[400px] flex items-center justify-center">
         <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop" class="w-full h-full object-cover brightness-50">
+            <img :src="heroBg" class="w-full h-full object-cover brightness-50">
         </div>
         <div class="relative z-10 w-full max-w-2xl px-4">
             <div class="bg-white rounded-lg flex shadow-2xl overflow-hidden p-1">
