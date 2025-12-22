@@ -24,7 +24,7 @@
         .cup-selector.selected p { color: #00704A; font-weight: bold; }
     </style>
 </head>
-<body class="flex flex-col min-h-screen text-slate-800 bg-white">
+<body class="flex flex-col min-h-screen text-slate-800 bg-white" onload="updateCartBadge()"></body>
 
     <header class="bg-white border-b sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
@@ -45,10 +45,12 @@
                     <input type="text" id="searchInput" placeholder="Search product" class="outline-none w-full text-sm" onkeyup="app.search(this.value)">
                 </div>
                 <div class="flex gap-4 text-xl items-center">
-                    <button class="hover:text-starbucks transition relative">
+                    
+                    <button class="hover:text-starbucks transition relative" onclick="window.location.href='cart.html'">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
                     </button>
+                    
                     <button class="hover:text-starbucks transition"><i class="fa-regular fa-user"></i></button>
                 </div>
             </div>
@@ -102,7 +104,7 @@
             </aside>
 
             <main id="product-grid" class="md:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-6">
-                </main>
+            </main>
         </div>
     </div>
 
@@ -112,12 +114,10 @@
         </button>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-            
             <div>
                 <div class="bg-gray-100 rounded-xl flex items-center justify-center p-8 h-[500px] mb-8">
                     <img id="detail-img" src="" alt="Product" class="max-h-full max-w-full object-contain drop-shadow-2xl">
                 </div>
-
                 <div class="mb-8">
                     <h3 class="font-bold text-xl text-gray-600 mb-4 border-b-2 border-green-100 pb-1 w-full">Opciones de tamaño</h3>
                     <div class="flex justify-center gap-8 mt-4">
@@ -140,23 +140,17 @@
             <div class="flex flex-col">
                 <h1 id="detail-title" class="text-4xl font-bold text-slate-900 mb-2">Producto</h1>
                 <h2 class="text-lg font-bold text-gray-500 mb-4">Matcha Proteico Helado</h2>
-                
                 <div class="flex items-center mb-6">
                     <div class="flex text-gray-400 text-xs">
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i>
                     </div>
                     <span class="text-xs text-gray-400 ml-2">260 Reviews</span>
                 </div>
-
-                <p class="text-gray-600 text-sm leading-relaxed mb-6">
-                    Rico en proteínas. Sabor a matcha. Con 35g de proteína por porción grande, este suave latte helado combina nuestro matcha sin azúcar con leche enriquecida.
-                </p>
-
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">Rico en proteínas. Sabor a matcha. Con 35g de proteína por porción grande...</p>
                 <div class="flex items-baseline gap-4 mb-8 border-b border-gray-200 pb-6">
                     <span class="text-xl font-medium text-gray-600">Precio:</span>
                     <span id="detail-price-display" class="text-3xl font-bold text-slate-800 bg-gray-100 px-3 py-1 rounded">$0</span>
                 </div>
-
                 <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
                     <span class="text-xl font-bold">Quantity:</span>
                     <div class="flex items-center gap-4 text-2xl font-bold text-gray-600">
@@ -165,53 +159,25 @@
                         <button onclick="app.changeQty(1)" class="hover:text-starbucks">+</button>
                     </div>
                 </div>
-
                 <div class="mb-8">
                     <h3 class="font-bold text-xl text-gray-600 mb-4">¿Qué incluye?</h3>
-                    
                     <div class="border rounded-lg p-4 mb-3">
                         <span class="text-xs text-gray-500 block mb-1">Complementos</span>
-                        <div class="flex justify-between items-center">
-                            <span class="font-medium text-slate-700">Hielo</span>
-                            <i class="fa-solid fa-chevron-down text-starbucks"></i>
-                        </div>
+                        <div class="flex justify-between items-center"><span class="font-medium text-slate-700">Hielo</span><i class="fa-solid fa-chevron-down text-starbucks"></i></div>
                     </div>
-
                     <div class="border rounded-lg p-4 mb-3 flex justify-between items-center">
-                        <div>
-                            <span class="text-xs text-gray-500 block mb-1">Té</span>
-                            <span class="font-medium text-slate-700 w-48 block">Cucharas medidoras de polvo de matcha</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-starbucks text-xl select-none">
-                            <i class="fa-regular fa-circle-left cursor-pointer hover:scale-110 transition" onclick="app.updateIngredient('matcha-qty', -1)"></i>
-                            <span id="matcha-qty" class="font-bold text-slate-700 w-6 text-center">4</span>
-                            <i class="fa-regular fa-circle-right cursor-pointer hover:scale-110 transition" onclick="app.updateIngredient('matcha-qty', 1)"></i>
-                        </div>
+                        <div><span class="text-xs text-gray-500 block mb-1">Té</span><span class="font-medium text-slate-700 w-48 block">Cucharas medidoras de polvo de matcha</span></div>
+                        <div class="flex items-center gap-3 text-starbucks text-xl select-none"><i class="fa-regular fa-circle-left cursor-pointer" onclick="app.updateIngredient('matcha-qty', -1)"></i><span id="matcha-qty" class="font-bold text-slate-700 w-6 text-center">4</span><i class="fa-regular fa-circle-right cursor-pointer" onclick="app.updateIngredient('matcha-qty', 1)"></i></div>
                     </div>
-
                     <div class="border rounded-lg p-4 flex justify-between items-center">
-                        <div>
-                            <span class="text-xs text-gray-500 block mb-1">Edulcorantes</span>
-                            <span class="font-medium text-slate-700">Bombas de jarabe clásicas</span>
-                        </div>
-                        <div class="flex items-center gap-3 text-starbucks text-xl select-none">
-                            <i class="fa-regular fa-circle-left cursor-pointer hover:scale-110 transition" onclick="app.updateIngredient('syrup-qty', -1)"></i>
-                            <span id="syrup-qty" class="font-bold text-slate-700 w-6 text-center">4</span>
-                            <i class="fa-regular fa-circle-right cursor-pointer hover:scale-110 transition" onclick="app.updateIngredient('syrup-qty', 1)"></i>
-                        </div>
+                        <div><span class="text-xs text-gray-500 block mb-1">Edulcorantes</span><span class="font-medium text-slate-700">Bombas de jarabe clásicas</span></div>
+                        <div class="flex items-center gap-3 text-starbucks text-xl select-none"><i class="fa-regular fa-circle-left cursor-pointer" onclick="app.updateIngredient('syrup-qty', -1)"></i><span id="syrup-qty" class="font-bold text-slate-700 w-6 text-center">4</span><i class="fa-regular fa-circle-right cursor-pointer" onclick="app.updateIngredient('syrup-qty', 1)"></i></div>
                     </div>
                 </div>
-
                 <div class="mt-4 flex flex-col gap-4">
-                    <div class="flex items-center gap-2">
-                        <span class="text-2xl font-bold">Total:</span>
-                        <span id="detail-total-price" class="text-2xl font-bold bg-gray-100 px-3 py-1 rounded">$0</span>
-                    </div>
-                    <button onclick="app.addToCartFromDetail()" class="w-full bg-starbucks hover:bg-[#005c3d] text-white font-bold py-4 rounded-lg shadow-lg text-lg transition transform hover:scale-[1.01]">
-                        Añadir al carrito
-                    </button>
+                    <div class="flex items-center gap-2"><span class="text-2xl font-bold">Total:</span><span id="detail-total-price" class="text-2xl font-bold bg-gray-100 px-3 py-1 rounded">$0</span></div>
+                    <button onclick="app.addToCartFromDetail()" class="w-full bg-starbucks hover:bg-[#005c3d] text-white font-bold py-4 rounded-lg shadow-lg text-lg transition transform hover:scale-[1.01]">Añadir al carrito</button>
                 </div>
-
             </div>
         </div>
     </div>
@@ -228,19 +194,8 @@
                 </div>
             </div>
             <div class="flex gap-16">
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Help</h3>
-                    <ul class="space-y-2 text-sm opacity-90">
-                        <li><a href="#" class="hover:underline">Contact us</a></li>
-                        <li><a href="#" class="hover:underline">FAQ</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg mb-4">Other</h3>
-                    <ul class="space-y-2 text-sm opacity-90">
-                        <li><a href="#" class="hover:underline">Privacy Policy</a></li>
-                    </ul>
-                </div>
+                <div><h3 class="font-bold text-lg mb-4">Help</h3><ul class="space-y-2 text-sm opacity-90"><li><a href="#">Contact us</a></li><li><a href="#">FAQ</a></li></ul></div>
+                <div><h3 class="font-bold text-lg mb-4">Other</h3><ul class="space-y-2 text-sm opacity-90"><li><a href="#">Privacy Policy</a></li></ul></div>
             </div>
         </div>
     </footer>
@@ -252,7 +207,6 @@
             caffeineFilter: { caffeinated: false, decaf: false },
             currentProduct: null,
             currentQty: 1,
-
             products: [
                 { id: 1, name: "Iced Black Tea", category: "Drinks", type: "Black Tea", price: 15, caffeinated: true, img: "https://globalassets.starbucks.com/assets/f12bc8af498d45ed92c5d6f1dac64062.jpg" },
                 { id: 2, name: "Hot Chai Tea", category: "Drinks", type: "Black Tea", price: 31, caffeinated: true, img: "https://globalassets.starbucks.com/assets/2d52f16a22fb40ff898be1815ecc685e.jpg" },
@@ -268,55 +222,28 @@
                 { id: 12, name: "Café Veracruz", category: "At Home Coffee", type: "Beans", price: 25, caffeinated: true, img: "https://globalassets.starbucks.com/assets/652b1450c265431693e506d8601c2576.jpg" },
                 { id: 13, name: "Decaf Espresso", category: "At Home Coffee", type: "Beans", price: 24, caffeinated: false, img: "https://globalassets.starbucks.com/assets/81c82822a1044432857507c57700a400.jpg" }
             ],
-
-            init: function() {
-                this.render(this.products.filter(p => p.category === 'Drinks'));
-            },
-
+            init: function() { this.render(this.products.filter(p => p.category === 'Drinks')); },
             render: function(items) {
                 const grid = document.getElementById('product-grid');
                 grid.innerHTML = "";
-                
-                if (items.length === 0) {
-                    grid.innerHTML = `<div class="col-span-4 text-center py-10 text-gray-400">No products found.</div>`;
-                    return;
-                }
-
+                if (items.length === 0) { grid.innerHTML = `<div class="col-span-4 text-center py-10 text-gray-400">No products found.</div>`; return; }
                 items.forEach(item => {
                     const html = `
                     <div class="fade-in border rounded-lg p-4 flex flex-col items-center justify-between h-[320px] hover:shadow-lg hover:border-starbucks transition cursor-pointer bg-white group" onclick="app.openProductDetail(${item.id})">
-                        <div class="h-40 w-full flex items-center justify-center mb-2 overflow-hidden">
-                            <img src="${item.img}" alt="${item.name}" class="h-full object-contain group-hover:scale-110 transition duration-300">
-                        </div>
-                        <div class="text-center w-full">
-                            <h3 class="font-medium text-slate-800 mb-4 group-hover:text-starbucks group-hover:font-bold">${item.name}</h3>
-                            <div class="flex justify-between items-center w-full px-2">
-                                <span class="bg-gray-100 text-slate-700 font-bold px-3 py-1 rounded text-sm">$${item.price}</span>
-                                <button class="w-8 h-8 rounded-full bg-starbucks text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center">+</button>
-                            </div>
-                        </div>
-                    </div>
-                    `;
+                        <div class="h-40 w-full flex items-center justify-center mb-2 overflow-hidden"><img src="${item.img}" alt="${item.name}" class="h-full object-contain group-hover:scale-110 transition duration-300"></div>
+                        <div class="text-center w-full"><h3 class="font-medium text-slate-800 mb-4 group-hover:text-starbucks group-hover:font-bold">${item.name}</h3><div class="flex justify-between items-center w-full px-2"><span class="bg-gray-100 text-slate-700 font-bold px-3 py-1 rounded text-sm">$${item.price}</span><button class="w-8 h-8 rounded-full bg-starbucks text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center">+</button></div></div>
+                    </div>`;
                     grid.innerHTML += html;
                 });
             },
-
             setCategory: function(cat, btn) {
                 this.currentCategory = cat;
-                document.querySelectorAll('.filter-tab').forEach(b => {
-                    b.className = "filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover:border-starbucks hover:text-starbucks transition";
-                });
+                document.querySelectorAll('.filter-tab').forEach(b => { b.className = "filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover:border-starbucks hover:text-starbucks transition"; });
                 btn.className = "filter-tab active bg-starbucks text-white px-6 py-2 rounded font-semibold shadow transition";
                 this.applyFilters();
             },
-
             search: function(text) { this.applyFilters(text); },
-
-            toggleCaffeine: function(type, isChecked) {
-                this.caffeineFilter[type] = isChecked;
-                this.applyFilters();
-            },
-
+            toggleCaffeine: function(type, isChecked) { this.caffeineFilter[type] = isChecked; this.applyFilters(); },
             applyFilters: function(searchText = document.getElementById('searchInput').value) {
                 let filtered = this.products.filter(p => p.category === this.currentCategory);
                 if (searchText) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
@@ -324,21 +251,17 @@
                 else if (!this.caffeineFilter.caffeinated && this.caffeineFilter.decaf) filtered = filtered.filter(p => p.caffeinated === false);
                 this.render(filtered);
             },
-            
             resetFilters: function() {
                 document.getElementById('searchInput').value = '';
                 document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
                 this.caffeineFilter = { caffeinated: false, decaf: false };
                 this.applyFilters();
             },
-
             openProductDetail: function(id) {
                 const product = this.products.find(p => p.id === id);
                 if (!product) return;
-                
                 this.currentProduct = product;
                 this.currentQty = 1;
-
                 document.getElementById('detail-img').src = product.img;
                 document.getElementById('detail-title').innerText = product.name;
                 document.getElementById('detail-price-display').innerText = `$${product.price}`;
@@ -346,25 +269,17 @@
                 document.getElementById('matcha-qty').innerText = "4";
                 document.getElementById('syrup-qty').innerText = "4";
                 this.updateTotal();
-
                 document.getElementById('catalog-view').classList.add('hidden');
                 document.getElementById('product-detail-view').classList.remove('hidden');
                 window.scrollTo(0,0);
             },
-
             goBack: function() {
                 document.getElementById('product-detail-view').classList.add('hidden');
                 document.getElementById('catalog-view').classList.remove('hidden');
             },
-
             changeQty: function(amount) {
-                if (this.currentQty + amount >= 1) {
-                    this.currentQty += amount;
-                    document.getElementById('detail-qty').innerText = this.currentQty;
-                    this.updateTotal();
-                }
+                if (this.currentQty + amount >= 1) { this.currentQty += amount; document.getElementById('detail-qty').innerText = this.currentQty; this.updateTotal(); }
             },
-
             updateIngredient: function(elementId, change) {
                 const el = document.getElementById(elementId);
                 let val = parseInt(el.innerText);
@@ -372,38 +287,58 @@
                 if (newVal < 0) newVal = 0;
                 el.innerText = newVal;
             },
-
             updateTotal: function() {
-                if(this.currentProduct) {
-                    const total = this.currentProduct.price * this.currentQty;
-                    document.getElementById('detail-total-price').innerText = `$${total}`;
-                }
+                if(this.currentProduct) { const total = this.currentProduct.price * this.currentQty; document.getElementById('detail-total-price').innerText = `$${total}`; }
             },
-
             selectSize: function(element) {
                 document.querySelectorAll('.cup-selector').forEach(el => el.classList.remove('selected'));
                 element.classList.add('selected');
             },
-
+            
             addToCartFromDetail: function() {
+                // 1. Crear el objeto del producto con la cantidad seleccionada
+                const cartItem = {
+                    id: this.currentProduct.id,
+                    name: this.currentProduct.name,
+                    price: this.currentProduct.price,
+                    img: this.currentProduct.img,
+                    qty: this.currentQty,
+                    // Detalles simulados (podrías hacerlos dinámicos si quisieras)
+                    details: "Vaso Grande, Hielo normal" 
+                };
+
+                // 2. Obtener el carrito actual de la memoria o crear uno nuevo
+                let cart = JSON.parse(localStorage.getItem('foodrush_cart')) || [];
+                
+                // 3. Añadir el nuevo producto
+                cart.push(cartItem);
+                
+                // 4. Guardar de nuevo en memoria
+                localStorage.setItem('foodrush_cart', JSON.stringify(cart));
+
+                // 5. Actualizar el contador visual del header
                 this.cart += this.currentQty;
                 const badge = document.getElementById('cart-count');
                 badge.innerText = this.cart;
                 badge.classList.remove('hidden');
 
-                if(typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Añadido',
-                        text: `Se añadieron ${this.currentQty} x ${this.currentProduct.name} al carrito.`,
-                        confirmButtonColor: '#00704A'
-                    });
-                } else {
-                    alert('Añadido al carrito');
-                }
+                // 6. Confirmación y opción de ir al carrito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Añadido!',
+                    text: `Has añadido ${this.currentProduct.name} al carrito.`,
+                    showCancelButton: true,
+                    confirmButtonColor: '#00704A',
+                    cancelButtonColor: '#333',
+                    confirmButtonText: 'Ir al Carrito',
+                    cancelButtonText: 'Seguir comprando'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'cart.html';
+                    }
+                });
             }
         };
-
         app.init();
     </script>
 </body>

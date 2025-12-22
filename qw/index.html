@@ -240,13 +240,13 @@
                 `).join('');
             },
 
-            // --- FUNCIÓN DE REDIRECCIÓN ---
+            // --- FUNCIÓN DE REDIRECCIÓN A STARBUCKS ---
             goToPage: function(id, name) {
                 if (id === 1) {
-                    window.location.href = 'starbucks.html';
-                } else if (id === 2) {
-                    window.location.href = 'mcdonalds.html'; 
+                    // Solo ID 1 (Starbucks) redirige
+                    window.location.href = 'starbukz.html';
                 } else {
+                    // El resto muestra alerta por ahora
                     alert('Has seleccionado ' + name);
                 }
             },
