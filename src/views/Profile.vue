@@ -49,6 +49,19 @@ const menuItems = [
     { title: "Notificaciones", icon: "fa-regular fa-bell", route: "/notifications" },
     { title: "Ayuda y Soporte", icon: "fa-regular fa-circle-question", route: "/support" }
 ];
+
+const handleNavigation = (item) => {
+    if (item.route) {
+        // Simple check if route exists in router (optional, but good for validation)
+        // For now directly push
+        if (item.route === '/support' || item.route === '/notifications' || item.route === '/change-password') {
+             // Placeholder for incomplete features
+             alert(`La sección '${item.title}' estará disponible próximamente.`);
+        } else {
+             router.push(item.route);
+        }
+    }
+};
 </script>
 
 <template>
@@ -127,7 +140,7 @@ const menuItems = [
         <div>
              <h3 class="font-bold text-lg text-slate-800 mb-3 px-1">Pagos y Pedidos</h3>
              <div class="bg-white rounded-3xl overflow-hidden shadow-sm">
-                 <button v-for="(item, idx) in menuItems.slice(0, 2)" :key="idx" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition border-b last:border-0 border-gray-100">
+                 <button v-for="(item, idx) in menuItems.slice(0, 3)" :key="idx" @click="handleNavigation(item)" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition border-b last:border-0 border-gray-100">
                      <div class="flex items-center gap-4">
                          <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-slate-800 text-lg">
                              <i :class="item.icon"></i>
@@ -143,7 +156,7 @@ const menuItems = [
         <div>
              <h3 class="font-bold text-lg text-slate-800 mb-3 px-1">Configuración</h3>
              <div class="bg-white rounded-3xl overflow-hidden shadow-sm">
-                 <button v-for="(item, idx) in menuItems.slice(2, 5)" :key="idx" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition border-b last:border-0 border-gray-100">
+                 <button v-for="(item, idx) in menuItems.slice(3)" :key="idx" @click="handleNavigation(item)" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition border-b last:border-0 border-gray-100">
                      <div class="flex items-center gap-4">
                          <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-slate-800 text-lg">
                              <i :class="item.icon"></i>
