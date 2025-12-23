@@ -4,7 +4,15 @@ import Login from './views/Login.vue'
 
 const routes = [
     { path: '/', component: Home },
-    { path: '/login', component: Login }
+    { path: '/login', component: Login },
+    // Franchise Routes
+    { path: '/franchise/starbucks', component: () => import('./views/Starbucks.vue') },
+    { path: '/franchise/mcdonalds', component: () => import('./views/McDonalds.vue') },
+    // User Routes
+    { path: '/cart', component: () => import('./views/Cart.vue') },
+    { path: '/checkout', component: () => import('./views/Checkout.vue') },
+    { path: '/profile', component: () => import('./views/Profile.vue') },
+    { path: '/favorites', component: () => import('./views/Favorites.vue') }
 ]
 
 const router = createRouter({

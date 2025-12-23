@@ -1,4 +1,4 @@
-const API_URL = 'http://127.0.0.1:3000';
+const API_URL = 'http://localhost:3000';
 
 export const api = {
     async request(endpoint, options = {}) {
@@ -41,6 +41,12 @@ export const api = {
         return this.request('/api/tenants');
     },
 
+    // Products
+    async getProducts(params = {}, headers = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.request(`/api/productos?${query}`, { headers });
+    },
+
     async login(email, password) {
         return this.request('/api/usuarios/login', {
             method: 'POST',
@@ -62,5 +68,42 @@ export const api = {
             method: 'POST',
             body: JSON.stringify(payload)
         });
+    },
+
+    async getUser(id) {
+        return this.request(`/api/usuarios/${id}`);
+    },
+
+    async updateUser(id, data) {
+        return this.request(`/api/usuarios/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    },
+
+    // Client Management (for Orders)
+    async getClients(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.request(`/api/clientes?${query}`);
+    },
+
+    async createClient(clientData) {
+        return this.request('/api/clientes', {
+            method: 'POST',
+            body: JSON.stringify(clientData)
+        });
+    },
+
+    // Order Management
+    async createOrder(orderData) {
+        return this.request('/api/pedidos', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
+    },
+
+    // Validar si es un error de conexión para reintentos o feedback
+    isNetworkError(error) {
+        return error.message.includes('fetch') || error.message.includes('servidor');
     }
 };

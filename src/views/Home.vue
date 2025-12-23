@@ -199,8 +199,17 @@ const setSort = (type) => sortType.value = type;
 // Navigation
 // This replaces the old goToPage function
 const goToFranchise = (id, name) => {
-    alert(`Has seleccionado ${name}`);
-    // Here we would navigate to a details page: router.push(`/franchise/${id}`);
+    // Normalizar nombre para coincidir con la ruta
+    const lowerName = name.toLowerCase();
+
+    if (lowerName.includes('starbucks')) {
+        router.push('/franchise/starbucks');
+    } else if (lowerName.includes('mcdonald')) {
+        router.push('/franchise/mcdonalds');
+    } else {
+        // Fallback para las que no tienen página aún
+        alert(`La página de ${name} está en construcción. Próximamente.`);
+    }
 }
 
 // onMounted is handled above
@@ -232,7 +241,7 @@ const goToFranchise = (id, name) => {
                 <span class="font-bold text-slate-700 text-sm">Hola, {{ userName }}</span>
                 <button @click="handleLogout" class="text-xs text-red-500 hover:underline">Cerrar sesión</button>
             </div>
-            <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 border border-orange-200">
+            <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200 transition">
                 <i class="fa-solid fa-user"></i>
             </div>
         </div>
@@ -262,7 +271,7 @@ const goToFranchise = (id, name) => {
         <!-- FILTERS BAR -->
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
             <button @click="openModal" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
-                <span>Filter</span>
+                <span>Filtrar</span>
                 <i class="fa-solid fa-filter text-xs"></i>
             </button>
 
@@ -335,7 +344,7 @@ const goToFranchise = (id, name) => {
     <div v-if="isModalOpen" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center fade-in">
         <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4 relative shadow-2xl">
             <button @click="closeModal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h2 class="text-3xl font-bold text-center mb-8 text-slate-800">Filter</h2>
+            <h2 class="text-3xl font-bold text-center mb-8 text-slate-800">Filtros</h2>
             
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Ordenar</h3>

@@ -36,6 +36,9 @@ const handleLogin = async () => {
             localStorage.setItem('auth_token', response.token);
             if (response.user && response.user.nombre) {
                 localStorage.setItem('user_name', response.user.nombre);
+                localStorage.setItem('user_id', response.user.id);
+                localStorage.setItem('user_email', response.user.correo);
+                if (response.user.telefono) localStorage.setItem('user_phone', response.user.telefono);
             }
             // Navigate to home
             router.push('/');
@@ -85,10 +88,10 @@ const handleRegister = async () => {
             
             <!-- LOGIN PANEL (LEFT) -->
             <div class="panel left-panel">
-                <h2>Inicio Sesion</h2>
+                <h2>Iniciar Sesión</h2>
                 <form @submit.prevent="handleLogin">
-                    <label>Usuario/@Gmail</label>
-                    <input v-model="loginForm.email" type="text" placeholder="Usuario / @Gmail">
+                    <label>Usuario o Correo</label>
+                    <input v-model="loginForm.email" type="text" placeholder="Usuario o Correo Electrónico">
                     <label>Contraseña</label>
                     <input v-model="loginForm.password" type="password" placeholder="Contraseña">
                     <button type="submit" class="btn-action">Ingresar</button>
@@ -98,13 +101,13 @@ const handleRegister = async () => {
                 <div class="separator"><span>o</span></div>
                 <a class="social-btn"><i class="fa-brands fa-google"></i> Continuar con Google</a>
                 <div class="switch-link">
-                    ¿No estas registrado? <a @click="togglePanel(true)">Registrarse</a>
+                    ¿No estás registrado? <a @click="togglePanel(true)">Regístrate</a>
                 </div>
             </div>
 
             <!-- REGISTER PANEL (RIGHT) -->
             <div class="panel right-panel">
-                <h2>Registro Cliente</h2>
+                <h2>Registro de Cliente</h2>
                 <form @submit.prevent="handleRegister">
                     <label>Correo Electrónico</label>
                     <input v-model="registerForm.email" type="email" placeholder="correo@ejemplo.com">
