@@ -14,7 +14,11 @@ const routes = [
     { path: '/orders', component: () => import('./views/Orders.vue') },
     { path: '/profile', component: () => import('./views/Profile.vue') },
     { path: '/favorites', component: () => import('./views/Favorites.vue') },
-    { path: '/payment-methods', component: () => import('./views/PaymentMethods.vue') }
+    { path: '/payment-methods', component: () => import('./views/PaymentMethods.vue') },
+    // Config Routes
+    { path: '/change-password', component: () => import('./views/ChangePassword.vue') },
+    { path: '/notifications', component: () => import('./views/Notifications.vue') },
+    { path: '/support', component: () => import('./views/Support.vue') }
 ]
 
 const router = createRouter({

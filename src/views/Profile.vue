@@ -52,14 +52,7 @@ const menuItems = [
 
 const handleNavigation = (item) => {
     if (item.route) {
-        // Simple check if route exists in router (optional, but good for validation)
-        // For now directly push
-        if (item.route === '/support' || item.route === '/notifications' || item.route === '/change-password') {
-             // Placeholder for incomplete features
-             alert(`La sección '${item.title}' estará disponible próximamente.`);
-        } else {
-             router.push(item.route);
-        }
+        router.push(item.route);
     }
 };
 </script>
