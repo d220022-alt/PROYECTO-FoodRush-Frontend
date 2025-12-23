@@ -213,13 +213,20 @@ const goToFranchise = (id, name) => {
 }
 
 // onMounted is handled above
+
+const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+    }
+};
 </script>
 
 <template>
   <div class="flex flex-col min-h-screen text-slate-800">
     
     <!-- HEADER -->
-    <header class="bg-white py-4 px-6 md:px-12 flex justify-between items-center shadow-sm sticky top-0 z-50">
+    <header id="top" class="bg-white py-4 px-6 md:px-12 flex justify-between items-center shadow-sm sticky top-0 z-50">
         <div class="flex items-center gap-2">
             <div class="flex flex-col items-center leading-none">
                 <span class="text-orange-500 font-bold text-xl italic tracking-tighter">Food</span>
@@ -231,9 +238,9 @@ const goToFranchise = (id, name) => {
         </div>
 
         <nav class="hidden md:flex gap-8 font-medium text-slate-600">
-            <a href="#" class="text-slate-900 border-b-2 border-slate-900">Inicio</a>
-            <a href="#" class="hover:text-orange-600 transition">Franquicias</a>
-            <a href="#" class="hover:text-orange-600 transition">Contactos</a>
+            <a href="#" @click.prevent="scrollToSection('top')" class="text-slate-900 border-b-2 border-slate-900">Inicio</a>
+            <a href="#" @click.prevent="scrollToSection('franchises')" class="hover:text-orange-600 transition">Franquicias</a>
+            <a href="#" @click.prevent="scrollToSection('contact')" class="hover:text-orange-600 transition">Contactos</a>
         </nav>
 
         <div v-if="userName" class="flex items-center gap-3">
@@ -267,7 +274,7 @@ const goToFranchise = (id, name) => {
     </section>
 
     <!-- CONTENT -->
-    <section class="container mx-auto px-4 md:px-12 py-8">
+    <section id="franchises" class="container mx-auto px-4 md:px-12 py-8">
         <!-- FILTERS BAR -->
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
             <button @click="openModal" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
@@ -334,8 +341,27 @@ const goToFranchise = (id, name) => {
     </section>
 
     <!-- FOOTER -->
-    <footer class="bg-[#BD0A0A] text-white mt-auto">
-        <div class="py-4 text-center text-xs text-white/60">
+    <footer id="contact" class="bg-[#BD0A0A] text-white mt-auto">
+        <div class="py-12 px-6 container mx-auto grid md:grid-cols-3 gap-8 text-sm">
+            <div>
+                <h3 class="font-bold text-lg mb-4">FoodRush</h3>
+                <p class="opacity-80">La mejor comida, de tus franquicias favoritas, directo a tu puerta.</p>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg mb-4">Contactos</h3>
+                <p class="opacity-80 mb-2"><i class="fa-solid fa-envelope mr-2"></i> soporte@foodrush.com</p>
+                <p class="opacity-80"><i class="fa-solid fa-phone mr-2"></i> +1 (809) 555-0123</p>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg mb-4">Síguenos</h3>
+                <div class="flex gap-4 text-xl">
+                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-facebook"></i></a>
+                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="py-4 text-center text-xs text-white/60 border-t border-white/10">
             &copy; 2025 FoodRush Inc.
         </div>
     </footer>
