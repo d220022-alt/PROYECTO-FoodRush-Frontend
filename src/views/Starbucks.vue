@@ -18,6 +18,53 @@ const currentCategory = ref('Bebidas');
 const searchTerm = ref('');
 const caffeineFilter = ref({ caffeinated: false, decaf: false });
 const cartCount = ref(0);
+const isFavorite = ref(false);
+
+const checkFavorite = () => {
+    if (!selectedProduct.value) return;
+    const favorites = JSON.parse(localStorage.getItem('foodrush_favorites')) || [];
+    isFavorite.value = favorites.some(f => f.id === selectedProduct.value.id);
+};
+
+const toggleFavorite = () => {
+    if (!selectedProduct.value) return;
+    
+    let favorites = JSON.parse(localStorage.getItem('foodrush_favorites')) || [];
+    
+    if (isFavorite.value) {
+        // Remove
+        favorites = favorites.filter(f => f.id !== selectedProduct.value.id);
+        isFavorite.value = false;
+        Swal.fire({ 
+            title: 'Eliminado de favoritos', 
+            icon: 'info', 
+            toast: true, 
+            position: 'top-end', 
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+    } else {
+        // Add
+        favorites.push({
+            id: selectedProduct.value.id,
+            name: selectedProduct.value.name,
+            img: selectedProduct.value.img,
+            price: selectedProduct.value.price,
+            place: 'Starbucks' // Franchise name
+        });
+        isFavorite.value = true;
+        Swal.fire({ 
+            title: 'Añadido a favoritos', 
+            icon: 'success', 
+            toast: true, 
+            position: 'top-end', 
+            timer: 2000, 
+            showConfirmButton: false 
+        });
+    }
+    
+    localStorage.setItem('foodrush_favorites', JSON.stringify(favorites));
+};
 
 // Detail View State
 const selectedProduct = ref(null);
@@ -105,7 +152,9 @@ const openProductDetail = (product) => {
     selectedProduct.value = product;
     currentQty.value = 1;
     matchaQty.value = 4;
+    matchaQty.value = 4;
     syrupQty.value = 4;
+    checkFavorite();
     window.scrollTo(0,0);
 };
 
@@ -345,6 +394,10 @@ onMounted(() => {
                         <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i>
                     </div>
                     <span class="text-gray-400 ml-2">(4.8)</span>
+                    
+                    <button @click="toggleFavorite" class="ml-auto w-10 h-10 rounded-full flex items-center justify-center transition" :class="isFavorite ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400 hover:text-red-400'">
+                        <i :class="isFavorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                    </button>
                 </div>
 
                 <p class="text-gray-600 text-sm leading-relaxed mb-8 border-l-4 border-[#00704A] pl-4">

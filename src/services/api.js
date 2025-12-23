@@ -102,6 +102,11 @@ export const api = {
         });
     },
 
+    async getOrders(params = {}) {
+        const query = new URLSearchParams(params).toString();
+        return this.request(`/api/pedidos?${query}`);
+    },
+
     // Validar si es un error de conexión para reintentos o feedback
     isNetworkError(error) {
         return error.message.includes('fetch') || error.message.includes('servidor');

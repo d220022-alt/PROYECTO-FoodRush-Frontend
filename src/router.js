@@ -11,6 +11,7 @@ const routes = [
     // User Routes
     { path: '/cart', component: () => import('./views/Cart.vue') },
     { path: '/checkout', component: () => import('./views/Checkout.vue') },
+    { path: '/orders', component: () => import('./views/Orders.vue') },
     { path: '/profile', component: () => import('./views/Profile.vue') },
     { path: '/favorites', component: () => import('./views/Favorites.vue') }
 ]

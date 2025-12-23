@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 
@@ -7,17 +7,44 @@ const router = useRouter();
 
 const goBack = () => router.go(-1);
 
-// Mock Data matching the image
-const favorites = ref([
-    { id: 1, name: "Hamburguesa Clásica", place: "Burger Queen", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=500&q=60" },
-    { id: 2, name: "Pizza Pepperoni", place: "Pizza Palace", img: "https://images.unsplash.com/photo-1628840042765-356cda07504e?auto=format&fit=crop&w=500&q=60" },
-    { id: 3, name: "Sushi Variado", place: "Sushi House", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=500&q=60" },
-    { id: 4, name: "Ensalada César", place: "Fresh Greens", img: "https://images.unsplash.com/photo-1550304999-8faf70ef13be?auto=format&fit=crop&w=500&q=60" },
-    { id: 5, name: "Tacos al Pastor", place: "La Taquería", img: "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=500&q=60" },
-    { id: 6, name: "Pasta Boloñesa", place: "Pasta Bella", img: "https://images.unsplash.com/photo-1626844131082-256783844137?auto=format&fit=crop&w=500&q=60" }
-]);
+// State
+const favorites = ref([]);
+
+// Mock fallback if empty, but we prefer real data
+// We will store just IDs and minimal data in localStorage for now
+// Or full objects. To be simple: Store full objects.
+
+const loadFavorites = () => {
+    const stored = localStorage.getItem('foodrush_favorites');
+    if (stored) {
+        favorites.value = JSON.parse(stored);
+    } else {
+        favorites.value = []; 
+    }
+};
+
+const removeFavorite = (id) => {
+    favorites.value = favorites.value.filter(item => item.id !== id);
+    localStorage.setItem('foodrush_favorites', JSON.stringify(favorites.value));
+};
 
 const addToCart = (item) => {
+    let cart = JSON.parse(localStorage.getItem('foodrush_cart')) || [];
+    
+    // Check if exists to avoid duplicates or minimal logic
+    // For simplicity, we just add as new item with Qty 1
+    const cartItem = {
+        id: item.id,
+        name: item.name,
+        price: item.price || 0, // Ensure price exists
+        img: item.img,
+        qty: 1,
+        details: ''
+    };
+
+    cart.push(cartItem);
+    localStorage.setItem('foodrush_cart', JSON.stringify(cart));
+
     Swal.fire({
         icon: 'success',
         title: '¡Añadido!',
@@ -26,6 +53,10 @@ const addToCart = (item) => {
         showConfirmButton: false
     });
 };
+
+onMounted(() => {
+    loadFavorites();
+});
 </script>
 
 <template>
@@ -42,12 +73,12 @@ const addToCart = (item) => {
     </header>
 
     <!-- Grid -->
-    <div class="px-6 grid grid-cols-2 gap-4">
+    <TransitionGroup name="list" tag="div" class="px-6 grid grid-cols-2 gap-4">
         <div v-for="item in favorites" :key="item.id" class="bg-white rounded-3xl p-4 flex flex-col items-center shadow-sm relative group">
             
-            <!-- Heart Icon -->
-            <button class="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm z-10">
-                <i class="fa-solid fa-heart"></i>
+            <!-- Remove Icon -->
+            <button @click="removeFavorite(item.id)" class="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm z-10 hover:bg-red-50 transition">
+                <i class="fa-solid fa-trash-can text-sm"></i>
             </button>
 
             <!-- Image -->
@@ -57,8 +88,9 @@ const addToCart = (item) => {
 
             <!-- Content -->
             <div class="text-center w-full mb-3">
-                <h3 class="font-bold text-slate-800 text-sm leading-tight mb-1">{{ item.name }}</h3>
-                <p class="text-xs text-gray-400">{{ item.place }}</p>
+                <h3 class="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2 h-9 flex items-center justify-center">{{ item.name }}</h3>
+                <p class="text-xs text-gray-400">{{ item.place || 'Starbucks' }}</p>
+                <p class="text-xs font-bold text-[#00704A] mt-1">${{ item.price }}</p>
             </div>
 
             <!-- Add Button -->
@@ -66,6 +98,14 @@ const addToCart = (item) => {
                 <i class="fa-solid fa-cart-shopping text-[10px]"></i> Añadir
             </button>
         </div>
+    </TransitionGroup>
+
+    <!-- Empty State -->
+    <div v-if="favorites.length === 0" class="px-6 text-center py-10 fade-in">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+            <i class="fa-regular fa-heart text-2xl"></i>
+        </div>
+        <p class="text-gray-500 font-medium">No tienes favoritos aún.</p>
     </div>
 </div>
 </template>

@@ -50,8 +50,8 @@ const goToCheckout = () => {
     </header>
 
     <!-- Cart Items -->
-    <div class="flex-1 p-6">
-        <div v-for="item in cart" :key="item.id" class="border rounded-xl p-4 mb-6 flex gap-4 items-start shadow-sm">
+    <TransitionGroup name="list" tag="div" class="flex-1 p-6">
+        <div v-for="item in cart" :key="item.id" class="border rounded-xl p-4 mb-6 flex gap-4 items-start shadow-sm bg-white">
             <!-- Image -->
             <div class="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center p-2">
                 <img :src="item.img" class="w-full h-full object-contain mix-blend-multiply">
@@ -62,7 +62,7 @@ const goToCheckout = () => {
                 <div class="flex justify-between items-start mb-1">
                     <h3 class="font-bold text-slate-800 text-lg">{{ item.name }}</h3>
                 </div>
-                <p class="text-xs text-gray-400 mb-4">{{ item.detail }}</p>
+                <p class="text-xs text-gray-400 mb-4">{{ item.details || '' }}</p>
                 
                 <div class="flex items-center justify-between">
                      <span class="bg-gray-100 px-3 py-1 rounded text-slate-800 font-bold">${{ item.price }}</span>
@@ -78,7 +78,7 @@ const goToCheckout = () => {
                  <button @click="removeItem(item.id)" class="text-xs text-red-500 mt-2 hover:underline ml-auto block text-right">Remove</button>
             </div>
         </div>
-    </div>
+    </TransitionGroup>
 
     <!-- Actions -->
     <div class="p-6 pb-12">
