@@ -9,7 +9,7 @@ const router = useRouter();
 const user = ref({
     name: localStorage.getItem('user_name') || "Invitado",
     email: localStorage.getItem('user_email') || "No registrado",
-    address: "Sin dirección registrada", // Backend doesnt have address field yet
+    address: "Sin dirección registrada",
     avatar: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
     phone: localStorage.getItem('user_phone') || ""
 });
@@ -24,7 +24,8 @@ onMounted(async () => {
                 user.value.name = userData.nombre;
                 user.value.email = userData.correo;
                 user.value.phone = userData.telefono || "";
-                // If we impl address later: user.value.address = userData.direccion;
+                user.value.address = userData.direccion || localStorage.getItem('user_address') || "Sin dirección registrada";
+                if (userData.zona) localStorage.setItem('user_zone', userData.zona);
             }
         } catch (e) {
             console.error("Error fetching profile", e);
@@ -53,6 +54,55 @@ const menuItems = [
 const handleNavigation = (item) => {
     if (item.route) {
         router.push(item.route);
+    }
+};
+
+// Edit Modal
+const isEditModalOpen = ref(false);
+const editForm = ref({ name: '', phone: '', address: '', zone: '' });
+
+const openEditModal = () => {
+    editForm.value = {
+        name: user.value.name,
+        email: user.value.email,
+        phone: user.value.phone,
+        address: user.value.address !== "Sin dirección registrada" ? user.value.address : '',
+        zone: localStorage.getItem('user_zone') || ''
+    };
+    isEditModalOpen.value = true;
+};
+
+const closeEditModal = () => isEditModalOpen.value = false;
+
+const saveProfile = async () => {
+    try {
+        const userId = localStorage.getItem('user_id');
+        const updates = {
+            nombre: editForm.value.name,
+            telefono: editForm.value.phone,
+            direccion: editForm.value.address,
+            zona: editForm.value.zone
+        };
+
+        if (userId) {
+            await api.updateUser(userId, updates);
+        }
+
+        // Update Local State & Storage
+        user.value.name = editForm.value.name;
+        user.value.phone = editForm.value.phone;
+        user.value.address = editForm.value.address;
+        
+        localStorage.setItem('user_name', editForm.value.name);
+        localStorage.setItem('user_phone', editForm.value.phone);
+        localStorage.setItem('user_address', editForm.value.address);
+        localStorage.setItem('user_zone', editForm.value.zone);
+
+        closeEditModal();
+        // Optional: Swal success
+    } catch (e) {
+        console.error("Error updating profile", e);
+        alert("Error al actualizar perfil");
     }
 };
 </script>
@@ -88,7 +138,7 @@ const handleNavigation = (item) => {
         <div>
             <div class="flex justify-between items-center mb-3 px-1">
                 <h3 class="font-bold text-lg text-slate-800">Información Personal</h3>
-                <button class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline">
+                <button @click="openEditModal" class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline">
                     <i class="fa-solid fa-pen text-xs"></i> Editar
                 </button>
             </div>
@@ -102,6 +152,17 @@ const handleNavigation = (item) => {
                     <div class="flex-1 overflow-hidden">
                         <p class="text-xs text-gray-400">Nombre Completo</p>
                         <p class="font-semibold text-slate-800 text-sm truncate">{{ user.name }}</p>
+                    </div>
+                </div>
+                <hr class="border-gray-50 mx-14">
+                <!-- Phone -->
+                <div class="flex items-center gap-4 p-2">
+                    <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-slate-800 text-lg">
+                        <i class="fa-solid fa-phone"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs text-gray-400">Teléfono</p>
+                        <p class="font-semibold text-slate-800 text-sm truncate">{{ user.phone || 'Sin registrar' }}</p>
                     </div>
                 </div>
                 <hr class="border-gray-50 mx-14">
@@ -167,5 +228,47 @@ const handleNavigation = (item) => {
         </button>
 
     </div>
+
+    <!-- Edit Modal -->
+    <div v-if="isEditModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+            <button @click="closeEditModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Editar Perfil</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
+                    <input v-model="editForm.name" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                    <input v-model="editForm.email" type="email" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500 text-gray-500 bg-gray-50 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Teléfono</label>
+                    <input v-model="editForm.phone" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Dirección</label>
+                    <input v-model="editForm.address" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Zona de Entrega</label>
+                    <select v-model="editForm.zone" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                        <option value="" disabled>Selecciona tu zona</option>
+                        <option value="centro">Zona 1 - Centro ($150)</option>
+                        <option value="periferia">Zona 2 - Periferia ($250)</option>
+                        <option value="lejos">Zona 3 - Lejos ($350)</option>
+                    </select>
+                </div>
+                <button @click="saveProfile" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-lg mt-2">
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 </template>

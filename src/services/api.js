@@ -61,7 +61,9 @@ export const api = {
         const payload = {
             nombre: userData.name,
             correo: userData.email,
-            contrasena: userData.password
+            contrasena: userData.password,
+            direccion: userData.direccion,
+            zona: userData.zona
         };
 
         return this.request('/api/usuarios', {

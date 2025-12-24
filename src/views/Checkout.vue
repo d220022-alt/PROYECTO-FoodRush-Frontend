@@ -14,20 +14,39 @@ const billingAddress = ref({ street: '', city: '', zip: '' });
 const cardDetails = ref({ number: '', expiry: '', cvv: '', name: '' });
 const isProcessing = ref(false);
 
-// Address mock (backend doesnt have address yet, so we use placeholder or user data if we had it)
-const address = ref("Verificar al confirmar");
+// Address
+const address = ref(localStorage.getItem('user_address') || "Sin dirección registrada");
+const zoneLabel = computed(() => {
+    const z = localStorage.getItem('user_zone');
+    const labels = { 'centro': 'Zona 1 (Centro)', 'periferia': 'Zona 2 (Periferia)', 'lejos': 'Zona 3 (Lejos)' };
+    return labels[z] || 'Zona por defecto';
+});
 
 // Order Data
 const order = ref({
     items: [],
     subtotal: 0,
-    deliveryFee: 5.00
+    deliveryFee: 0 // Will be calculated
 });
+
+const zone = ref(localStorage.getItem('user_zone') || '');
+const zonePrices = {
+    'centro': 150.00,
+    'periferia': 250.00,
+    'lejos': 350.00
+};
 
 const total = computed(() => order.value.subtotal + order.value.deliveryFee);
 
 onMounted(() => {
     loadCart();
+    // Calculate initial fee
+    if (zone.value && zonePrices[zone.value]) {
+        order.value.deliveryFee = zonePrices[zone.value];
+    } else {
+        // Default or unconfigured
+        order.value.deliveryFee = 150.00; 
+    }
 });
 
 const loadCart = () => {
@@ -219,14 +238,17 @@ const finishPurchase = async () => {
 
              <!-- Location -->
              <div class="mb-6">
-                 <h3 class="font-bold text-slate-800 mb-2">Ubicación</h3>
-                 <div class="border rounded-lg p-4 flex items-center justify-between bg-white text-gray-500 cursor-not-allowed" aria-disabled="true" title="Edición de dirección próximamente">
-                     <div class="flex items-center gap-3">
-                         <span class="w-3 h-3 bg-slate-800 rounded-full"></span>
-                         <span class="text-gray-600">{{ address }}</span>
-                     </div>
-                     <i class="fa-solid fa-chevron-down text-gray-400"></i>
-                 </div>
+                  <h3 class="font-bold text-slate-800 mb-2">Ubicación</h3>
+                  <div class="border rounded-lg p-4 flex items-center justify-between bg-white text-gray-500 cursor-not-allowed">
+                      <div class="flex items-center gap-3">
+                          <span class="w-3 h-3 bg-slate-800 rounded-full"></span>
+                          <div class="flex flex-col">
+                              <span class="text-gray-800 font-bold text-sm">{{ address }}</span>
+                              <span class="text-xs text-gray-400">{{ zoneLabel }} - Costo: ${{ order.deliveryFee }}</span>
+                          </div>
+                      </div>
+                      <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                  </div>
              </div>
 
              <!-- Payment Method Trigger -->

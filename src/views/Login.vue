@@ -10,50 +10,54 @@ const isRegisterActive = ref(false);
 
 // Form State
 const loginForm = ref({ email: '', password: '' });
-const registerForm = ref({ email: '', name: '', password: '', confirmPassword: '' });
+const registerForm = ref({ email: '', name: '', password: '', confirmPassword: '', address: '', zone: '' });
 
-// Error Messages
 const loginError = ref('');
 const registerError = ref('');
 
-// Actions
-const togglePanel = (showRegister) => {
-    isRegisterActive.value = showRegister;
+const togglePanel = (active) => {
+    isRegisterActive.value = active; // true = show register (slide left), false = show login
     loginError.value = '';
     registerError.value = '';
 };
 
 const handleLogin = async () => {
     loginError.value = '';
-    if (!loginForm.value.email || !loginForm.value.password) {
-        loginError.value = 'Completa todos los campos.';
+    const { email, password } = loginForm.value;
+
+    if (!email || !password) {
+        loginError.value = 'Por favor, ingresa correo y contraseña.';
         return;
     }
 
     try {
-        const response = await api.login(loginForm.value.email, loginForm.value.password);
-        if (response.token) {
+        const response = await api.login(email, password);
+        if (response.success) {
             localStorage.setItem('auth_token', response.token);
-            if (response.user && response.user.nombre) {
-                localStorage.setItem('user_name', response.user.nombre);
-                localStorage.setItem('user_id', response.user.id);
-                localStorage.setItem('user_email', response.user.correo);
-                if (response.user.telefono) localStorage.setItem('user_phone', response.user.telefono);
-            }
-            // Navigate to home
+            localStorage.setItem('user_id', response.user.id);
+            localStorage.setItem('user_name', response.user.nombre);
+            localStorage.setItem('user_email', response.user.correo);
+            if (response.user.telefono) localStorage.setItem('user_phone', response.user.telefono);
+            
+            // Store address/zone if available
+            if (response.user.direccion) localStorage.setItem('user_address', response.user.direccion);
+            if (response.user.zona) localStorage.setItem('user_zone', response.user.zona);
+
             router.push('/');
+        } else {
+            loginError.value = response.message || 'Error al iniciar sesión';
         }
     } catch (err) {
-        loginError.value = err.message || 'Error al iniciar sesión';
+        console.error(err);
+        loginError.value = err.message || 'Error de conexión';
     }
 };
-
 const handleRegister = async () => {
     registerError.value = '';
-    const { email, name, password, confirmPassword } = registerForm.value;
+    const { email, name, password, confirmPassword, address, zone } = registerForm.value;
 
-    if (!email || !name || !password || !confirmPassword) {
-        registerError.value = 'Completa todos los campos.';
+    if (!email || !name || !password || !confirmPassword || !address || !zone) {
+        registerError.value = 'Completa todos los campos, incluyendo dirección y zona.';
         return;
     }
     if (password !== confirmPassword) {
@@ -62,7 +66,7 @@ const handleRegister = async () => {
     }
 
     try {
-        await api.register({ email, name, password });
+        await api.register({ email, name, password, direccion: address, zona });
         alert('Registro exitoso. Inicia sesión.');
         togglePanel(false); // Switch to login
         loginForm.value.email = email;
@@ -117,6 +121,18 @@ const handleRegister = async () => {
                     <input v-model="registerForm.password" type="password" placeholder="******">
                     <label>Confirmar Contraseña</label>
                     <input v-model="registerForm.confirmPassword" type="password" placeholder="******">
+                    
+                    <label>Dirección de Entrega</label>
+                    <input v-model="registerForm.address" type="text" placeholder="Calle, Número, Sector">
+                    
+                    <label>Zona de Entrega</label>
+                    <select v-model="registerForm.zone" class="w-full padding-8 border rounded margin-bottom-10 outline-none p-2 mb-2 border-gray-300">
+                        <option value="" disabled>Selecciona tu zona</option>
+                        <option value="centro">Zona 1 - Centro ($150)</option>
+                        <option value="periferia">Zona 2 - Periferia ($250)</option>
+                        <option value="lejos">Zona 3 - Lejos ($350)</option>
+                    </select>
+
                     <button type="submit" class="btn-action">Registrar</button>
                     <div v-if="registerError" class="text-red-600 text-xs mt-2 font-bold">{{ registerError }}</div>
                 </form>
