@@ -258,9 +258,9 @@ const saveProfile = async () => {
                     <label class="block text-sm font-bold text-gray-700 mb-1">Zona de Entrega</label>
                     <select v-model="editForm.zone" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
                         <option value="" disabled>Selecciona tu zona</option>
-                        <option value="centro">Zona 1 - Centro ($150)</option>
-                        <option value="periferia">Zona 2 - Periferia ($250)</option>
-                        <option value="lejos">Zona 3 - Lejos ($350)</option>
+                        <option value="pekin">Pekín ($25)</option>
+                        <option value="gurabo">Gurabo ($50)</option>
+                        <option value="villa_olga">Villa Olga ($75)</option>
                     </select>
                 </div>
                 <button @click="saveProfile" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-lg mt-2">

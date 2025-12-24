@@ -109,6 +109,17 @@ export const api = {
         return this.request(`/api/pedidos?${query}`);
     },
 
+    async getOrder(id) {
+        return this.request(`/api/pedidos/${id}`);
+    },
+
+    async updateOrder(id, data) {
+        return this.request(`/api/pedidos/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    },
+
     // Validar si es un error de conexión para reintentos o feedback
     isNetworkError(error) {
         return error.message.includes('fetch') || error.message.includes('servidor');

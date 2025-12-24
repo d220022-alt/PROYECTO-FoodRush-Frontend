@@ -128,9 +128,9 @@ const handleRegister = async () => {
                     <label>Zona de Entrega</label>
                     <select v-model="registerForm.zone" class="w-full padding-8 border rounded margin-bottom-10 outline-none p-2 mb-2 border-gray-300">
                         <option value="" disabled>Selecciona tu zona</option>
-                        <option value="centro">Zona 1 - Centro ($150)</option>
-                        <option value="periferia">Zona 2 - Periferia ($250)</option>
-                        <option value="lejos">Zona 3 - Lejos ($350)</option>
+                        <option value="pekin">Pekín ($25)</option>
+                        <option value="gurabo">Gurabo ($50)</option>
+                        <option value="villa_olga">Villa Olga ($75)</option>
                     </select>
 
                     <button type="submit" class="btn-action">Registrar</button>

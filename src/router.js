@@ -16,6 +16,7 @@ const routes = [
     { path: '/favorites', component: () => import('./views/Favorites.vue') },
     { path: '/payment-methods', component: () => import('./views/PaymentMethods.vue') },
     // Config Routes
+    { path: '/tracking/:id', component: () => import('./views/Tracking.vue') },
     { path: '/change-password', component: () => import('./views/ChangePassword.vue') },
     { path: '/notifications', component: () => import('./views/Notifications.vue') },
     { path: '/support', component: () => import('./views/Support.vue') }

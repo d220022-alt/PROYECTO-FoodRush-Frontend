@@ -117,7 +117,7 @@ onMounted(() => {
                         <span class="text-slate-800 text-sm font-medium text-right truncate w-1/2" :title="order.direccion_entrega">{{ order.direccion_entrega || 'Recogida en tienda' }}</span>
                     </div>
 
-                    <button class="w-full border border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2">
+                    <button @click="router.push('/tracking/' + order.id)" class="w-full border border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2">
                          Ver Detalles <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>

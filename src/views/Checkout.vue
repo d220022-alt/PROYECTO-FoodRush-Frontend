@@ -18,7 +18,7 @@ const isProcessing = ref(false);
 const address = ref(localStorage.getItem('user_address') || "Sin dirección registrada");
 const zoneLabel = computed(() => {
     const z = localStorage.getItem('user_zone');
-    const labels = { 'centro': 'Zona 1 (Centro)', 'periferia': 'Zona 2 (Periferia)', 'lejos': 'Zona 3 (Lejos)' };
+    const labels = { 'pekin': 'Pekín', 'gurabo': 'Gurabo', 'villa_olga': 'Villa Olga' };
     return labels[z] || 'Zona por defecto';
 });
 
@@ -31,9 +31,9 @@ const order = ref({
 
 const zone = ref(localStorage.getItem('user_zone') || '');
 const zonePrices = {
-    'centro': 150.00,
-    'periferia': 250.00,
-    'lejos': 350.00
+    'pekin': 25.00,
+    'gurabo': 50.00,
+    'villa_olga': 75.00
 };
 
 const total = computed(() => order.value.subtotal + order.value.deliveryFee);
@@ -45,7 +45,7 @@ onMounted(() => {
         order.value.deliveryFee = zonePrices[zone.value];
     } else {
         // Default or unconfigured
-        order.value.deliveryFee = 150.00; 
+        order.value.deliveryFee = 50.00; // Default to Gurabo price
     }
 });
 
@@ -166,7 +166,7 @@ const finishPurchase = async () => {
                 confirmButtonColor: '#00704A'
             }).then(() => {
                 localStorage.removeItem('foodrush_cart');
-                router.push('/');
+                router.push(`/tracking/${orderParams.data.id}`);
             });
         } else {
             throw new Error(orderParams.message || 'Error al crear la orden');
