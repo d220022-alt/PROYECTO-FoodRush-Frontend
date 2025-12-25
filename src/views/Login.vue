@@ -10,7 +10,7 @@ const isRegisterActive = ref(false);
 
 // Form State
 const loginForm = ref({ email: '', password: '' });
-const registerForm = ref({ email: '', name: '', password: '', confirmPassword: '', address: '', zone: '' });
+const registerForm = ref({ email: '', name: '', phone: '', password: '', confirmPassword: '', address: '', zone: '' });
 
 const loginError = ref('');
 const registerError = ref('');
@@ -54,9 +54,9 @@ const handleLogin = async () => {
 };
 const handleRegister = async () => {
     registerError.value = '';
-    const { email, name, password, confirmPassword, address, zone } = registerForm.value;
+    const { email, name, phone, password, confirmPassword, address, zone } = registerForm.value;
 
-    if (!email || !name || !password || !confirmPassword || !address || !zone) {
+    if (!email || !name || !phone || !password || !confirmPassword || !address || !zone) {
         registerError.value = 'Completa todos los campos, incluyendo dirección y zona.';
         return;
     }
@@ -66,7 +66,7 @@ const handleRegister = async () => {
     }
 
     try {
-        await api.register({ email, name, password, direccion: address, zona });
+        await api.register({ email, name, phone, password, direccion: address, zona: zone });
         alert('Registro exitoso. Inicia sesión.');
         togglePanel(false); // Switch to login
         loginForm.value.email = email;
@@ -117,6 +117,8 @@ const handleRegister = async () => {
                     <input v-model="registerForm.email" type="email" placeholder="correo@ejemplo.com">
                     <label>Nombre completo</label>
                     <input v-model="registerForm.name" type="text" placeholder="Tu nombre">
+                    <label>Teléfono</label>
+                    <input v-model="registerForm.phone" type="tel" placeholder="809-000-0000">
                     <label>Contraseña</label>
                     <input v-model="registerForm.password" type="password" placeholder="******">
                     <label>Confirmar Contraseña</label>
@@ -183,7 +185,7 @@ const handleRegister = async () => {
 
 .card {
     background: white;
-    width: 900px; max-width: 95%; height: 600px;
+    width: 900px; max-width: 95%; height: 750px;
     border-radius: 20px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
     overflow: hidden;

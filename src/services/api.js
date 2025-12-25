@@ -62,6 +62,7 @@ export const api = {
             nombre: userData.name,
             correo: userData.email,
             contrasena: userData.password,
+            telefono: userData.phone,
             direccion: userData.direccion,
             zona: userData.zona
         };
