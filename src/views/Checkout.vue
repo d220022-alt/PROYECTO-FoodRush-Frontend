@@ -13,6 +13,18 @@ const paymentMethod = ref(null); // 'cash', 'card', 'paypal'
 const billingAddress = ref({ street: '', city: '', zip: '' });
 const cardDetails = ref({ number: '', expiry: '', cvv: '', name: '' });
 const isProcessing = ref(false);
+const formErrors = ref({});
+
+const validateCard = () => {
+    const errors = {};
+    if (!/^\d{16}$/.test(cardDetails.value.number.replace(/\s/g, ''))) errors.number = 'Número inválido (16 dígitos)';
+    if (!/^\d{2}\/\d{2}$/.test(cardDetails.value.expiry)) errors.expiry = 'Formato MM/YY';
+    if (!/^\d{3,4}$/.test(cardDetails.value.cvv)) errors.cvv = 'CVV inválido';
+    if (cardDetails.value.name.length < 3) errors.name = 'Nombre muy corto';
+    
+    formErrors.value = errors;
+    return Object.keys(errors).length === 0;
+};
 
 // Address
 const address = ref(localStorage.getItem('user_address') || "Sin dirección registrada");
@@ -85,6 +97,14 @@ const selectPaymentMethod = (method) => {
         step.value = 'card_form';
     } else {
         step.value = 'summary'; 
+    }
+};
+
+const saveCard = () => {
+    if (validateCard()) {
+        step.value = 'summary';
+    } else {
+        Swal.fire('Error en la tarjeta', 'Por favor revisa los datos de tu tarjeta.', 'warning');
     }
 };
 
@@ -221,7 +241,7 @@ const finishPurchase = async () => {
              </div>
 
              <!-- Totals -->
-             <div class="space-y-2 mb-8 text-sm">
+             <div class="space-y-2 mb-8 text-sm" role="region" aria-label="Resumen de costos">
                  <div class="flex justify-between text-gray-500">
                      <span>Subtotal</span>
                      <span>${{ order.subtotal.toFixed(2) }}</span>
@@ -232,7 +252,7 @@ const finishPurchase = async () => {
                  </div>
                  <div class="flex justify-between font-bold text-slate-800 text-lg border-t pt-2 mt-2">
                      <span>Total</span>
-                     <span>${{ total.toFixed(2) }}</span>
+                     <span aria-live="polite" aria-atomic="true">${{ total.toFixed(2) }}</span>
                  </div>
              </div>
 
@@ -278,42 +298,42 @@ const finishPurchase = async () => {
 
         <!-- CARD FORM -->
         <div v-if="step === 'card_form'" class="animate-fade-in" role="form" aria-labelledby="card-heading">
-            <h2 id="card-heading" class="text-xl font-bold text-slate-800 mb-6">Agregar Tarjeta</h2>
+            <h2 id="card-heading" class="text-xl font-bold text-slate-800 mb-6 font-bold">Agregar Tarjeta</h2>
             
             <div class="space-y-4 mb-8">
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1" for="card_number">Número de Tarjeta</label>
                     <div class="relative">
-                        <input id="card_number" v-model="cardDetails.number" type="text" placeholder="**** **** **** 1234" class="w-full border rounded-lg p-3 pl-4 pr-10 outline-none focus:border-blue-500">
+                        <input id="card_number" v-model="cardDetails.number" type="text" placeholder="1234 5678 1234 5678" :class="['w-full border rounded-lg p-3 pl-4 pr-10 outline-none focus:border-blue-500', formErrors.number ? 'border-red-500' : 'border-gray-300']">
                         <i class="fa-regular fa-credit-card absolute right-3 top-3.5 text-gray-400"></i>
                     </div>
+                    <p v-if="formErrors.number" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.number }}</p>
                 </div>
 
                 <div class="flex gap-4">
                     <div class="flex-1">
                         <label class="block text-sm font-bold text-gray-700 mb-1" for="expiry">Expiración</label>
-                        <input id="expiry" v-model="cardDetails.expiry" type="text" placeholder="MM/YY" class="w-full border rounded-lg p-3 outline-none focus:border-blue-500">
+                        <input id="expiry" v-model="cardDetails.expiry" type="text" placeholder="MM/YY" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.expiry ? 'border-red-500' : 'border-gray-300']">
+                        <p v-if="formErrors.expiry" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.expiry }}</p>
                     </div>
                     <div class="flex-1">
                         <label class="block text-sm font-bold text-gray-700 mb-1" for="cvv">CVV</label>
-                        <input id="cvv" v-model="cardDetails.cvv" type="text" placeholder="123" class="w-full border rounded-lg p-3 outline-none focus:border-blue-500">
+                        <input id="cvv" v-model="cardDetails.cvv" type="text" placeholder="123" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.cvv ? 'border-red-500' : 'border-gray-300']">
+                        <p v-if="formErrors.cvv" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.cvv }}</p>
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1" for="card_name">Nombre en Tarjeta</label>
-                    <input id="card_name" v-model="cardDetails.name" type="text" placeholder="John Doe" class="w-full border rounded-lg p-3 outline-none focus:border-blue-500">
+                    <input id="card_name" v-model="cardDetails.name" type="text" placeholder="Como aparece en la tarjeta" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.name ? 'border-red-500' : 'border-gray-300']">
+                    <p v-if="formErrors.name" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.name }}</p>
                 </div>
-                
-                <label class="flex items-center gap-2 cursor-pointer mt-2">
-                    <input type="checkbox" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500">
-                    <span class="text-sm text-gray-500">Guardar esta tarjeta para futuras compras</span>
-                </label>
             </div>
 
-            <button @click="step = 'summary'" class="w-full bg-[#333] hover:bg-black text-white font-bold py-4 rounded-xl transition shadow-lg">
-                Guardar y Volver
-            </button>
+            <div class="flex gap-3">
+                <button @click="step = 'summary'" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl transition">Cancelar</button>
+                <button @click="saveCard" class="flex-2 bg-[#333] hover:bg-black text-white font-bold py-4 rounded-xl transition shadow-lg px-8">Guardar Tarjeta</button>
+            </div>
         </div>
 
     </div>

@@ -224,6 +224,10 @@ const scrollToSection = (id) => {
 
 <template>
   <div class="flex flex-col min-h-screen text-slate-800">
+    <!-- Skip to main content for screen readers -->
+    <a href="#franchises" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-500 text-white px-4 py-2 rounded-lg z-[100]">
+      Saltar al contenido principal
+    </a>
     
     <!-- HEADER -->
     <header id="top" class="bg-white py-4 px-6 md:px-12 flex justify-between items-center shadow-sm sticky top-0 z-50">
@@ -260,7 +264,7 @@ const scrollToSection = (id) => {
     <!-- HERO SECTION -->
     <section class="relative h-[300px] md:h-[400px] flex items-center justify-center">
         <div class="absolute inset-0 z-0">
-            <img :src="heroBg" class="w-full h-full object-cover brightness-50">
+            <img :src="heroBg" class="w-full h-full object-cover brightness-50" alt="Fondo decorativo de comida" loading="lazy">
         </div>
         <div class="relative z-10 w-full max-w-2xl px-4">
             <div class="bg-white rounded-lg flex shadow-2xl overflow-hidden p-1">
@@ -277,9 +281,9 @@ const scrollToSection = (id) => {
     <section id="franchises" class="container mx-auto px-4 md:px-12 py-8">
         <!-- FILTERS BAR -->
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
-            <button @click="openModal" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
+            <button @click="openModal" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition" aria-label="Abrir opciones de filtrado y ordenamiento">
                 <span>Filtrar</span>
-                <i class="fa-solid fa-filter text-xs"></i>
+                <i class="fa-solid fa-filter text-xs" aria-hidden="true"></i>
             </button>
 
             <div class="flex flex-wrap gap-2" id="filter-container">
@@ -287,8 +291,9 @@ const scrollToSection = (id) => {
                     v-for="cat in ['all', 'Pizza', 'Hamburguesa', 'Bebidas', 'Tacos', 'Criolla', 'Postres']" 
                     :key="cat"
                     @click="setCategory(cat)"
+                    :aria-current="currentCategory === cat ? 'page' : undefined"
                     :class="[
-                        'filter-btn border px-4 py-1.5 rounded-lg font-bold text-sm transition',
+                        'filter-btn border px-4 py-1.5 rounded-lg font-bold text-sm transition focus:ring-2 focus:ring-red-500 outline-none',
                         currentCategory === cat 
                             ? 'active bg-red-700 text-white border-red-700' 
                             : 'border-red-700 text-red-700 hover:bg-red-700 hover:text-white'
@@ -318,13 +323,18 @@ const scrollToSection = (id) => {
             <div 
                 v-for="item in filteredFranchises" 
                 :key="item.id"
+                role="button"
+                tabindex="0"
                 @click="goToFranchise(item.id, item.name)"
-                class="bg-white rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm border border-transparent hover:border-orange-200 card-hover transition cursor-pointer fade-in group relative overflow-hidden"
+                @keydown.enter="goToFranchise(item.id, item.name)"
+                @keydown.space.prevent="goToFranchise(item.id, item.name)"
+                :aria-label="`Ver menú de ${item.name}`"
+                class="bg-white rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm border border-transparent hover:border-orange-200 card-hover transition cursor-pointer fade-in group relative overflow-hidden focus:ring-2 focus:ring-orange-500 outline-none"
             >
                 <span v-if="item.promo" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Promo</span>
                 
                 <div class="w-24 h-24 mb-4 flex items-center justify-center relative z-10">
-                    <img :src="item.img" :alt="item.name" class="max-w-full max-h-full object-contain">
+                    <img :src="item.img" :alt="`Logo de ${item.name}`" class="max-w-full max-h-full object-contain" loading="lazy">
                 </div>
                 
                 <h3 class="font-bold text-lg text-slate-800 mb-1 group-hover:text-orange-600 transition">{{ item.name }}</h3>
@@ -367,10 +377,10 @@ const scrollToSection = (id) => {
     </footer>
 
     <!-- MODAL -->
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center fade-in">
+    <div v-if="isModalOpen" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center fade-in" role="dialog" aria-labelledby="filter-title" aria-modal="true">
         <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4 relative shadow-2xl">
-            <button @click="closeModal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
-            <h2 class="text-3xl font-bold text-center mb-8 text-slate-800">Filtros</h2>
+            <button @click="closeModal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition" aria-label="Cerrar filtros"><i class="fa-solid fa-xmark text-2xl" aria-hidden="true"></i></button>
+            <h2 id="filter-title" class="text-3xl font-bold text-center mb-8 text-slate-800">Filtros</h2>
             
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Ordenar</h3>

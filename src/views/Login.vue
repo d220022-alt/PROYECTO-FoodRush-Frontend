@@ -14,6 +14,13 @@ const registerForm = ref({ email: '', name: '', phone: '', password: '', confirm
 
 const loginError = ref('');
 const registerError = ref('');
+const isSubmitting = ref(false);
+
+const validateEmail = (email) => {
+    return String(email)
+        .toLowerCase()
+        .match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
+};
 
 const togglePanel = (active) => {
     isRegisterActive.value = active; // true = show register (slide left), false = show login
@@ -29,6 +36,13 @@ const handleLogin = async () => {
         loginError.value = 'Por favor, ingresa correo y contraseña.';
         return;
     }
+
+    if (!validateEmail(email)) {
+        loginError.value = 'Ingresa un correo electrónico válido.';
+        return;
+    }
+
+    isSubmitting.value = true;
 
     try {
         const response = await api.login(email, password);
@@ -50,6 +64,8 @@ const handleLogin = async () => {
     } catch (err) {
         console.error(err);
         loginError.value = err.message || 'Error de conexión';
+    } finally {
+        isSubmitting.value = false;
     }
 };
 const handleRegister = async () => {
@@ -60,10 +76,20 @@ const handleRegister = async () => {
         registerError.value = 'Completa todos los campos, incluyendo dirección y zona.';
         return;
     }
+    if (!validateEmail(email)) {
+        registerError.value = 'Ingresa un correo electrónico válido.';
+        return;
+    }
+    if (password.length < 6) {
+        registerError.value = 'La contraseña debe tener al menos 6 caracteres.';
+        return;
+    }
     if (password !== confirmPassword) {
         registerError.value = 'Las contraseñas no coinciden.';
         return;
     }
+
+    isSubmitting.value = true;
 
     try {
         await api.register({ email, name, phone, password, direccion: address, zona: zone });
@@ -72,6 +98,8 @@ const handleRegister = async () => {
         loginForm.value.email = email;
     } catch (err) {
         registerError.value = err.message || 'Error al registrar';
+    } finally {
+        isSubmitting.value = false;
     }
 };
 
@@ -94,12 +122,14 @@ const handleRegister = async () => {
             <div class="panel left-panel">
                 <h2>Iniciar Sesión</h2>
                 <form @submit.prevent="handleLogin">
-                    <label>Usuario o Correo</label>
-                    <input v-model="loginForm.email" type="text" placeholder="Usuario o Correo Electrónico">
-                    <label>Contraseña</label>
-                    <input v-model="loginForm.password" type="password" placeholder="Contraseña">
-                    <button type="submit" class="btn-action">Ingresar</button>
-                    <div v-if="loginError" class="text-red-600 text-xs mt-2 font-bold">{{ loginError }}</div>
+                    <label for="login-email">Usuario o Correo</label>
+                    <input id="login-email" v-model="loginForm.email" type="text" placeholder="Usuario o Correo Electrónico" aria-required="true">
+                    <label for="login-password">Contraseña</label>
+                    <input id="login-password" v-model="loginForm.password" type="password" placeholder="Contraseña" aria-required="true">
+                    <button type="submit" class="btn-action" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Ingresando...' : 'Ingresar' }}
+                    </button>
+                    <div v-if="loginError" class="text-red-600 text-xs mt-2 font-bold" role="alert">{{ loginError }}</div>
                 </form>
 
                 <div class="separator"><span>o</span></div>
@@ -113,30 +143,36 @@ const handleRegister = async () => {
             <div class="panel right-panel">
                 <h2>Registro de Cliente</h2>
                 <form @submit.prevent="handleRegister">
-                    <label>Correo Electrónico</label>
-                    <input v-model="registerForm.email" type="email" placeholder="correo@ejemplo.com">
-                    <label>Nombre completo</label>
-                    <input v-model="registerForm.name" type="text" placeholder="Tu nombre">
-                    <label>Teléfono</label>
-                    <input v-model="registerForm.phone" type="tel" placeholder="809-000-0000">
-                    <label>Contraseña</label>
-                    <input v-model="registerForm.password" type="password" placeholder="******">
-                    <label>Confirmar Contraseña</label>
-                    <input v-model="registerForm.confirmPassword" type="password" placeholder="******">
+                    <label for="reg-email">Correo Electrónico</label>
+                    <input id="reg-email" v-model="registerForm.email" type="email" placeholder="correo@ejemplo.com" aria-required="true">
                     
-                    <label>Dirección de Entrega</label>
-                    <input v-model="registerForm.address" type="text" placeholder="Calle, Número, Sector">
+                    <label for="reg-name">Nombre completo</label>
+                    <input id="reg-name" v-model="registerForm.name" type="text" placeholder="Tu nombre" aria-required="true">
                     
-                    <label>Zona de Entrega</label>
-                    <select v-model="registerForm.zone" class="w-full padding-8 border rounded margin-bottom-10 outline-none p-2 mb-2 border-gray-300">
+                    <label for="reg-phone">Teléfono</label>
+                    <input id="reg-phone" v-model="registerForm.phone" type="tel" placeholder="809-000-0000" aria-required="true">
+                    
+                    <label for="reg-password">Contraseña</label>
+                    <input id="reg-password" v-model="registerForm.password" type="password" placeholder="Mínimo 6 caracteres" aria-required="true">
+                    
+                    <label for="reg-confirm">Confirmar Contraseña</label>
+                    <input id="reg-confirm" v-model="registerForm.confirmPassword" type="password" placeholder="Repite tu contraseña" aria-required="true">
+                    
+                    <label for="reg-address">Dirección de Entrega</label>
+                    <input id="reg-address" v-model="registerForm.address" type="text" placeholder="Calle, Número, Sector" aria-required="true">
+                    
+                    <label for="reg-zone">Zona de Entrega</label>
+                    <select id="reg-zone" v-model="registerForm.zone" class="w-full padding-8 border rounded margin-bottom-10 outline-none p-2 mb-2 border-gray-300" aria-required="true">
                         <option value="" disabled>Selecciona tu zona</option>
                         <option value="pekin">Pekín ($25)</option>
                         <option value="gurabo">Gurabo ($50)</option>
                         <option value="villa_olga">Villa Olga ($75)</option>
                     </select>
 
-                    <button type="submit" class="btn-action">Registrar</button>
-                    <div v-if="registerError" class="text-red-600 text-xs mt-2 font-bold">{{ registerError }}</div>
+                    <button type="submit" class="btn-action" :disabled="isSubmitting">
+                        {{ isSubmitting ? 'Registrando...' : 'Registrar' }}
+                    </button>
+                    <div v-if="registerError" class="text-red-600 text-xs mt-2 font-bold" role="alert">{{ registerError }}</div>
                 </form>
 
                 <div class="switch-link">
@@ -232,8 +268,16 @@ input:focus { border-color: #C62828; }
     width: 100%; background-color: #C62828; color: white; border: none;
     padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px;
     cursor: pointer; margin-top: 5px; box-shadow: 0 4px 0 #8E1C1C;
+    transition: all 0.2s ease;
 }
-.btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 #8E1C1C; }
+.btn-action:disabled {
+    background-color: #e0e0e0;
+    color: #999;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+.btn-action:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 #8E1C1C; }
 
 .separator { display: flex; align-items: center; margin: 10px 0; color: #777; font-size: 12px; }
 .separator::before, .separator::after { content: ''; flex: 1; border-bottom: 1px dashed #ccc; }

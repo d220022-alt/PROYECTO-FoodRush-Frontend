@@ -63,12 +63,12 @@ onMounted(() => {
 <div class="min-h-screen bg-[#F9F9F9] font-sans pb-10">
     <!-- Header -->
     <header class="p-6 flex items-center justify-between bg-[#F9F9F9] sticky top-0 z-10">
-        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition" aria-label="Volver">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
         </button>
         <h1 class="text-xl font-bold text-slate-800">Mis Favoritos</h1>
-        <button class="text-xl text-slate-800 hover:text-orange-500 transition">
-            <i class="fa-solid fa-magnifying-glass"></i>
+        <button class="text-xl text-slate-800 hover:text-orange-500 transition" aria-label="Buscar favoritos">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
         </button>
     </header>
 
@@ -77,13 +77,13 @@ onMounted(() => {
         <div v-for="item in favorites" :key="item.id" class="bg-white rounded-3xl p-4 flex flex-col items-center shadow-sm relative group">
             
             <!-- Remove Icon -->
-            <button @click="removeFavorite(item.id)" class="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm z-10 hover:bg-red-50 transition">
-                <i class="fa-solid fa-trash-can text-sm"></i>
+            <button @click="removeFavorite(item.id)" class="absolute top-4 right-4 w-8 h-8 bg-white rounded-full flex items-center justify-center text-red-500 shadow-sm z-10 hover:bg-red-50 transition" :aria-label="`Eliminar ${item.name} de favoritos`">
+                <i class="fa-solid fa-trash-can text-sm" aria-hidden="true"></i>
             </button>
 
             <!-- Image -->
             <div class="w-24 h-24 rounded-full overflow-hidden mb-3 shadow-md group-hover:scale-105 transition duration-300">
-                <img :src="item.img" :alt="item.name" class="w-full h-full object-cover">
+                <img :src="item.img" :alt="`Foto de ${item.name}`" class="w-full h-full object-cover" loading="lazy">
             </div>
 
             <!-- Content -->
@@ -94,8 +94,8 @@ onMounted(() => {
             </div>
 
             <!-- Add Button -->
-            <button @click="addToCart(item)" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-6 rounded-full w-full flex items-center justify-center gap-2 transition shadow-md">
-                <i class="fa-solid fa-cart-shopping text-[10px]"></i> Añadir
+            <button @click="addToCart(item)" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold py-2 px-6 rounded-full w-full flex items-center justify-center gap-2 transition shadow-md" :aria-label="`Añadir ${item.name} al carrito`">
+                <i class="fa-solid fa-cart-shopping text-[10px]" aria-hidden="true"></i> Añadir
             </button>
         </div>
     </TransitionGroup>

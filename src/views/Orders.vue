@@ -70,8 +70,8 @@ onMounted(() => {
 <div class="min-h-screen bg-[#F9F9F9] font-sans pb-10">
     <!-- Header -->
     <header class="p-6 flex items-center bg-[#F9F9F9] sticky top-0 z-10 border-b border-gray-200">
-        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition mr-4">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition mr-4" aria-label="Volver">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
         </button>
         <h1 class="text-2xl font-bold text-slate-800">Mis Pedidos</h1>
     </header>
@@ -93,8 +93,8 @@ onMounted(() => {
             </button>
         </div>
 
-        <div v-else class="space-y-6">
-            <div v-for="order in orders" :key="order.id" class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition">
+        <div v-else class="space-y-6" role="list" aria-label="Historial de pedidos">
+            <div v-for="order in orders" :key="order.id" role="listitem" class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-md transition">
                 <!-- Header -->
                 <div class="p-4 border-b border-gray-50 flex justify-between items-start">
                     <div>
@@ -117,8 +117,8 @@ onMounted(() => {
                         <span class="text-slate-800 text-sm font-medium text-right truncate w-1/2" :title="order.direccion_entrega">{{ order.direccion_entrega || 'Recogida en tienda' }}</span>
                     </div>
 
-                    <button @click="router.push('/tracking/' + order.id)" class="w-full border border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2">
-                         Ver Detalles <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <button @click="router.push('/tracking/' + order.id)" class="w-full border border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition text-sm flex items-center justify-center gap-2" :aria-label="`Ver detalles del pedido número ${order.id}`">
+                         Ver Detalles <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
                     </button>
                 </div>
             </div>

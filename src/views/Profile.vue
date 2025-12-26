@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
 import { api } from '../services/api';
 
 const router = useRouter();
@@ -36,9 +37,22 @@ onMounted(async () => {
 // Navigation Handlers
 const goBack = () => router.go(-1);
 const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_name');
-    router.push('/login');
+    Swal.fire({
+        title: '¿Cerrar sesión?',
+        text: "Tendrás que ingresar tus credenciales la próxima vez.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, salir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_name');
+            router.push('/login');
+        }
+    });
 };
 
 // Menu Sections
@@ -99,10 +113,17 @@ const saveProfile = async () => {
         localStorage.setItem('user_zone', editForm.value.zone);
 
         closeEditModal();
-        // Optional: Swal success
+        Swal.fire({
+            title: 'Perfil actualizado',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            timer: 3000,
+            showConfirmButton: false
+        });
     } catch (e) {
         console.error("Error updating profile", e);
-        alert("Error al actualizar perfil");
+        Swal.fire('Error', 'No se pudo actualizar el perfil.', 'error');
     }
 };
 </script>
@@ -111,8 +132,8 @@ const saveProfile = async () => {
 <div class="min-h-screen bg-[#F5F5F5] font-sans pb-10">
     <!-- Header -->
     <header class="p-6 flex items-center bg-[#F5F5F5]">
-        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition">
-            <i class="fa-solid fa-arrow-left"></i>
+        <button @click="goBack" class="text-2xl text-slate-800 hover:text-orange-500 transition" aria-label="Volver">
+            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
         </button>
         <h1 class="flex-1 text-center text-xl font-bold text-slate-800">Mi Perfil</h1>
         <div class="w-8"></div> <!-- Spacer for center alignment -->
@@ -124,8 +145,8 @@ const saveProfile = async () => {
             <div class="w-28 h-28 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gradient-to-tr from-orange-400 to-yellow-300 p-0.5">
                 <img :src="user.avatar" class="w-full h-full object-cover bg-white rounded-full">
             </div>
-            <button class="absolute bottom-0 right-0 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
-                <i class="fa-solid fa-camera text-xs"></i>
+            <button class="absolute bottom-0 right-0 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center border-2 border-white shadow-sm" aria-label="Cambiar foto de perfil">
+                <i class="fa-solid fa-camera text-xs" aria-hidden="true"></i>
             </button>
         </div>
         <h2 class="text-xl font-bold text-slate-900">{{ user.name }}</h2>
@@ -138,8 +159,8 @@ const saveProfile = async () => {
         <div>
             <div class="flex justify-between items-center mb-3 px-1">
                 <h3 class="font-bold text-lg text-slate-800">Información Personal</h3>
-                <button @click="openEditModal" class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline">
-                    <i class="fa-solid fa-pen text-xs"></i> Editar
+                <button @click="openEditModal" class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline" aria-label="Editar información personal">
+                    <i class="fa-solid fa-pen text-xs" aria-hidden="true"></i> Editar
                 </button>
             </div>
             
@@ -230,12 +251,12 @@ const saveProfile = async () => {
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="isEditModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in">
+    <div v-if="isEditModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
-            <button @click="closeEditModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700">
-                <i class="fa-solid fa-xmark text-xl"></i>
+            <button @click="closeEditModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700" aria-label="Cerrar modal">
+                <i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i>
             </button>
-            <h2 class="text-2xl font-bold text-slate-800 mb-6">Editar Perfil</h2>
+            <h2 id="modal-title" class="text-2xl font-bold text-slate-800 mb-6 font-bold">Editar Perfil</h2>
             
             <div class="space-y-4">
                 <div>

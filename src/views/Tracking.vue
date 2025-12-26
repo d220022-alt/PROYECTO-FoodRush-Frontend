@@ -85,33 +85,35 @@ const goHome = () => router.push('/');
     <div class="p-8 max-w-lg mx-auto" v-if="order">
         
         <!-- MAPA (Simulado) -->
-        <div class="w-full h-64 bg-gray-100 rounded-3xl mb-8 relative overflow-hidden flex items-center justify-center shadow-inner">
-            <div class="absolute inset-0 opacity-30 bg-[url('https://img.freepik.com/free-vector/city-map-navigation-interface_23-2148496660.jpg')] bg-cover bg-center"></div>
+        <div class="w-full h-64 bg-gray-100 rounded-3xl mb-8 relative overflow-hidden flex items-center justify-center shadow-inner" role="region" aria-label="Mapa de seguimiento en tiempo real">
+            <div class="absolute inset-0 opacity-30 bg-[url('https://img.freepik.com/free-vector/city-map-navigation-interface_23-2148496660.jpg')] bg-cover bg-center" aria-hidden="true"></div>
             
             <!-- Status Overlay -->
-            <div class="z-10 text-center bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
-                <i :class="steps[currentStep].icon" class="text-4xl text-orange-500 mb-2"></i>
+            <div class="z-10 text-center bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg" role="status" aria-live="polite">
+                <i :class="steps[currentStep].icon" class="text-4xl text-orange-500 mb-2" aria-hidden="true"></i>
                 <p class="font-bold text-slate-800 text-lg">{{ steps[currentStep].label }}</p>
                 <p class="text-xs text-gray-500">Actualizado hace un momento</p>
             </div>
             
             <!-- Driver Animation if 'En Camino' -->
-            <div v-if="currentStep === 2" class="absolute bottom-4 left-4 animate-bounce">
-                <i class="fa-solid fa-motorcycle text-3xl text-slate-800"></i>
+            <div v-if="currentStep === 2" class="absolute bottom-4 left-4 animate-bounce" aria-label="El repartidor está en camino">
+                <i class="fa-solid fa-motorcycle text-3xl text-slate-800" aria-hidden="true"></i>
             </div>
         </div>
 
         <!-- TIMELINE -->
-        <div class="relative pl-8 border-l-2 border-gray-100 space-y-10">
-            <div v-for="(step, index) in steps" :key="index" class="relative">
+        <div class="relative pl-8 border-l-2 border-gray-100 space-y-10" role="list" aria-label="Progreso del pedido">
+            <div v-for="(step, index) in steps" :key="index" class="relative" role="listitem">
                 <!-- Dot -->
                 <div class="absolute -left-[41px] w-5 h-5 rounded-full border-4 border-white shadow-sm transition-all duration-500 z-10"
+                     :aria-hidden="true"
                      :class="index <= currentStep ? 'bg-green-500 scale-125' : 'bg-gray-200'">
                 </div>
                 
                 <!-- Content -->
                 <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep ? 'opacity-100' : 'opacity-40'">
                     <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors duration-500 shadow-sm"
+                         :aria-hidden="true"
                          :class="index <= currentStep ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'">
                         <i :class="step.icon"></i>
                     </div>

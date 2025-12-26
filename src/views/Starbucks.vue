@@ -282,9 +282,9 @@ onMounted(() => {
                     <input v-model="searchTerm" type="text" placeholder="Buscar producto" class="outline-none w-full text-sm">
                 </div>
                 <!-- Cart Icon -->
-                <button @click="router.push('/cart')" class="hover:text-[#00704A] transition relative">
-                    <i class="fa-solid fa-cart-shopping text-xl"></i>
-                    <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{{ cartCount }}</span>
+                <button @click="router.push('/cart')" class="hover:text-[#00704A] transition relative" aria-label="Ver carrito">
+                    <i class="fa-solid fa-cart-shopping text-xl" aria-hidden="true"></i>
+                    <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center" aria-live="polite">{{ cartCount }}</span>
                 </button>
                 
                 <!-- User Profile -->
@@ -316,10 +316,10 @@ onMounted(() => {
 
         <!-- Filters Bar -->
         <div class="bg-white border-b sticky top-[73px] z-40 shadow-sm">
-            <div class="container mx-auto px-6 py-4 flex overflow-x-auto gap-4 scrollbar-hide">
-                <button @click="setCategory('Bebidas')" :class="['filter-tab', currentCategory === 'Bebidas' ? 'active' : '']">Bebidas</button>
-                <button @click="setCategory('Comida')" :class="['filter-tab', currentCategory === 'Comida' ? 'active' : '']">Comida</button>
-                <button @click="setCategory('Café en Casa')" :class="['filter-tab', currentCategory === 'Café en Casa' ? 'active' : '']">Café en Casa</button>
+            <div class="container mx-auto px-6 py-4 flex overflow-x-auto gap-4 scrollbar-hide" role="tablist">
+                <button @click="setCategory('Bebidas')" role="tab" :aria-selected="currentCategory === 'Bebidas'" :class="['border px-6 py-2 rounded-full font-semibold transition whitespace-nowrap text-sm focus:ring-2 focus:ring-[#00704A] outline-none', currentCategory === 'Bebidas' ? 'bg-[#00704A] text-white border-[#00704A] shadow-md' : 'border-gray-200 text-gray-600 hover:border-[#00704A] hover:text-[#00704A]']">Bebidas</button>
+                <button @click="setCategory('Comida')" role="tab" :aria-selected="currentCategory === 'Comida'" :class="['border px-6 py-2 rounded-full font-semibold transition whitespace-nowrap text-sm focus:ring-2 focus:ring-[#00704A] outline-none', currentCategory === 'Comida' ? 'bg-[#00704A] text-white border-[#00704A] shadow-md' : 'border-gray-200 text-gray-600 hover:border-[#00704A] hover:text-[#00704A]']">Comida</button>
+                <button @click="setCategory('Café en Casa')" role="tab" :aria-selected="currentCategory === 'Café en Casa'" :class="['border px-6 py-2 rounded-full font-semibold transition whitespace-nowrap text-sm focus:ring-2 focus:ring-[#00704A] outline-none', currentCategory === 'Café en Casa' ? 'bg-[#00704A] text-white border-[#00704A] shadow-md' : 'border-gray-200 text-gray-600 hover:border-[#00704A] hover:text-[#00704A]']">Café en Casa</button>
             </div>
         </div>
 
@@ -343,7 +343,11 @@ onMounted(() => {
 
             <!-- Grid -->
             <main class="md:col-span-3">
-                <div v-if="filteredProducts.length === 0" class="text-center py-10 text-gray-400">
+                <div v-if="isLoading" class="text-center py-20">
+                    <div class="inline-block w-8 h-8 border-4 border-[#00704A] border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-gray-400 mt-4 font-medium">Buscando el mejor café...</p>
+                </div>
+                <div v-else-if="filteredProducts.length === 0" class="text-center py-10 text-gray-400">
                     No se encontraron productos.
                 </div>
                 <div v-else class="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -352,14 +356,14 @@ onMounted(() => {
                          class="group bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center justify-between h-[300px] hover:shadow-xl hover:border-[#00704A] transition-all duration-300 cursor-pointer relative overflow-hidden">
                         
                         <div class="h-40 w-full flex items-center justify-center mb-2">
-                            <img :src="product.img" :alt="product.name" class="h-full object-contain group-hover:scale-110 transition duration-500 drop-shadow-sm">
+                            <img :src="product.img" :alt="`Foto de ${product.name}`" class="h-full object-contain group-hover:scale-110 transition duration-500 drop-shadow-sm" loading="lazy">
                         </div>
                         
                         <div class="text-center w-full relative z-10">
                             <h3 class="font-medium text-slate-800 text-sm mb-2 group-hover:text-[#00704A] group-hover:font-bold line-clamp-2">{{ product.name }}</h3>
                             <div class="flex justify-between items-center w-full px-1">
                                 <span class="bg-green-50 text-[#00704A] font-bold px-2 py-1 rounded text-xs">${{ product.price }}</span>
-                                <button class="w-8 h-8 rounded-full bg-[#00704A] text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center transform translate-y-2 group-hover:translate-y-0 text-lg">
+                                <button class="w-8 h-8 rounded-full bg-[#00704A] text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center transform translate-y-2 group-hover:translate-y-0 text-lg" :aria-label="`Ver detalle de ${product.name}`">
                                     +
                                 </button>
                             </div>
@@ -395,8 +399,8 @@ onMounted(() => {
                     </div>
                     <span class="text-gray-400 ml-2">(4.8)</span>
                     
-                    <button @click="toggleFavorite" class="ml-auto w-10 h-10 rounded-full flex items-center justify-center transition" :class="isFavorite ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400 hover:text-red-400'">
-                        <i :class="isFavorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                    <button @click="toggleFavorite" class="ml-auto w-10 h-10 rounded-full flex items-center justify-center transition" :class="isFavorite ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-400 hover:text-red-400'" :aria-label="isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'">
+                        <i :class="isFavorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" aria-hidden="true"></i>
                     </button>
                 </div>
 
@@ -422,18 +426,18 @@ onMounted(() => {
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-sm text-gray-600">Matcha Scoops</span>
                         <div class="flex items-center gap-3">
-                            <button @click="updateIngredient('matcha', -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition">-</button>
+                            <button @click="updateIngredient('matcha', -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition" aria-label="Menos Matcha">-</button>
                             <span class="font-bold text-gray-700 w-4 text-center">{{ matchaQty }}</span>
-                            <button @click="updateIngredient('matcha', 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition">+</button>
+                            <button @click="updateIngredient('matcha', 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition" aria-label="Más Matcha">+</button>
                         </div>
                     </div>
 
                      <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Bombas de Jarabe</span>
                         <div class="flex items-center gap-3">
-                            <button @click="updateIngredient('syrup', -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition">-</button>
+                            <button @click="updateIngredient('syrup', -1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition" aria-label="Menos Jarabe">-</button>
                             <span class="font-bold text-gray-700 w-4 text-center">{{ syrupQty }}</span>
-                            <button @click="updateIngredient('syrup', 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition">+</button>
+                            <button @click="updateIngredient('syrup', 1)" class="w-6 h-6 rounded-full bg-gray-200 hover:bg-[#00704A] hover:text-white flex items-center justify-center text-xs transition" aria-label="Más Jarabe">+</button>
                         </div>
                     </div>
                 </div>
@@ -444,14 +448,14 @@ onMounted(() => {
                         <div class="flex items-center gap-4">
                             <span class="text-gray-500 font-medium">Cantidad</span>
                              <div class="flex items-center gap-3 border rounded-lg px-2 py-1">
-                                <button @click="changeQty(-1)" class="text-gray-400 hover:text-[#00704A] px-2 font-bold text-lg">-</button>
-                                <span class="font-bold text-slate-800">{{ currentQty }}</span>
-                                <button @click="changeQty(1)" class="text-gray-400 hover:text-[#00704A] px-2 font-bold text-lg">+</button>
+                                <button @click="changeQty(-1)" class="text-gray-400 hover:text-[#00704A] px-2 font-bold text-lg" aria-label="Disminuir cantidad">-</button>
+                                <span class="font-bold text-slate-800" aria-live="polite">{{ currentQty }}</span>
+                                <button @click="changeQty(1)" class="text-gray-400 hover:text-[#00704A] px-2 font-bold text-lg" aria-label="Aumentar cantidad">+</button>
                             </div>
                         </div>
                         <div class="text-right">
                             <span class="block text-xs text-gray-400">Total</span>
-                            <span class="text-3xl font-bold text-[#00704A]">${{ totalPrice }}</span>
+                            <span class="text-3xl font-bold text-[#00704A]" aria-live="polite">${{ totalPrice }}</span>
                         </div>
                     </div>
 
@@ -475,15 +479,7 @@ onMounted(() => {
 
 .font-poppins { font-family: 'Poppins', sans-serif; }
 
-.filter-tab {
-    @apply border border-gray-200 text-gray-600 px-6 py-2 rounded-full font-semibold transition whitespace-nowrap text-sm;
-}
-.filter-tab:hover {
-    @apply border-[#00704A] text-[#00704A];
-}
-.filter-tab.active {
-    @apply bg-[#00704A] text-white border-[#00704A] shadow-md;
-}
+
 
 .fade-in { animation: fadeIn 0.4s ease-out; }
 .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }

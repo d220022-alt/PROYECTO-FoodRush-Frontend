@@ -264,8 +264,8 @@ onMounted(() => {
 
                 <!-- Cart -->
                 <button @click="router.push('/cart')" aria-label="Ver carrito" class="relative hover:text-[#FFC72C] transition focus:outline-none focus:ring-2 focus:ring-[#FFC72C] rounded-full p-1">
-                    <i class="fa-solid fa-burger text-xl"></i>
-                    <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-[#FFC72C] text-[#DB0007] font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm">{{ cartCount }}</span>
+                    <i class="fa-solid fa-burger text-xl" aria-hidden="true"></i>
+                    <span v-if="cartCount > 0" class="absolute -top-2 -right-2 bg-[#FFC72C] text-[#DB0007] font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm" aria-live="polite">{{ cartCount }}</span>
                 </button>
 
                  <!-- User Profile -->
@@ -290,9 +290,11 @@ onMounted(() => {
 
         <!-- CATEGORIES -->
         <nav class="sticky top-[72px] z-40 bg-white shadow-sm border-b py-4" aria-label="Categorías">
-             <div class="container mx-auto px-6 flex justify-start md:justify-center gap-4 overflow-x-auto scrollbar-hide pb-2 md:pb-0">
+             <div class="container mx-auto px-6 flex justify-start md:justify-center gap-4 overflow-x-auto scrollbar-hide pb-2 md:pb-0" role="tablist">
                 <button v-for="cat in ['Hamburguesas', 'Complementos', 'Bebidas', 'Postres']" :key="cat"
                         @click="setCategory(cat)"
+                        role="tab"
+                        :aria-selected="currentCategory === cat"
                         :class="['px-6 py-2 rounded-full font-bold text-sm transition shadow-sm border whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-[#DB0007]', currentCategory === cat ? 'bg-[#DB0007] text-white border-[#DB0007] scale-105' : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100']">
                     {{ cat }}
                 </button>
@@ -331,7 +333,7 @@ onMounted(() => {
                         <img :src="product.img" 
                              @error="$event.target.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ac/No_image_available.svg/600px-No_image_available.svg.png'"
                              class="w-full h-full object-cover group-hover:scale-110 transition duration-500" 
-                             :alt="product.name">
+                             :alt="`Imagen de ${product.name}`" loading="lazy">
                     </div>
 
                     <h3 class="font-bold text-slate-800 leading-tight mb-2 group-hover:text-[#DB0007] line-clamp-2">{{ product.name }}</h3>
@@ -358,8 +360,9 @@ onMounted(() => {
             <div class="flex items-center justify-center bg-[#FFF8E1] rounded-2xl p-8 relative">
                 <!-- Simple Favorite Toggle -->
                 <button @click="toggleFavorite" class="absolute top-4 left-4 w-10 h-10 rounded-full bg-white shadow-md flex items-center justify-center transition z-20"
-                        :class="isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-400'">
-                     <i :class="isFavorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'"></i>
+                        :class="isFavorite ? 'text-red-500' : 'text-gray-300 hover:text-red-400'"
+                        :aria-label="isFavorite ? 'Quitar de favoritos' : 'Añadir a favoritos'">
+                     <i :class="isFavorite ? 'fa-solid fa-heart' : 'fa-regular fa-heart'" aria-hidden="true"></i>
                 </button>
                 <img :src="selectedProduct.img" :alt="selectedProduct.name" class="w-full max-w-[280px] drop-shadow-2xl hover:scale-105 transition duration-500 object-contain">
             </div>
@@ -377,40 +380,40 @@ onMounted(() => {
                     <p class="font-bold text-sm text-slate-700 mb-2 border-b pb-1">Personaliza tu orden</p>
                     
                     <!-- McCombo Toggle -->
-                    <label class="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition group">
-                        <div class="flex flex-col">
+                    <div class="flex items-center justify-between hover:bg-gray-100 p-2 rounded transition group">
+                        <label for="mccombo-toggle" class="flex flex-col cursor-pointer">
                             <span class="text-sm font-bold text-slate-800 group-hover:text-[#DB0007] transition">Hacer McCombo (+$200)</span>
                             <span class="text-xs text-gray-500">Incluye Papas Medianas y Refresco</span>
-                        </div>
+                        </label>
                         <div class="relative">
-                             <input type="checkbox" v-model="isCombo" class="sr-only peer">
-                             <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#DB0007]"></div>
+                             <input id="mccombo-toggle" type="checkbox" v-model="isCombo" class="sr-only peer">
+                             <div @click="isCombo = !isCombo" class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#DB0007] cursor-pointer"></div>
                         </div>
-                    </label>
+                    </div>
 
-                    <label v-if="selectedProduct.category === 'Hamburguesas'" class="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition">
-                        <span class="text-sm text-gray-600">Extra Queso (+$50)</span>
+                    <div v-if="selectedProduct.category === 'Hamburguesas'" class="flex items-center justify-between hover:bg-gray-100 p-2 rounded transition">
+                        <label for="cheese-toggle" class="text-sm text-gray-600 cursor-pointer">Extra Queso (+$50)</label>
                         <div class="relative">
-                            <input type="checkbox" v-model="extraCheese" class="sr-only peer">
-                            <div class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFC72C]"></div>
+                            <input id="cheese-toggle" type="checkbox" v-model="extraCheese" class="sr-only peer">
+                            <div @click="extraCheese = !extraCheese" class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFC72C] cursor-pointer"></div>
                         </div>
-                    </label>
+                    </div>
 
-                    <label v-if="selectedProduct.category === 'Hamburguesas'" class="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition">
-                        <span class="text-sm text-gray-600">Sin Pepinillos</span>
+                    <div v-if="selectedProduct.category === 'Hamburguesas'" class="flex items-center justify-between hover:bg-gray-100 p-2 rounded transition">
+                        <label for="pickles-toggle" class="text-sm text-gray-600 cursor-pointer">Sin Pepinillos</label>
                         <div class="relative">
-                            <input type="checkbox" v-model="noPickles" class="sr-only peer">
-                            <div class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                            <input id="pickles-toggle" type="checkbox" v-model="noPickles" class="sr-only peer">
+                            <div @click="noPickles = !noPickles" class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 cursor-pointer"></div>
                         </div>
-                    </label>
+                    </div>
 
-                    <label class="flex items-center justify-between cursor-pointer hover:bg-gray-100 p-2 rounded transition">
-                        <span class="text-sm text-gray-600">Agrandar (+$50)</span>
+                    <div class="flex items-center justify-between hover:bg-gray-100 p-2 rounded transition">
+                        <label for="large-toggle" class="text-sm text-gray-600 cursor-pointer">Agrandar (+$50)</label>
                         <div class="relative">
-                            <input type="checkbox" v-model="largeFries" class="sr-only peer">
-                            <div class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFC72C]"></div>
+                            <input id="large-toggle" type="checkbox" v-model="largeFries" class="sr-only peer">
+                            <div @click="largeFries = !largeFries" class="w-10 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FFC72C] cursor-pointer"></div>
                         </div>
-                    </label>
+                    </div>
                 </div>
 
                 <!-- Footer Action -->
@@ -418,12 +421,12 @@ onMounted(() => {
                     <div class="flex items-center justify-between mb-4">
                         <div class="flex items-center border rounded-lg bg-gray-50">
                             <button @click="changeQty(-1)" aria-label="Disminuir cantidad" class="px-4 py-2 hover:bg-gray-200 text-gray-500 font-bold rounded-l-lg transition">-</button>
-                            <span class="px-3 py-1 font-bold text-slate-800 min-w-[40px] text-center text-lg">{{ currentQty }}</span>
+                            <span class="px-3 py-1 font-bold text-slate-800 min-w-[40px] text-center text-lg" aria-live="polite" aria-atomic="true">{{ currentQty }}</span>
                             <button @click="changeQty(1)" aria-label="Aumentar cantidad" class="px-4 py-2 hover:bg-gray-200 text-gray-500 font-bold rounded-r-lg transition">+</button>
                         </div>
                         <div class="text-right">
                              <span class="block text-xs text-gray-400 font-bold uppercase">Total</span>
-                             <span class="text-4xl font-black text-[#DB0007]">${{ totalPrice }}</span>
+                             <span class="text-4xl font-black text-[#DB0007]" aria-live="polite" aria-atomic="true">${{ totalPrice }}</span>
                         </div>
                     </div>
                     <button @click="addToCart" class="w-full bg-[#FFC72C] hover:bg-[#ffb700] text-[#DB0007] font-black py-4 rounded-xl shadow-lg transition transform active:scale-[0.98] text-lg uppercase tracking-wide flex items-center justify-center gap-2">
