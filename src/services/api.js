@@ -1,64 +1,66 @@
-const API_URL = 'http://localhost:3000';
+import { mockTenants, mockProducts, mockUsers, mockOrders } from './mockData';
+
+const SIMULATE_DELAY = 800; // ms
+
+// Helper to simulate async delay
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const api = {
+    // Generic request simulator
     async request(endpoint, options = {}) {
-        const url = `${API_URL}${endpoint}`;
-        const defaultHeaders = {
-            'Content-Type': 'application/json'
-        };
+        await delay(SIMULATE_DELAY);
+        console.log(`[MOCK API] Request to ${endpoint}`, options);
 
-        const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 5000); // 5 segundos de timeout
-
-        const config = {
-            ...options,
-            signal: controller.signal,
-            headers: {
-                ...defaultHeaders,
-                ...options.headers
-            }
-        };
-
-        try {
-            const response = await fetch(url, config);
-            clearTimeout(id);
-            if (!response.ok) {
-                const errorBody = await response.json().catch(() => ({}));
-                throw new Error(errorBody.message || `Error ${response.status}: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            clearTimeout(id);
-            if (error.name === 'AbortError') {
-                throw new Error('El servidor tardó demasiado en responder (Timeout). Verifica que esté corriendo.');
-            }
-            console.error('API Error:', error);
-            throw error;
+        // Health Check
+        if (endpoint === '/api/health') {
+            return { status: 'ok' };
         }
+
+        return { success: true };
     },
 
     async getFranchises() {
-        return this.request('/api/tenants');
+        await delay(SIMULATE_DELAY);
+        return { success: true, data: mockTenants };
     },
 
     // Products
     async getProducts(params = {}, headers = {}) {
-        const query = new URLSearchParams(params).toString();
-        return this.request(`/api/productos?${query}`, { headers });
+        await delay(SIMULATE_DELAY);
+
+        // Filter logic could be implemented here if needed
+        // For now, return all or filter by tenant if header/param exists
+        let results = [...mockProducts];
+
+        // Simulating Tenant Filter
+        const tenantId = headers['X-Tenant-ID'];
+        if (tenantId) {
+            results = results.filter(p => p.tenant_id == tenantId);
+        }
+
+        return { success: true, data: results };
     },
 
     async login(email, password) {
-        return this.request('/api/usuarios/login', {
-            method: 'POST',
-            body: JSON.stringify({ email, password })
-        });
+        await delay(SIMULATE_DELAY);
+        const user = mockUsers.find(u => u.correo === email && u.contrasena === password);
+
+        if (user) {
+            return {
+                success: true,
+                token: 'mock-token-12345',
+                user: user
+            };
+        } else {
+            return { success: false, message: 'Credenciales inválidas (Mock)' };
+        }
     },
 
     async register(userData) {
-        // El backend espera: nombre, correo, contrasena
-        // El frontend envía: email, name, password
-        // Mapeamos los datos
-        const payload = {
+        await delay(SIMULATE_DELAY);
+        // Map frontend data to backend structure
+        const newUser = {
+            id: mockUsers.length + 1,
             nombre: userData.name,
             correo: userData.email,
             contrasena: userData.password,
@@ -67,62 +69,80 @@ export const api = {
             zona: userData.zona
         };
 
-        return this.request('/api/usuarios', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
+        mockUsers.push(newUser);
+        return { success: true, data: newUser };
     },
 
     async getUser(id) {
-        return this.request(`/api/usuarios/${id}`);
+        await delay(SIMULATE_DELAY);
+        const user = mockUsers.find(u => u.id == id);
+        return { success: true, data: user };
     },
 
     async updateUser(id, data) {
-        return this.request(`/api/usuarios/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
+        await delay(SIMULATE_DELAY);
+        // Find and update
+        const index = mockUsers.findIndex(u => u.id == id);
+        if (index !== -1) {
+            mockUsers[index] = { ...mockUsers[index], ...data };
+            return { success: true, data: mockUsers[index] };
+        }
+        return { success: false, message: 'Usuario no encontrado' };
     },
 
-    // Client Management (for Orders)
+    // Client Management
     async getClients(params = {}) {
-        const query = new URLSearchParams(params).toString();
-        return this.request(`/api/clientes?${query}`);
+        await delay(SIMULATE_DELAY);
+        // If searching by email
+        // params could be query string
+        // We will just return the first mock user if it matches generic search or all
+        return { success: true, data: mockUsers };
     },
 
     async createClient(clientData) {
-        return this.request('/api/clientes', {
-            method: 'POST',
-            body: JSON.stringify(clientData)
-        });
+        await delay(SIMULATE_DELAY);
+        // Reuse register logic or just return success
+        const newUser = { id: mockUsers.length + 1, ...clientData };
+        mockUsers.push(newUser);
+        return { success: true, data: newUser };
     },
 
     // Order Management
     async createOrder(orderData) {
-        return this.request('/api/pedidos', {
-            method: 'POST',
-            body: JSON.stringify(orderData)
-        });
+        await delay(SIMULATE_DELAY);
+        const newOrder = {
+            id: Math.floor(Math.random() * 100000),
+            timestamp: new Date().toISOString(),
+            status: 'Pendiente',
+            ...orderData
+        };
+        mockOrders.push(newOrder);
+
+        console.log("ORDER CREATED:", newOrder);
+
+        return {
+            success: true,
+            data: newOrder
+        };
     },
 
     async getOrders(params = {}) {
-        const query = new URLSearchParams(params).toString();
-        return this.request(`/api/pedidos?${query}`);
+        await delay(SIMULATE_DELAY);
+        return { success: true, data: mockOrders };
     },
 
     async getOrder(id) {
-        return this.request(`/api/pedidos/${id}`);
+        await delay(SIMULATE_DELAY);
+        const order = mockOrders.find(o => o.id == id) || mockOrders[mockOrders.length - 1]; // Return last if not found for demo
+        return { success: true, data: order };
     },
 
     async updateOrder(id, data) {
-        return this.request(`/api/pedidos/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data)
-        });
+        await delay(SIMULATE_DELAY);
+        return { success: true };
     },
 
-    // Validar si es un error de conexión para reintentos o feedback
     isNetworkError(error) {
-        return error.message.includes('fetch') || error.message.includes('servidor');
+        return false; // Mock never fails network
     }
 };
