@@ -1,79 +1,124 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FoodRush | Tu Comida Favorita</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Importamos Config y API -->
+    
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Roboto:wght@400;500;700&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
     <script src="js/config.js"></script>
     <script src="js/api.js"></script>
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+        /* --- ESTILOS GENERALES (FOODRUSH) --- */
+        body { font-family: 'Poppins', sans-serif; background-color: #FFFBE6; }
+        
+        .card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .filter-btn.active { background-color: #b91c1c; color: white; border-color: #b91c1c; }
+        .modal-chip { padding: 8px 16px; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; background-color: #f3f4f6; color: #4b5563; display: flex; align-items: center; gap: 6px; }
+        .modal-chip:hover { background-color: #e5e7eb; }
+        .modal-chip.selected { background-color: #fff; border-color: #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: #1e293b; border: 1px solid #94a3b8; }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #FFFBE6;
+        /* =========================================
+           ESTILOS ESPECÍFICOS DEL LOGIN / REGISTRO
+           (Renombrados con prefijo 'auth-' para no romper la web principal)
+           ========================================= */
+        
+        .auth-font { font-family: 'Roboto', sans-serif; }
+        .auth-brand-font { font-family: 'Titan One', cursive; }
+
+        /* La Tarjeta Principal del Login */
+        .auth-card {
+            background: white;
+            width: 900px;
+            max-width: 95%;
+            height: 600px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Animaciones */
-        .card-hover:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .fade-in {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Estilo para los botones de categoría superiores */
-        .filter-btn.active {
-            background-color: #b91c1c;
-            color: white;
-            border-color: #b91c1c;
-        }
-
-        /* Estilos para los Chips del Modal */
-        .modal-chip {
-            padding: 8px 16px;
-            border-radius: 9999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-            background-color: #f3f4f6;
-            color: #4b5563;
+        /* Header Amarillo del Login */
+        .auth-header {
+            background-color: #FDD835;
+            padding: 15px 40px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 20;
+            height: 80px;
         }
 
-        .modal-chip:hover {
-            background-color: #e5e7eb;
+        .auth-logo-box {
+            background: white; padding: 5px; border-radius: 8px; margin-right: 15px;
+            display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd;
+        }
+        .auth-logo-box i { font-size: 24px; color: #C62828; }
+        .auth-brand-name { font-family: 'Titan One', cursive; font-size: 32px; color: #C62828; letter-spacing: 1px; }
+
+        /* Contenedor de los paneles */
+        .auth-forms-wrapper {
+            display: flex;
+            height: calc(100% - 80px);
+            position: relative;
+            font-family: 'Roboto', sans-serif; /* Forzar fuente Roboto dentro del form */
         }
 
-        .modal-chip.selected {
-            background-color: #fff;
-            border-color: #cbd5e1;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-            color: #1e293b;
-            border: 1px solid #94a3b8;
+        .auth-panel {
+            flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center;
         }
+
+        .auth-title { font-family: 'Titan One', cursive; color: #C62828; font-size: 28px; margin-bottom: 15px; }
+        
+        .auth-label { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 4px; display: block; }
+        
+        .auth-input {
+            width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #aaa;
+            border-radius: 5px; font-size: 14px; outline: none;
+        }
+        .auth-input:focus { border-color: #C62828; }
+
+        .auth-btn-action {
+            width: 100%; background-color: #C62828; color: white; border: none; padding: 10px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 5px;
+            box-shadow: 0 4px 0 #8E1C1C;
+        }
+        .auth-btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 #8E1C1C; }
+
+        .auth-separator { display: flex; align-items: center; margin: 10px 0; color: #777; font-size: 12px; }
+        .auth-separator::before, .auth-separator::after { content: ''; flex: 1; border-bottom: 1px dashed #ccc; }
+        .auth-separator span { padding: 0 10px; }
+
+        .auth-social-btn {
+            width: 100%; padding: 8px; margin-bottom: 8px; background: white; border: 1px solid #ccc;
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-weight: bold; font-size: 13px; color: #333; text-decoration: none;
+        }
+        .auth-social-btn i { margin-right: 10px; font-size: 16px; }
+
+        .auth-switch-link { text-align: center; margin-top: 10px; font-size: 13px; }
+        .auth-switch-link a { color: #2ECC71; text-decoration: none; font-weight: bold; cursor: pointer; }
+        .auth-switch-link a:hover { text-decoration: underline; }
+
+        /* LA CAPA GRIS DESLIZANTE */
+        .auth-overlay-slider {
+            position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 10;
+            transition: transform 0.6s ease-in-out; pointer-events: auto;
+        }
+
+        /* Clase activa para mover el slider */
+        .auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
     </style>
 </head>
 
@@ -92,88 +137,66 @@
 
         <nav class="hidden md:flex gap-8 font-medium text-slate-600">
             <a href="#" class="text-slate-900 border-b-2 border-slate-900">Inicio</a>
-            <a href="#" class="hover:text-orange-600 transition">Franquicias</a>
-            <a href="#" class="hover:text-orange-600 transition">Contactos</a>
+            <a href="#" onclick="openAuthModal('login')" class="hover:text-orange-600 transition">Iniciar Sesión</a>
+            <a href="#" onclick="openAuthModal('register')" class="hover:text-orange-600 transition">Registrarse</a>
         </nav>
 
-        <div
-            class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition">
-            <i class="fa-solid fa-user"></i>
+        <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition">
+            <i class="fa-solid fa-user" onclick="openAuthModal('login')"></i>
         </div>
     </header>
 
     <section class="relative h-[300px] md:h-[400px] flex items-center justify-center">
         <div class="absolute inset-0 z-0">
-            <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop"
-                class="w-full h-full object-cover brightness-50">
+            <img src="https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop" class="w-full h-full object-cover brightness-50">
         </div>
         <div class="relative z-10 w-full max-w-2xl px-4">
             <div class="bg-white rounded-lg flex shadow-2xl overflow-hidden p-1">
                 <div class="pl-4 flex items-center text-gray-400">
                     <i class="fa-solid fa-magnifying-glass"></i>
                 </div>
-                <input type="text" id="searchInput" placeholder="Buscar producto o franquicia..."
-                    class="w-full py-3 px-4 outline-none text-slate-700" onkeyup="app.search(this.value)">
-                <button
-                    class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-bold transition">Buscar</button>
+                <input type="text" id="searchInput" placeholder="Buscar producto o franquicia..." class="w-full py-3 px-4 outline-none text-slate-700" onkeyup="app.search(this.value)">
+                <button class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-bold transition">Buscar</button>
             </div>
         </div>
     </section>
 
     <section class="container mx-auto px-4 md:px-12 py-8">
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
-            <button onclick="app.openModal()"
-                class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
+            <button onclick="app.openModal()" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition">
                 <span>Filter</span>
                 <i class="fa-solid fa-filter text-xs"></i>
             </button>
 
             <div class="flex flex-wrap gap-2" id="filter-container">
-                <button onclick="app.filterCategory('all', this)"
-                    class="filter-btn active border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Todos</button>
-                <button onclick="app.filterCategory('Pizza', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Pizza</button>
-                <button onclick="app.filterCategory('Hamburguesa', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Hamburguesa</button>
-                <button onclick="app.filterCategory('Bebidas', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Bebidas</button>
-                <button onclick="app.filterCategory('Tacos', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Tacos</button>
-                <button onclick="app.filterCategory('Criolla', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Comida
-                    Dominicana</button>
-                <button onclick="app.filterCategory('Postres', this)"
-                    class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Postres</button>
+                <button onclick="app.filterCategory('all', this)" class="filter-btn active border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Todos</button>
+                <button onclick="app.filterCategory('Pizza', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Pizza</button>
+                <button onclick="app.filterCategory('Hamburguesa', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Hamburguesa</button>
+                <button onclick="app.filterCategory('Bebidas', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Bebidas</button>
+                <button onclick="app.filterCategory('Tacos', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Tacos</button>
+                <button onclick="app.filterCategory('Criolla', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Comida Dominicana</button>
+                <button onclick="app.filterCategory('Postres', this)" class="filter-btn border border-red-700 text-red-700 px-4 py-1.5 rounded-lg font-bold text-sm hover:bg-red-700 hover:text-white transition">Postres</button>
             </div>
         </div>
 
         <div id="franchise-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        </div>
+            </div>
     </section>
 
     <footer class="bg-[#BD0A0A] text-white mt-auto">
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
-
             <div class="mb-8 md:mb-0">
-                <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded">
+                 <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded">
                     <span class="text-orange-500 font-bold text-xl italic">Food</span>
                     <span class="text-slate-800 font-bold text-xl italic -ml-1">Rush</span>
                 </div>
-                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas
-                    directo a tu puerta.</p>
+                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#"
-                        class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i
-                            class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#"
-                        class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i
-                            class="fa-brands fa-instagram"></i></a>
-                    <a href="#"
-                        class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i
-                            class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
-
             <div class="flex gap-16 text-sm text-left md:text-right">
                 <div>
                     <h4 class="font-bold mb-4 text-lg">Ayuda</h4>
@@ -192,7 +215,6 @@
                     </ul>
                 </div>
             </div>
-
         </div>
         <div class="border-t border-white/20 text-center py-4 text-xs text-white/60">
             &copy; 2025 FoodRush Inc. Todos los derechos reservados.
@@ -201,28 +223,21 @@
 
     <div id="filterModal" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center fade-in">
         <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4 relative shadow-2xl">
-            <button onclick="app.closeModal()"
-                class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition"><i
-                    class="fa-solid fa-xmark text-2xl"></i></button>
+            <button onclick="app.closeModal()" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
             <h2 class="text-3xl font-bold text-center mb-8 text-slate-800">Filter</h2>
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Ordenar</h3>
                 <div class="flex flex-wrap gap-2">
-                    <button class="modal-chip selected" onclick="app.setSort('sugeridos', this)"><i
-                            class="fa-solid fa-arrow-down-up-across-line text-xs"></i> Sugeridos</button>
-                    <button class="modal-chip" onclick="app.setSort('rating', this)"><i
-                            class="fa-regular fa-star text-xs"></i> Mejor puntuados</button>
-                    <button class="modal-chip" onclick="app.setSort('cercanos', this)"><i
-                            class="fa-solid fa-location-dot text-xs"></i> Más cercanos</button>
-                    <button class="modal-chip" onclick="app.setSort('rapidos', this)"><i
-                            class="fa-solid fa-clock text-xs"></i> Más rápidos</button>
+                    <button class="modal-chip selected" onclick="app.setSort('sugeridos', this)"><i class="fa-solid fa-arrow-down-up-across-line text-xs"></i> Sugeridos</button>
+                    <button class="modal-chip" onclick="app.setSort('rating', this)"><i class="fa-regular fa-star text-xs"></i> Mejor puntuados</button>
+                    <button class="modal-chip" onclick="app.setSort('cercanos', this)"><i class="fa-solid fa-location-dot text-xs"></i> Más cercanos</button>
+                    <button class="modal-chip" onclick="app.setSort('rapidos', this)"><i class="fa-solid fa-clock text-xs"></i> Más rápidos</button>
                 </div>
             </div>
             <div class="mb-6">
                 <h3 class="font-bold text-lg text-slate-900 mb-3">Filtrar</h3>
                 <div class="flex flex-wrap gap-2">
-                    <button class="modal-chip" onclick="app.toggleFilter('delivery', this)">Entrega por
-                        FoodRush</button>
+                    <button class="modal-chip" onclick="app.toggleFilter('delivery', this)">Entrega por FoodRush</button>
                     <button class="modal-chip" onclick="app.toggleFilter('pickup', this)">Retiro en local</button>
                 </div>
             </div>
@@ -235,16 +250,110 @@
                     <button class="modal-chip" onclick="app.toggleFilter('favs', this)">Favoritos</button>
                 </div>
             </div>
-            <button onclick="app.applyModalFilters()"
-                class="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 rounded-xl transition shadow-md text-lg">Guardar</button>
+            <button onclick="app.applyModalFilters()" class="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 rounded-xl transition shadow-md text-lg">Guardar</button>
+        </div>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-black/60 z-[9999] hidden flex items-center justify-center fade-in">
+        
+        <div class="auth-card relative" id="authCard">
+            
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-[#C62828] text-2xl font-bold z-50 hover:scale-110 transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="auth-header">
+                <div class="auth-logo-box"><i class="fa-solid fa-utensils"></i></div>
+                <div class="auth-brand-name">FoodRush</div>
+            </div>
+
+            <div class="auth-forms-wrapper">
+                <div class="auth-panel">
+                    <h2 class="auth-title">Inicio Sesion</h2>
+                    <form>
+                        <label class="auth-label">Usuario/@Gmail</label>
+                        <input class="auth-input" type="text" placeholder="Usuario / @Gmail">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="Contraseña">
+                        <button type="button" class="auth-btn-action">Ingresar</button>
+                    </form>
+                    <div class="auth-separator"><span>o</span></div>
+                    <a href="#" class="auth-social-btn"><i class="fa-brands fa-google" style="color:#DB4437;"></i> Continuar con Google</a>
+                    <a href="#" class="auth-social-btn"><i class="fa-brands fa-apple" style="color:black;"></i> Continuar con Apple</a>
+                    <div class="auth-switch-link">
+                        ¿No estas registrado? <a onclick="switchToRegister()">Registrarse</a>
+                    </div>
+                </div>
+
+                <div class="auth-panel">
+                    <h2 class="auth-title">Registro Cliente</h2>
+                    <form>
+                        <label class="auth-label">Correo Electrónico</label>
+                        <input class="auth-input" type="email" placeholder="correo@ejemplo.com">
+                        <label class="auth-label">Nombre completo</label>
+                        <input class="auth-input" type="text" placeholder="Tu nombre">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="******">
+                        <label class="auth-label">Confirmar Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="******">
+                        <button type="button" class="auth-btn-action">Registrar</button>
+                    </form>
+                    <div class="auth-switch-link">
+                        ¿Ya tienes cuenta? <a onclick="switchToLogin()">Iniciar Sesión</a>
+                    </div>
+                </div>
+
+                <div class="auth-overlay-slider"></div>
+            </div>
         </div>
     </div>
 
     <script>
+        // --- LOGICA DE LOGIN / REGISTRO ---
+        function openAuthModal(mode) {
+            document.getElementById('authModal').classList.remove('hidden');
+            const card = document.getElementById('authCard');
+            
+            if (mode === 'register') {
+                card.classList.add('active-register');
+            } else {
+                card.classList.remove('active-register');
+            }
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+
+        function switchToRegister() {
+            document.getElementById('authCard').classList.add('active-register');
+        }
+
+        function switchToLogin() {
+            document.getElementById('authCard').classList.remove('active-register');
+        }
+
+        // --- LOGICA DE LA APP (GRID, FILTROS, ETC) ---
         const app = {
             currentCategory: 'all',
-            // Datos (inicialmente vacío, se llena desde el backend)
-            data: [],
+            // Datos
+            data: [
+                { id: 1, name: "Starbucks Coffee", category: "Bebidas", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", pickup: true, promo: true },
+                { id: 2, name: "McDonald's", category: "Hamburguesa", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", pickup: true, promo: false },
+                { id: 3, name: "KFC", category: "Pollo", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png", pickup: false, promo: true },
+                { id: 4, name: "Burger King", category: "Hamburguesa", rating: 4.3, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/2024px-Burger_King_logo_%281999%29.svg.png", pickup: true, promo: true },
+                { id: 5, name: "Little Caesars", category: "Pizza", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Little_Caesars_pizza_logo.svg/1200px-Little_Caesars_pizza_logo.svg.png", pickup: true, promo: false },
+                { id: 6, name: "Domino's Pizza", category: "Pizza", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", pickup: true, promo: true },
+                { id: 7, name: "Pizza Hut", category: "Pizza", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/sco/d/d2/Pizza_Hut_logo.svg", pickup: false, promo: false },
+                { id: 8, name: "Krispy Kreme", category: "Postres", rating: 4.9, img: "https://upload.wikimedia.org/wikipedia/en/thumb/6/66/Krispy_Kreme_logo.svg/1200px-Krispy_Kreme_logo.svg.png", pickup: true, promo: true },
+                { id: 9, name: "Rico Hot Dog", category: "Criolla", rating: 4.2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0Y6O2p4YvPwcY6HwB0_M_QY4Q6Z6Z6Z6Z6w&s", pickup: true, promo: false },
+                { id: 10, name: "Pizzarelli", category: "Pizza", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Pizzarelli_Logo.png", pickup: true, promo: true },
+                { id: 11, name: "Barra Payán", category: "Criolla", rating: 4.9, img: "https://barrapayan.com/wp-content/uploads/2021/08/logo-barra-payan.png", pickup: true, promo: false },
+                { id: 12, name: "Taco Bell", category: "Tacos", rating: 4.4, img: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b3/Taco_Bell_2016.svg/1200px-Taco_Bell_2016.svg.png", pickup: false, promo: true },
+                { id: 13, name: "Helados Bon", category: "Postres", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Helados_Bon_Logo.jpg", pickup: true, promo: true },
+                { id: 14, name: "Chili's Grill & Bar", category: "Mexicana", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/1/14/Chili%27s_Grill_%26_Bar_logo.svg/1200px-Chili%27s_Grill_%26_Bar_logo.svg.png", pickup: false, promo: false },
+                { id: 15, name: "Panda Express", category: "Asiática", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/en/thumb/2/29/Panda_Express_logo.svg/1200px-Panda_Express_logo.svg.png", pickup: true, promo: true }
+            ],
 
             // Estado del Modal
             modalState: {
@@ -252,31 +361,13 @@
                 filters: []
             },
 
-            init: async function () {
-                // Mostrar estado de carga si fuera necesario
-                const container = document.getElementById('franchise-grid');
-                container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400 font-bold animate-pulse">Cargando restaurantes...</div>';
-
-                try {
-                    // LLAMADA AL BACKEND
-                    this.data = await api.getFranchises();
-                    this.renderGrid(this.data);
-                } catch (error) {
-                    console.error("Error al cargar datos:", error);
-                    container.innerHTML = `
-                        <div class="col-span-full text-center py-10">
-                            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-                            <p class="text-gray-500 font-medium">No se pudieron cargar los restaurantes.</p>
-                            <p class="text-xs text-red-400 mt-2">${error.message}</p>
-                            <button onclick="app.init()" class="mt-4 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700">Reintentar</button>
-                        </div>
-                    `;
-                }
+            init: function() {
+                this.renderGrid(this.data);
             },
 
-            renderGrid: function (items) {
+            renderGrid: function(items) {
                 const container = document.getElementById('franchise-grid');
-                if (items.length === 0) {
+                if(items.length === 0) {
                     container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">No se encontraron resultados con estos filtros.</div>';
                     return;
                 }
@@ -301,19 +392,17 @@
                 `).join('');
             },
 
-            // --- FUNCIÓN DE REDIRECCIÓN ---
             goToPage: function(id, name) {
                 if (id === 1) {
-                    window.location.href = 'starbucks.html';
+                    window.location.href = 'starbukz.html';
                 } else if (id === 2) {
                     window.location.href = 'mcdonalds.html'; 
                 } else {
-                    // El resto muestra alerta por ahora
                     alert('Has seleccionado ' + name);
                 }
             },
 
-            filterCategory: function (category, btnElement) {
+            filterCategory: function(category, btnElement) {
                 this.currentCategory = category;
                 document.querySelectorAll('.filter-btn').forEach(btn => {
                     btn.classList.remove('active', 'bg-red-700', 'text-white');
@@ -324,22 +413,21 @@
                 this.runAllFilters();
             },
 
-            search: function (text) {
+            search: function(text) {
                 this.searchTerm = text.toLowerCase();
                 this.runAllFilters();
             },
 
-            // --- LÓGICA DEL MODAL ---
-            openModal: function () { document.getElementById('filterModal').classList.remove('hidden'); },
-            closeModal: function () { document.getElementById('filterModal').classList.add('hidden'); },
+            openModal: function() { document.getElementById('filterModal').classList.remove('hidden'); },
+            closeModal: function() { document.getElementById('filterModal').classList.add('hidden'); },
 
-            setSort: function (sortType, btn) {
+            setSort: function(sortType, btn) {
                 this.modalState.sort = sortType;
                 btn.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected'));
                 btn.classList.add('selected');
             },
 
-            toggleFilter: function (filterType, btn) {
+            toggleFilter: function(filterType, btn) {
                 if (this.modalState.filters.includes(filterType)) {
                     this.modalState.filters = this.modalState.filters.filter(f => f !== filterType);
                     btn.classList.remove('selected');
@@ -349,13 +437,12 @@
                 }
             },
 
-            applyModalFilters: function () {
+            applyModalFilters: function() {
                 this.runAllFilters();
                 this.closeModal();
             },
 
-            // --- MOTOR DE FILTRADO PRINCIPAL ---
-            runAllFilters: function () {
+            runAllFilters: function() {
                 let result = [...this.data];
 
                 if (this.currentCategory !== 'all') {
@@ -386,5 +473,4 @@
         app.init();
     </script>
 </body>
-
 </html>

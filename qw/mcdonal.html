@@ -1,1 +1,495 @@
-eeeeee
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plantilla Franquicia | FoodRush</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        
+        /* --- VARIABLES DE COLOR (AQUÍ CAMBIARÁS EL COLOR LUEGO) --- */
+        :root {
+            --brand-color: #333333; /* GRIS NEUTRO (Cambia esto por el color de la franquicia) */
+            --footer-color: #BD0A0A; /* ROJO FOODRUSH (Intacto) */
+        }
+
+        /* Clases dinámicas basadas en variables CSS */
+        .bg-brand { background-color: var(--brand-color); }
+        .text-brand { color: var(--brand-color); }
+        .border-brand { border-color: var(--brand-color); }
+        .hover-text-brand:hover { color: var(--brand-color); }
+        .hover-border-brand:hover { border-color: var(--brand-color); }
+        .hover-bg-brand:hover { background-color: var(--brand-color); color: white; }
+        
+        /* Footer Rojo fijo */
+        .bg-footer-red { background-color: var(--footer-color); }
+        
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Estilos para el selector de vasos/tamaños */
+        .cup-selector:hover svg { fill: var(--brand-color); }
+        .cup-selector.selected svg { fill: var(--brand-color); }
+        .cup-selector.selected p { color: var(--brand-color); font-weight: bold; }
+
+        /* Checkbox color personalizado */
+        input[type="checkbox"]:checked {
+            accent-color: var(--brand-color);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800 bg-white">
+
+    <header class="bg-white border-b sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-1 group">
+                <div class="flex flex-col items-center leading-none">
+                    <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
+                    <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
+                </div>
+            </a>
+            <nav class="hidden md:flex gap-8 font-medium text-slate-600">
+                <a href="#" class="text-black font-bold border-b-2 border-black pb-1" onclick="app.goBack()">Menú</a>
+                <a href="#" class="hover-text-brand transition">Suscripción</a>
+                <a href="#" class="hover-text-brand transition">Nosotros</a>
+            </nav>
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex items-center border rounded-full px-4 py-1.5 w-64 shadow-sm focus-within:border-brand">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400 mr-3"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar producto..." class="outline-none w-full text-sm" onkeyup="app.search(this.value)">
+                </div>
+                <div class="flex gap-4 text-xl items-center">
+                    <button class="hover-text-brand transition relative" onclick="app.openCart()">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                    </button>
+                    <button class="hover-text-brand transition"><i class="fa-regular fa-user"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="catalog-view" class="fade-in">
+        <section class="flex flex-col md:flex-row h-[350px] w-full">
+            <div class="w-full md:w-2/5 bg-white flex items-center justify-center p-8">
+                <div class="text-4xl font-bold text-gray-300 border-4 border-gray-300 p-4 rounded-full w-40 h-40 flex items-center justify-center text-center">LOGO</div>
+            </div>
+            <div class="w-full md:w-3/5 relative bg-gray-200 flex items-center justify-center">
+                <span class="text-2xl font-bold text-gray-400">BANNER PROMOCIONAL</span>
+            </div>
+        </section>
+
+        <div class="bg-white border-b">
+            <div class="container mx-auto px-6 py-6 flex flex-col md:flex-row items-start md:items-center gap-6">
+                <h2 class="text-2xl font-bold">Filtros</h2>
+                <div class="flex gap-3" id="top-filters">
+                    <button onclick="app.setCategory('Principal', this)" class="filter-tab active bg-brand text-white px-6 py-2 rounded font-semibold shadow transition">Principal</button>
+                    <button onclick="app.setCategory('Acompañante', this)" class="filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover-border-brand hover-text-brand transition">Acompañantes</button>
+                    <button onclick="app.setCategory('Bebida', this)" class="filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover-border-brand hover-text-brand transition">Bebidas</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto px-6 py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+            <aside class="md:col-span-1 space-y-4 select-none">
+                <details class="border-b border-gray-200 pb-3 cursor-pointer group" open>
+                    <summary class="flex justify-between font-semibold list-none hover-text-brand">Categoría <i class="fa-solid fa-chevron-down text-xs mt-1"></i></summary>
+                    <div class="mt-2 text-sm text-gray-600 pl-2">
+                        <p class="hover-text-brand cursor-pointer py-1" onclick="app.filterByType('Tipo 1')">Opción 1</p>
+                        <p class="hover-text-brand cursor-pointer py-1" onclick="app.filterByType('Tipo 2')">Opción 2</p>
+                    </div>
+                </details>
+                <div class="border-b border-gray-200 pb-4">
+                    <div class="flex justify-between font-semibold mb-3">Preferencias <i class="fa-solid fa-chevron-up text-xs mt-1"></i></div>
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 cursor-pointer hover-text-brand">
+                            <input type="checkbox" onchange="app.toggleFilter('picante', this.checked)"> <span class="text-sm text-gray-600">Picante</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer hover-text-brand">
+                            <input type="checkbox" onchange="app.toggleFilter('vegano', this.checked)"> <span class="text-sm text-gray-600">Vegano</span>
+                        </label>
+                    </div>
+                </div>
+                <button onclick="app.resetFilters()" class="text-xs text-red-600 underline hover:text-red-800">Resetear filtros</button>
+            </aside>
+
+            <main id="product-grid" class="md:col-span-3 grid grid-cols-2 lg:grid-cols-4 gap-6">
+                </main>
+        </div>
+    </div>
+
+    <div id="product-detail-view" class="hidden fade-in container mx-auto px-6 py-8">
+        <button onclick="app.goBack()" class="mb-6 flex items-center text-sm font-bold text-gray-500 hover-text-brand transition">
+            <i class="fa-solid fa-chevron-left mr-2"></i> Volver
+        </button>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div>
+                <div class="bg-gray-100 rounded-xl flex items-center justify-center p-8 h-[500px] mb-8">
+                    <img id="detail-img" src="" alt="Product" class="max-h-full max-w-full object-contain drop-shadow-2xl">
+                </div>
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl text-gray-600 mb-4 border-b-2 border-gray-200 pb-1 w-full">Opciones</h3>
+                    <div class="flex justify-center gap-8 mt-4">
+                        <div class="cup-selector text-center cursor-pointer" onclick="app.selectSize(this, 'Pequeño')">
+                            <i class="fa-solid fa-utensils text-3xl text-gray-300 mb-2"></i>
+                            <p class="text-xs font-medium text-gray-400">Pequeño</p>
+                        </div>
+                        <div class="cup-selector selected text-center cursor-pointer" onclick="app.selectSize(this, 'Mediano')">
+                            <i class="fa-solid fa-utensils text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-xs font-medium text-gray-400">Mediano</p>
+                        </div>
+                        <div class="cup-selector text-center cursor-pointer" onclick="app.selectSize(this, 'Grande')">
+                            <i class="fa-solid fa-utensils text-5xl text-gray-300 mb-2"></i>
+                            <p class="text-xs font-medium text-gray-400">Grande</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col">
+                <h1 id="detail-title" class="text-4xl font-bold text-slate-900 mb-2">Nombre Producto</h1>
+                <h2 class="text-lg font-bold text-gray-500 mb-4">Descripción Corta</h2>
+                
+                <div class="flex items-center mb-6">
+                    <div class="flex text-gray-400 text-xs">
+                        <i class="fa-solid fa-star text-yellow-400"></i><i class="fa-solid fa-star text-yellow-400"></i><i class="fa-solid fa-star text-yellow-400"></i><i class="fa-solid fa-star text-yellow-400"></i><i class="fa-regular fa-star"></i>
+                    </div>
+                    <span class="text-xs text-gray-400 ml-2">120 Reseñas</span>
+                </div>
+
+                <p class="text-gray-600 text-sm leading-relaxed mb-6">
+                    Descripción detallada del producto. Aquí iría la información sobre ingredientes, calorías y detalles específicos de la franquicia.
+                </p>
+
+                <div class="flex items-baseline gap-4 mb-8 border-b border-gray-200 pb-6">
+                    <span class="text-xl font-medium text-gray-600">Precio:</span>
+                    <span id="detail-price-display" class="text-3xl font-bold text-slate-800 bg-gray-100 px-3 py-1 rounded">$0</span>
+                </div>
+
+                <div class="flex justify-between items-center mb-8 border-b border-gray-200 pb-6">
+                    <span class="text-xl font-bold">Cantidad:</span>
+                    <div class="flex items-center gap-4 text-2xl font-bold text-gray-600">
+                        <button onclick="app.changeQty(-1)" class="hover-text-brand">-</button>
+                        <span id="detail-qty">1</span>
+                        <button onclick="app.changeQty(1)" class="hover-text-brand">+</button>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <h3 class="font-bold text-xl text-gray-600 mb-4">Personalizar</h3>
+                    
+                    <div class="border rounded-lg p-4 mb-3 flex justify-between items-center">
+                        <div><span class="text-xs text-gray-500 block mb-1">Extra 1</span><span class="font-medium text-slate-700">Salsas / Aderezos</span></div>
+                        <div class="flex items-center gap-3 text-brand text-xl select-none"><i class="fa-regular fa-circle-left cursor-pointer" onclick="app.updateIngredient('extra1-qty', -1)"></i><span id="extra1-qty" class="font-bold text-slate-700 w-6 text-center">1</span><i class="fa-regular fa-circle-right cursor-pointer" onclick="app.updateIngredient('extra1-qty', 1)"></i></div>
+                    </div>
+
+                    <div class="border rounded-lg p-4 flex justify-between items-center">
+                        <div><span class="text-xs text-gray-500 block mb-1">Extra 2</span><span class="font-medium text-slate-700">Complementos</span></div>
+                        <div class="flex items-center gap-3 text-brand text-xl select-none"><i class="fa-regular fa-circle-left cursor-pointer" onclick="app.updateIngredient('extra2-qty', -1)"></i><span id="extra2-qty" class="font-bold text-slate-700 w-6 text-center">0</span><i class="fa-regular fa-circle-right cursor-pointer" onclick="app.updateIngredient('extra2-qty', 1)"></i></div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-4">
+                    <div class="flex items-center gap-2"><span class="text-2xl font-bold">Total:</span><span id="detail-total-price" class="text-2xl font-bold bg-gray-100 px-3 py-1 rounded">$0</span></div>
+                    <button onclick="app.addToCartFromDetail()" class="w-full bg-brand hover:opacity-90 text-white font-bold py-4 rounded-lg shadow-lg text-lg transition transform hover:scale-[1.01]">Añadir al carrito</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-view" class="hidden fade-in container mx-auto px-6 py-8">
+        <button onclick="app.goBack()" class="mb-6 flex items-center text-sm font-bold text-gray-500 hover-text-brand transition">
+            <i class="fa-solid fa-chevron-left mr-2"></i> Volver
+        </button>
+
+        <h1 class="text-4xl font-bold text-slate-900 mb-8">Carrito de Compras</h1>
+
+        <div id="cart-items-container" class="space-y-6">
+            </div>
+
+        <div id="cart-actions" class="mt-12 flex gap-4">
+            <button onclick="alert('Redirigiendo al checkout...')" class="bg-slate-800 text-white font-bold py-3 px-8 rounded hover:bg-slate-900 transition">
+                Pagar Ahora
+            </button>
+            <button onclick="app.goBack()" class="border border-gray-300 text-gray-600 font-bold py-3 px-8 rounded hover-border-brand hover-text-brand transition">
+                Seguir comprando
+            </button>
+        </div>
+    </div>
+
+    <footer class="bg-footer-red text-white mt-auto">
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between">
+            <div class="md:w-1/3 mb-8 md:mb-0">
+                <h4 class="font-bold mb-4">¡Suscríbete a nuestro newsletter!</h4>
+                <div class="bg-white w-32 py-4 px-2 text-center mb-6">
+                    <div class="flex flex-col items-center leading-none">
+                        <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
+                        <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-16">
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Ayuda</h3>
+                    <ul class="space-y-2 text-sm opacity-90">
+                        <li><a href="#">Contactanos</a></li>
+                        <li><a href="#">FAQ</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-4">Otros</h3>
+                    <ul class="space-y-2 text-sm opacity-90">
+                        <li><a href="#">Política de Privacidad</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const app = {
+            cart: 0,
+            cartItems: [],
+            currentCategory: 'Principal',
+            filterOptions: { picante: false, vegano: false },
+            
+            currentProduct: null,
+            currentQty: 1,
+            currentSize: 'Mediano',
+
+            // DATOS DE EJEMPLO (REEMPLAZAR CON LOS DE LA FRANQUICIA)
+            products: [
+                { id: 1, name: "Producto Principal 1", category: "Principal", type: "Tipo 1", price: 15, picante: true, img: "https://via.placeholder.com/150?text=Menu+1" },
+                { id: 2, name: "Producto Principal 2", category: "Principal", type: "Tipo 1", price: 12, picante: false, img: "https://via.placeholder.com/150?text=Menu+2" },
+                { id: 3, name: "Acompañante 1", category: "Acompañante", type: "Tipo 2", price: 5, picante: false, img: "https://via.placeholder.com/150?text=Side+1" },
+                { id: 4, name: "Acompañante 2", category: "Acompañante", type: "Tipo 2", price: 6, picante: true, img: "https://via.placeholder.com/150?text=Side+2" },
+                { id: 5, name: "Bebida Refrescante", category: "Bebida", type: "Tipo 1", price: 4, picante: false, img: "https://via.placeholder.com/150?text=Drink+1" },
+                { id: 6, name: "Postre Dulce", category: "Acompañante", type: "Tipo 2", price: 7, picante: false, img: "https://via.placeholder.com/150?text=Dessert" }
+            ],
+
+            init: function() { this.render(this.products.filter(p => p.category === 'Principal')); },
+
+            // --- NAVEGACIÓN ---
+            goBack: function() {
+                document.getElementById('product-detail-view').classList.add('hidden');
+                document.getElementById('cart-view').classList.add('hidden');
+                document.getElementById('catalog-view').classList.remove('hidden');
+            },
+
+            openCart: function() {
+                this.renderCart();
+                document.getElementById('catalog-view').classList.add('hidden');
+                document.getElementById('product-detail-view').classList.add('hidden');
+                document.getElementById('cart-view').classList.remove('hidden');
+            },
+
+            // --- CATALOGO ---
+            render: function(items) {
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = "";
+                if (items.length === 0) { grid.innerHTML = `<div class="col-span-4 text-center py-10 text-gray-400">No se encontraron productos.</div>`; return; }
+                items.forEach(item => {
+                    const html = `
+                    <div class="fade-in border rounded-lg p-4 flex flex-col items-center justify-between h-[320px] hover:shadow-lg hover-border-brand transition cursor-pointer bg-white group border-gray-200" onclick="app.openProductDetail(${item.id})">
+                        <div class="h-40 w-full flex items-center justify-center mb-2 overflow-hidden">
+                            <img src="${item.img}" alt="${item.name}" class="h-full object-contain group-hover:scale-110 transition duration-300">
+                        </div>
+                        <div class="text-center w-full">
+                            <h3 class="font-medium text-slate-800 mb-4 group-hover:text-gray-600 group-hover:font-bold">${item.name}</h3>
+                            <div class="flex justify-between items-center w-full px-2">
+                                <span class="bg-gray-100 text-slate-700 font-bold px-3 py-1 rounded text-sm">$${item.price}</span>
+                                <button class="w-8 h-8 rounded-full bg-brand text-white opacity-0 group-hover:opacity-100 transition shadow-md flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>`;
+                    grid.innerHTML += html;
+                });
+            },
+
+            setCategory: function(cat, btn) {
+                this.currentCategory = cat;
+                document.querySelectorAll('.filter-tab').forEach(b => { 
+                    b.className = "filter-tab border border-gray-300 text-gray-700 px-6 py-2 rounded font-semibold hover-border-brand hover-text-brand transition"; 
+                });
+                btn.className = "filter-tab active bg-brand text-white px-6 py-2 rounded font-semibold shadow transition";
+                this.applyFilters();
+            },
+            search: function(text) { this.applyFilters(text); },
+            toggleFilter: function(type, isChecked) { this.filterOptions[type] = isChecked; this.applyFilters(); },
+            applyFilters: function(searchText = document.getElementById('searchInput').value) {
+                let filtered = this.products.filter(p => p.category === this.currentCategory);
+                if (searchText) filtered = filtered.filter(p => p.name.toLowerCase().includes(searchText.toLowerCase()));
+                // Ejemplo de filtro extra
+                if (this.filterOptions.picante) filtered = filtered.filter(p => p.picante === true);
+                
+                this.render(filtered);
+            },
+            resetFilters: function() {
+                document.getElementById('searchInput').value = '';
+                document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+                this.filterOptions = { picante: false, vegano: false };
+                this.applyFilters();
+            },
+
+            // --- DETALLE PRODUCTO ---
+            openProductDetail: function(id) {
+                const product = this.products.find(p => p.id === id);
+                if (!product) return;
+                this.currentProduct = product;
+                this.currentQty = 1;
+                this.currentSize = 'Mediano';
+
+                document.getElementById('detail-img').src = product.img;
+                document.getElementById('detail-title').innerText = product.name;
+                document.getElementById('detail-price-display').innerText = `$${product.price}`;
+                document.getElementById('detail-qty').innerText = "1";
+                document.getElementById('extra1-qty').innerText = "1";
+                document.getElementById('extra2-qty').innerText = "0";
+                
+                document.querySelectorAll('.cup-selector').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.cup-selector')[1].classList.add('selected'); // Mediano
+
+                this.updateTotal();
+                document.getElementById('catalog-view').classList.add('hidden');
+                document.getElementById('cart-view').classList.add('hidden');
+                document.getElementById('product-detail-view').classList.remove('hidden');
+                window.scrollTo(0,0);
+            },
+
+            changeQty: function(amount) {
+                if (this.currentQty + amount >= 1) { this.currentQty += amount; document.getElementById('detail-qty').innerText = this.currentQty; this.updateTotal(); }
+            },
+            updateIngredient: function(elId, change) {
+                const el = document.getElementById(elId);
+                let val = parseInt(el.innerText);
+                if (val + change >= 0) el.innerText = val + change;
+            },
+            updateTotal: function() {
+                if(this.currentProduct) { const total = this.currentProduct.price * this.currentQty; document.getElementById('detail-total-price').innerText = `$${total}`; }
+            },
+            selectSize: function(element, size) {
+                document.querySelectorAll('.cup-selector').forEach(el => el.classList.remove('selected'));
+                element.classList.add('selected');
+                this.currentSize = size;
+            },
+
+            // --- LÓGICA DEL CARRITO ---
+            addToCartFromDetail: function() {
+                const existingItem = this.cartItems.find(item => item.id === this.currentProduct.id && item.size === this.currentSize);
+                
+                if (existingItem) {
+                    existingItem.qty += this.currentQty;
+                } else {
+                    this.cartItems.push({
+                        id: this.currentProduct.id,
+                        name: this.currentProduct.name,
+                        price: this.currentProduct.price,
+                        img: this.currentProduct.img,
+                        size: this.currentSize,
+                        qty: this.currentQty
+                    });
+                }
+                
+                this.updateCartBadge();
+                // Usando el color de la marca para el alert
+                const brandColor = getComputedStyle(document.documentElement).getPropertyValue('--brand-color').trim();
+                const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, timerProgressBar: true });
+                Toast.fire({ icon: 'success', title: 'Añadido al carrito', background: brandColor, color: '#fff' });
+            },
+
+            updateCartBadge: function() {
+                const totalQty = this.cartItems.reduce((sum, item) => sum + item.qty, 0);
+                const badge = document.getElementById('cart-count');
+                badge.innerText = totalQty;
+                if (totalQty > 0) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+            },
+
+            renderCart: function() {
+                const container = document.getElementById('cart-items-container');
+                container.innerHTML = '';
+
+                if (this.cartItems.length === 0) {
+                    container.innerHTML = `
+                        <div class="text-center py-12">
+                            <i class="fa-solid fa-cart-shopping text-6xl text-gray-200 mb-4"></i>
+                            <p class="text-gray-500 text-lg">Tu carrito está vacío.</p>
+                            <button onclick="app.goBack()" class="mt-4 font-bold hover:underline hover-text-brand">Volver a la tienda</button>
+                        </div>
+                    `;
+                    document.getElementById('cart-actions').classList.add('hidden');
+                    return;
+                }
+
+                document.getElementById('cart-actions').classList.remove('hidden');
+
+                this.cartItems.forEach((item, index) => {
+                    const total = item.price * item.qty;
+                    const html = `
+                    <div class="border border-gray-300 p-4 flex items-center justify-between bg-white rounded-lg shadow-sm">
+                        <div class="flex items-center gap-6">
+                            <div class="w-20 h-20 bg-gray-100 rounded flex items-center justify-center">
+                                <img src="${item.img}" class="max-w-full max-h-full object-contain">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-slate-800">${item.name}</h3>
+                                <p class="text-xs text-gray-500">Tamaño: ${item.size}</p>
+                                <span class="font-bold text-slate-700 bg-gray-100 px-2 rounded text-sm mt-1 inline-block">$${total}</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col items-end gap-2">
+                            <div class="flex items-center border border-gray-300 rounded">
+                                <span class="font-bold px-3 py-1 text-sm mr-2 text-gray-500">Cant:</span>
+                                <button onclick="app.updateCartItemQty(${index}, -1)" class="px-3 py-1 hover:bg-gray-100 font-bold">-</button>
+                                <span class="px-2 font-bold">${item.qty}</span>
+                                <button onclick="app.updateCartItemQty(${index}, 1)" class="px-3 py-1 hover:bg-gray-100 font-bold">+</button>
+                            </div>
+                            <button onclick="app.removeCartItem(${index})" class="text-xs text-gray-400 hover:text-red-500 underline">Eliminar</button>
+                        </div>
+                    </div>
+                    `;
+                    container.innerHTML += html;
+                });
+            },
+
+            updateCartItemQty: function(index, change) {
+                const item = this.cartItems[index];
+                if (item.qty + change > 0) {
+                    item.qty += change;
+                    this.updateCartBadge();
+                    this.renderCart();
+                } else {
+                    this.removeCartItem(index);
+                }
+            },
+
+            removeCartItem: function(index) {
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#333',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        this.cartItems.splice(index, 1);
+                        this.updateCartBadge();
+                        this.renderCart();
+                        Swal.fire('Eliminado', 'El producto ha sido eliminado.', 'success');
+                    }
+                });
+            }
+        };
+
+        app.init();
+    </script>
+</body>
+</html>
