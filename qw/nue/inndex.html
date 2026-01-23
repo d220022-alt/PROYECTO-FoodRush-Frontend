@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tienda | FoodRush</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FAFAFA; }
+        
+        /* --- VARIABLES DINÁMICAS --- */
+        :root {
+            --brand-color: #333; /* Se sobrescribe con JS */
+            --footer-color: #BD0A0A;
+        }
+
+        .bg-brand { background-color: var(--brand-color); }
+        .text-brand { color: var(--brand-color); }
+        .border-brand { border-color: var(--brand-color); }
+        .hover-text-brand:hover { color: var(--brand-color); }
+        .hover-bg-brand:hover { background-color: var(--brand-color); color: white; }
+        .bg-footer-red { background-color: var(--footer-color); }
+
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Botones de categoría */
+        .category-btn.active { background-color: var(--brand-color); color: white; border-color: var(--brand-color); }
+        .category-btn:hover { border-color: var(--brand-color); color: var(--brand-color); }
+        .category-btn.active:hover { color: white; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800">
+
+    <header class="bg-white border-b sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-1 group">
+                <div class="flex flex-col items-center leading-none">
+                    <span class="text-orange-500 font-bold text-lg italic tracking-tighter" style="font-family: 'Titan One', cursive;">Food</span>
+                    <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1" style="font-family: 'Titan One', cursive;">Rush</span>
+                </div>
+            </a>
+            <div class="flex items-center gap-6">
+                <button onclick="app.openCart()" class="relative hover-text-brand transition">
+                    <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="catalog-view" class="fade-in">
+        <section class="h-[300px] w-full relative flex items-center justify-center bg-gray-200 overflow-hidden">
+            <img id="brand-banner" src="" class="absolute inset-0 w-full h-full object-cover brightness-50 transition-opacity duration-500">
+            <div class="relative z-10 text-center">
+                <img id="brand-logo" src="" class="w-32 h-32 object-contain mx-auto mb-4 bg-white rounded-full p-2 shadow-xl">
+                <h1 id="brand-name" class="text-4xl font-bold text-white drop-shadow-lg font-serif">Cargando...</h1>
+            </div>
+        </section>
+
+        <div class="bg-white border-b shadow-sm sticky top-[73px] z-40">
+            <div class="container mx-auto px-6 py-4 flex gap-3 overflow-x-auto no-scrollbar" id="category-filters"></div>
+        </div>
+
+        <div class="container mx-auto px-6 py-8">
+            <main id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></main>
+        </div>
+    </div>
+
+    <div id="product-detail-view" class="hidden fade-in container mx-auto px-6 py-8 flex-grow">
+        <button onclick="app.goBack()" class="mb-6 flex items-center text-sm font-bold text-gray-500 hover-text-brand transition"><i class="fa-solid fa-arrow-left mr-2"></i> Volver</button>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 bg-white p-6 rounded-2xl shadow-sm">
+            <div class="bg-gray-50 rounded-xl flex items-center justify-center p-8 h-[400px]">
+                <img id="detail-img" src="" class="max-h-full max-w-full object-contain drop-shadow-xl hover:scale-105 transition duration-500">
+            </div>
+            <div class="flex flex-col justify-center">
+                <span id="detail-cat" class="text-xs font-bold text-gray-400 uppercase mb-2 tracking-widest">Categoría</span>
+                <h1 id="detail-title" class="text-4xl font-bold text-slate-900 mb-4"></h1>
+                <p id="detail-desc" class="text-gray-600 text-sm leading-relaxed mb-6"></p>
+                <div class="text-3xl font-bold text-slate-800 mb-8" id="detail-price">$0</div>
+                <div class="flex items-center gap-6 mb-8">
+                    <span class="font-bold text-gray-700">Cantidad:</span>
+                    <div class="flex items-center border border-gray-300 rounded-lg">
+                        <button onclick="app.changeQty(-1)" class="px-4 py-2 hover:bg-gray-100 text-gray-600">-</button>
+                        <span id="detail-qty" class="px-4 font-bold text-lg">1</span>
+                        <button onclick="app.changeQty(1)" class="px-4 py-2 hover:bg-gray-100 text-gray-600">+</button>
+                    </div>
+                </div>
+                <button onclick="app.addToCart()" class="w-full bg-brand text-white font-bold py-4 rounded-xl shadow-lg hover:opacity-90 transition transform hover:scale-[1.01]">Agregar al Pedido</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-view" class="hidden fade-in container mx-auto px-6 py-8 flex-grow max-w-3xl">
+        <button onclick="app.goBack()" class="mb-6 flex items-center text-sm font-bold text-gray-500 hover-text-brand"><i class="fa-solid fa-arrow-left mr-2"></i> Seguir comprando</button>
+        <h1 class="text-3xl font-bold mb-8 text-slate-800 border-b pb-4">Tu Carrito</h1>
+        <div id="cart-items-container" class="space-y-4 mb-8"></div>
+        <div id="cart-actions" class="flex flex-col items-end border-t pt-6">
+            <div class="flex justify-between w-full mb-6 text-xl font-bold text-slate-800"><span>Total:</span><span id="cart-total-amount">$0.00</span></div>
+            <button onclick="window.location.href='checkout.html'" class="w-full md:w-auto bg-slate-900 text-white font-bold py-3 px-12 rounded-xl hover:bg-slate-800 shadow-lg transition">Proceder al Pago <i class="fa-solid fa-arrow-right ml-2"></i></button>
+        </div>
+    </div>
+
+    <footer class="bg-footer-red text-white py-12 mt-auto">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="bg-white px-4 py-2 rounded text-center"><span class="text-orange-500 font-bold italic font-serif text-lg">Food</span><span class="text-slate-800 font-bold italic font-serif text-lg -ml-1">Rush</span></div>
+            <div class="text-sm opacity-80">&copy; 2025 FoodRush Inc. Todos los derechos reservados.</div>
+        </div>
+    </footer>
+
+    <script>
+        // --- BASE DE DATOS UNIFICADA ---
+        const DB = {
+            starbucks: {
+                name: "Starbucks",
+                color: "#00704A", // VERDE ÚNICO PARA STARBUCKS
+                banner: "https://stories.starbucks.com/uploads/2021/11/SBX20211102-Holiday-Beverages-Featured-Image.jpg",
+                logo: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png",
+                categories: ["Bebidas", "Comida"],
+                products: [
+                    { id: 101, name: "Matcha Latte", cat: "Bebidas", price: 180, img: "https://globalassets.starbucks.com/assets/957e8416688f4d92a00c61830605e55e.jpg", desc: "Té verde matcha con leche." },
+                    { id: 102, name: "Frappuccino Mocha", cat: "Bebidas", price: 210, img: "https://globalassets.starbucks.com/assets/5c515339667943ce84dc56effdf5fc1b.jpg", desc: "Café con chocolate y hielo." },
+                    { id: 103, name: "Croissant Jamón", cat: "Comida", price: 120, img: "https://globalassets.starbucks.com/assets/2362e79aa0ab4c37a930956c67ab557a.jpg", desc: "Croissant con jamón y queso." }
+                ]
+            },
+            mcdonalds: {
+                name: "McDonald's",
+                color: "#333333", // GRIS PARA LOS DEMÁS
+                banner: "https://images.unsplash.com/photo-1632326772709-663f73602f32?q=80&w=1740",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png",
+                categories: ["Hamburguesas", "Papas"],
+                products: [
+                    { id: 201, name: "Big Mac", cat: "Hamburguesas", price: 250, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Big_Mac_hamburger.jpg/1200px-Big_Mac_hamburger.jpg", desc: "Dos carnes, salsa especial, lechuga, queso." },
+                    { id: 202, name: "McNuggets 10", cat: "Papas", price: 180, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/McDonalds-Chicken-McNuggets.jpg/1200px-McDonalds-Chicken-McNuggets.jpg", desc: "10 piezas de pollo crujiente." }
+                ]
+            },
+            kfc: {
+                name: "KFC",
+                color: "#333333", // GRIS
+                banner: "https://images.unsplash.com/photo-1513639776629-7b611594e29b?q=80&w=1740",
+                logo: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png",
+                categories: ["Pollo", "Combos"],
+                products: [
+                    { id: 301, name: "Cubeta 10 Pzas", cat: "Pollo", price: 890, img: "https://kfc.com.do/wp-content/uploads/2022/03/10-piezas.png", desc: "Receta Original o Crispy." },
+                    { id: 302, name: "Sandwich Crispy", cat: "Combos", price: 350, img: "https://kfc.com.do/wp-content/uploads/2022/03/Sandwich-Crispy.png", desc: "Pechuga crujiente con mayonesa." }
+                ]
+            },
+            bk: {
+                name: "Burger King",
+                color: "#333333", // GRIS
+                banner: "https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1965",
+                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/2024px-Burger_King_logo_%281999%29.svg.png",
+                categories: ["Whoppers", "Snacks"],
+                products: [
+                    { id: 401, name: "Whopper", cat: "Whoppers", price: 280, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Whopper%2C_Burger_King.jpg/800px-Whopper%2C_Burger_King.jpg", desc: "A la parrilla sabe mejor." }
+                ]
+            },
+            littlecaesars: {
+                name: "Little Caesars",
+                color: "#333333", // GRIS
+                banner: "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1769",
+                logo: "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Little_Caesars_pizza_logo.svg/1200px-Little_Caesars_pizza_logo.svg.png",
+                categories: ["Pizzas"],
+                products: [
+                    { id: 501, name: "Pizza Pepperoni", cat: "Pizzas", price: 350, img: "https://littlecaesars.com.do/wp-content/uploads/2020/06/Pepperoni-Pizza-1.png", desc: "Hot-N-Ready." }
+                ]
+            }
+        };
+
+        const app = {
+            franchiseData: null, currentProduct: null, qty: 1, cart: JSON.parse(localStorage.getItem('foodrush_cart')) || [],
+            init: function() {
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get('id');
+                // Si no hay ID, carga Starbucks por defecto para que veas que funciona
+                if (!id) { window.location.href = 'tienda.html?id=starbucks'; return; }
+                if (!DB[id]) { alert('Franquicia no encontrada'); window.location.href='index.html'; return; }
+                
+                this.franchiseData = DB[id];
+                this.applyBranding(); this.renderCatalog('all'); this.updateCartBadge();
+            },
+            applyBranding: function() {
+                const data = this.franchiseData;
+                document.documentElement.style.setProperty('--brand-color', data.color);
+                document.getElementById('brand-name').innerText = data.name;
+                document.getElementById('brand-banner').src = data.banner;
+                document.getElementById('brand-logo').src = data.logo;
+                const catContainer = document.getElementById('category-filters');
+                catContainer.innerHTML = `<button onclick="app.renderCatalog('all', this)" class="category-btn active px-6 py-2 rounded-full font-bold whitespace-nowrap shadow border bg-brand text-white border-brand transition">Todos</button>`;
+                data.categories.forEach(cat => {
+                    catContainer.innerHTML += `<button onclick="app.renderCatalog('${cat}', this)" class="category-btn px-6 py-2 rounded-full font-bold whitespace-nowrap border border-gray-300 text-gray-600 hover:bg-gray-100 transition">${cat}</button>`;
+                });
+            },
+            renderCatalog: function(category, btnElement) {
+                if(btnElement) {
+                    document.querySelectorAll('.category-btn').forEach(b => { b.classList.remove('active', 'bg-brand', 'text-white', 'border-brand'); b.classList.add('border-gray-300', 'text-gray-600'); });
+                    btnElement.classList.add('active', 'bg-brand', 'text-white', 'border-brand'); btnElement.classList.remove('border-gray-300', 'text-gray-600');
+                }
+                const grid = document.getElementById('product-grid');
+                grid.innerHTML = "";
+                const products = category === 'all' ? this.franchiseData.products : this.franchiseData.products.filter(p => p.cat === category);
+                products.forEach(p => {
+                    grid.innerHTML += `
+                        <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-lg transition cursor-pointer flex flex-col items-center text-center group hover:border-brand" onclick="app.openDetail(${p.id})">
+                            <div class="h-40 w-full flex items-center justify-center mb-4 overflow-hidden"><img src="${p.img}" class="h-full object-contain group-hover:scale-110 transition duration-300"></div>
+                            <h3 class="font-bold text-slate-800 mb-1 line-clamp-1">${p.name}</h3>
+                            <p class="text-xs text-gray-400 mb-3">${p.cat}</p>
+                            <span class="bg-gray-100 text-slate-800 px-4 py-1 rounded-lg font-bold text-sm group-hover:bg-brand group-hover:text-white transition">$${p.price}</span>
+                        </div>`;
+                });
+            },
+            openDetail: function(id) {
+                this.currentProduct = this.franchiseData.products.find(p => p.id === id);
+                this.qty = 1;
+                document.getElementById('detail-img').src = this.currentProduct.img;
+                document.getElementById('detail-title').innerText = this.currentProduct.name;
+                document.getElementById('detail-desc').innerText = this.currentProduct.desc;
+                document.getElementById('detail-price').innerText = `$${this.currentProduct.price}`;
+                document.getElementById('detail-qty').innerText = 1;
+                document.getElementById('detail-cat').innerText = this.currentProduct.cat;
+                this.toggleViews('detail');
+            },
+            addToCart: function() {
+                const existing = this.cart.find(item => item.id === this.currentProduct.id);
+                if(existing) { existing.qty += this.qty; } else { this.cart.push({ ...this.currentProduct, qty: this.qty }); }
+                this.saveCart();
+                Swal.fire({ icon: 'success', title: 'Añadido', background: this.franchiseData.color, color: '#fff', showConfirmButton: false, timer: 1000, toast: true, position: 'top-end' });
+                this.toggleViews('catalog');
+            },
+            renderCart: function() {
+                const container = document.getElementById('cart-items-container'); container.innerHTML = ""; let total = 0;
+                if(this.cart.length === 0) { container.innerHTML = "<div class='text-center py-10 text-gray-400'><i class='fa-solid fa-basket-shopping text-4xl mb-2'></i><p>Tu carrito está vacío</p></div>"; document.getElementById('cart-actions').classList.add('hidden'); return; }
+                document.getElementById('cart-actions').classList.remove('hidden');
+                this.cart.forEach((item, idx) => {
+                    const itemTotal = item.price * item.qty; total += itemTotal;
+                    container.innerHTML += `<div class="flex justify-between items-center border border-gray-200 p-4 rounded-xl bg-white shadow-sm"><div class="flex items-center gap-4"><div class="w-16 h-16 bg-gray-50 rounded-lg flex items-center justify-center p-1 overflow-hidden"><img src="${item.img}" class="h-full object-contain"></div><div><p class="font-bold text-slate-800">${item.name}</p><p class="text-xs text-gray-500">Cantidad: ${item.qty}</p></div></div><div class="text-right"><p class="font-bold text-lg mb-1">$${itemTotal}</p><button onclick="app.removeFromCart(${idx})" class="text-red-500 text-xs font-bold hover:underline">Eliminar</button></div></div>`;
+                });
+                document.getElementById('cart-total-amount').innerText = `$${total.toFixed(2)}`;
+            },
+            removeFromCart: function(idx) { this.cart.splice(idx, 1); this.saveCart(); this.renderCart(); },
+            changeQty: function(d) { if (this.qty + d > 0) { this.qty += d; document.getElementById('detail-qty').innerText = this.qty; } },
+            saveCart: function() { localStorage.setItem('foodrush_cart', JSON.stringify(this.cart)); this.updateCartBadge(); },
+            updateCartBadge: function() { const count = this.cart.reduce((sum, i) => sum + i.qty, 0); const badge = document.getElementById('cart-count'); badge.innerText = count; badge.classList.toggle('hidden', count === 0); },
+            openCart: function() { this.renderCart(); this.toggleViews('cart'); },
+            goBack: function() { this.toggleViews('catalog'); },
+            toggleViews: function(view) {
+                ['catalog-view', 'product-detail-view', 'cart-view'].forEach(id => document.getElementById(id).classList.add('hidden'));
+                if (view === 'catalog') document.getElementById('catalog-view').classList.remove('hidden');
+                if (view === 'detail') document.getElementById('product-detail-view').classList.remove('hidden');
+                if (view === 'cart') document.getElementById('cart-view').classList.remove('hidden');
+                window.scrollTo(0,0);
+            }
+        };
+        app.init();
+    </script>
+</body>
+</html>

@@ -25,99 +25,31 @@
         .modal-chip:hover { background-color: #e5e7eb; }
         .modal-chip.selected { background-color: #fff; border-color: #cbd5e1; box-shadow: 0 2px 5px rgba(0,0,0,0.05); color: #1e293b; border: 1px solid #94a3b8; }
 
-        /* =========================================
-           ESTILOS ESPECÍFICOS DEL LOGIN / REGISTRO
-           (Renombrados con prefijo 'auth-' para no romper la web principal)
-           ========================================= */
-        
+        /* Estilos Auth (Login/Registro) */
         .auth-font { font-family: 'Roboto', sans-serif; }
         .auth-brand-font { font-family: 'Titan One', cursive; }
-
-        /* La Tarjeta Principal del Login */
-        .auth-card {
-            background: white;
-            width: 900px;
-            max-width: 95%;
-            height: 600px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            overflow: hidden;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header Amarillo del Login */
-        .auth-header {
-            background-color: #FDD835;
-            padding: 15px 40px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 20;
-            height: 80px;
-        }
-
-        .auth-logo-box {
-            background: white; padding: 5px; border-radius: 8px; margin-right: 15px;
-            display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd;
-        }
+        .auth-card { background: white; width: 900px; max-width: 95%; height: 600px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .auth-header { background-color: #FDD835; padding: 15px 40px; display: flex; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; z-index: 20; height: 80px; }
+        .auth-logo-box { background: white; padding: 5px; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd; }
         .auth-logo-box i { font-size: 24px; color: #C62828; }
         .auth-brand-name { font-family: 'Titan One', cursive; font-size: 32px; color: #C62828; letter-spacing: 1px; }
-
-        /* Contenedor de los paneles */
-        .auth-forms-wrapper {
-            display: flex;
-            height: calc(100% - 80px);
-            position: relative;
-            font-family: 'Roboto', sans-serif; /* Forzar fuente Roboto dentro del form */
-        }
-
-        .auth-panel {
-            flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center;
-        }
-
+        .auth-forms-wrapper { display: flex; height: calc(100% - 80px); position: relative; font-family: 'Roboto', sans-serif; }
+        .auth-panel { flex: 1; padding: 20px 50px; display: flex; flex-direction: column; justify-content: center; }
         .auth-title { font-family: 'Titan One', cursive; color: #C62828; font-size: 28px; margin-bottom: 15px; }
-        
         .auth-label { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 4px; display: block; }
-        
-        .auth-input {
-            width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #aaa;
-            border-radius: 5px; font-size: 14px; outline: none;
-        }
+        .auth-input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #aaa; border-radius: 5px; font-size: 14px; outline: none; }
         .auth-input:focus { border-color: #C62828; }
-
-        .auth-btn-action {
-            width: 100%; background-color: #C62828; color: white; border: none; padding: 10px;
-            font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 5px;
-            box-shadow: 0 4px 0 #8E1C1C;
-        }
+        .auth-btn-action { width: 100%; background-color: #C62828; color: white; border: none; padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 5px; box-shadow: 0 4px 0 #8E1C1C; }
         .auth-btn-action:active { transform: translateY(2px); box-shadow: 0 2px 0 #8E1C1C; }
-
         .auth-separator { display: flex; align-items: center; margin: 10px 0; color: #777; font-size: 12px; }
         .auth-separator::before, .auth-separator::after { content: ''; flex: 1; border-bottom: 1px dashed #ccc; }
         .auth-separator span { padding: 0 10px; }
-
-        .auth-social-btn {
-            width: 100%; padding: 8px; margin-bottom: 8px; background: white; border: 1px solid #ccc;
-            border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-weight: bold; font-size: 13px; color: #333; text-decoration: none;
-        }
+        .auth-social-btn { width: 100%; padding: 8px; margin-bottom: 8px; background: white; border: 1px solid #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: bold; font-size: 13px; color: #333; text-decoration: none; }
         .auth-social-btn i { margin-right: 10px; font-size: 16px; }
-
         .auth-switch-link { text-align: center; margin-top: 10px; font-size: 13px; }
         .auth-switch-link a { color: #2ECC71; text-decoration: none; font-weight: bold; cursor: pointer; }
         .auth-switch-link a:hover { text-decoration: underline; }
-
-        /* LA CAPA GRIS DESLIZANTE */
-        .auth-overlay-slider {
-            position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 10;
-            transition: transform 0.6s ease-in-out; pointer-events: auto;
-        }
-
-        /* Clase activa para mover el slider */
+        .auth-overlay-slider { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10; transition: transform 0.6s ease-in-out; pointer-events: auto; }
         .auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
     </style>
 </head>
@@ -137,8 +69,7 @@
 
         <nav class="hidden md:flex gap-8 font-medium text-slate-600">
             <a href="#" class="text-slate-900 border-b-2 border-slate-900">Inicio</a>
-            <a href="#" onclick="openAuthModal('login')" class="hover:text-orange-600 transition">Iniciar Sesión</a>
-            <a href="#" onclick="openAuthModal('register')" class="hover:text-orange-600 transition">Registrarse</a>
+            
         </nav>
 
         <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition">
@@ -255,18 +186,12 @@
     </div>
 
     <div id="authModal" class="fixed inset-0 bg-black/60 z-[9999] hidden flex items-center justify-center fade-in">
-        
         <div class="auth-card relative" id="authCard">
-            
-            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-[#C62828] text-2xl font-bold z-50 hover:scale-110 transition">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-[#C62828] text-2xl font-bold z-50 hover:scale-110 transition"><i class="fa-solid fa-xmark"></i></button>
             <div class="auth-header">
                 <div class="auth-logo-box"><i class="fa-solid fa-utensils"></i></div>
                 <div class="auth-brand-name">FoodRush</div>
             </div>
-
             <div class="auth-forms-wrapper">
                 <div class="auth-panel">
                     <h2 class="auth-title">Inicio Sesion</h2>
@@ -280,11 +205,8 @@
                     <div class="auth-separator"><span>o</span></div>
                     <a href="#" class="auth-social-btn"><i class="fa-brands fa-google" style="color:#DB4437;"></i> Continuar con Google</a>
                     <a href="#" class="auth-social-btn"><i class="fa-brands fa-apple" style="color:black;"></i> Continuar con Apple</a>
-                    <div class="auth-switch-link">
-                        ¿No estas registrado? <a onclick="switchToRegister()">Registrarse</a>
-                    </div>
+                    <div class="auth-switch-link">¿No estas registrado? <a onclick="switchToRegister()">Registrarse</a></div>
                 </div>
-
                 <div class="auth-panel">
                     <h2 class="auth-title">Registro Cliente</h2>
                     <form>
@@ -298,178 +220,105 @@
                         <input class="auth-input" type="password" placeholder="******">
                         <button type="button" class="auth-btn-action">Registrar</button>
                     </form>
-                    <div class="auth-switch-link">
-                        ¿Ya tienes cuenta? <a onclick="switchToLogin()">Iniciar Sesión</a>
-                    </div>
+                    <div class="auth-switch-link">¿Ya tienes cuenta? <a onclick="switchToLogin()">Iniciar Sesión</a></div>
                 </div>
-
                 <div class="auth-overlay-slider"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- LOGICA DE LOGIN / REGISTRO ---
+        // --- AUTH ---
         function openAuthModal(mode) {
             document.getElementById('authModal').classList.remove('hidden');
             const card = document.getElementById('authCard');
-            
-            if (mode === 'register') {
-                card.classList.add('active-register');
-            } else {
-                card.classList.remove('active-register');
-            }
+            if (mode === 'register') card.classList.add('active-register'); else card.classList.remove('active-register');
         }
+        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
+        function switchToRegister() { document.getElementById('authCard').classList.add('active-register'); }
+        function switchToLogin() { document.getElementById('authCard').classList.remove('active-register'); }
 
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-        }
-
-        function switchToRegister() {
-            document.getElementById('authCard').classList.add('active-register');
-        }
-
-        function switchToLogin() {
-            document.getElementById('authCard').classList.remove('active-register');
-        }
-
-        // --- LOGICA DE LA APP (GRID, FILTROS, ETC) ---
+        // --- APP DATA ---
         const app = {
             currentCategory: 'all',
-            // Datos
+            // LISTA DE FRANQUICIAS CON IMÁGENES CORREGIDAS
             data: [
                 { id: 1, name: "Starbucks Coffee", category: "Bebidas", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", pickup: true, promo: true },
-                { id: 2, name: "McDonald's", category: "Hamburguesa", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", pickup: true, promo: false },
-                { id: 3, name: "KFC", category: "Pollo", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/en/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png", pickup: false, promo: true },
+                { id: 2, name: "McDonald`s", category: "Hamburguesa", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", pickup: true, promo: false },
+                { id: 3, name: "KFC", category: "Pollo", rating: 4.6, img: "https://logos.logofury.com/logo_src/52bdb68f85097c8ed398a495af62886d.png", pickup: false, promo: true },
                 { id: 4, name: "Burger King", category: "Hamburguesa", rating: 4.3, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Burger_King_logo_%281999%29.svg/2024px-Burger_King_logo_%281999%29.svg.png", pickup: true, promo: true },
                 { id: 5, name: "Little Caesars", category: "Pizza", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/4/43/Little_Caesars_pizza_logo.svg/1200px-Little_Caesars_pizza_logo.svg.png", pickup: true, promo: false },
-                { id: 6, name: "Domino's Pizza", category: "Pizza", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", pickup: true, promo: true },
+                { id: 6, name: "Domino`s Pizza", category: "Pizza", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", pickup: true, promo: true },
                 { id: 7, name: "Pizza Hut", category: "Pizza", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/sco/d/d2/Pizza_Hut_logo.svg", pickup: false, promo: false },
                 { id: 8, name: "Krispy Kreme", category: "Postres", rating: 4.9, img: "https://upload.wikimedia.org/wikipedia/en/thumb/6/66/Krispy_Kreme_logo.svg/1200px-Krispy_Kreme_logo.svg.png", pickup: true, promo: true },
-                { id: 9, name: "Rico Hot Dog", category: "Criolla", rating: 4.2, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0Y6O2p4YvPwcY6HwB0_M_QY4Q6Z6Z6Z6Z6w&s", pickup: true, promo: false },
+                { id: 9, name: "Rico Hot Dog", category: "Criolla", rating: 4.2, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/User_icon_2.svg/2048px-User_icon_2.svg.png", pickup: true, promo: false }, // Placeholder genérico si no hay logo
                 { id: 10, name: "Pizzarelli", category: "Pizza", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/e/e5/Pizzarelli_Logo.png", pickup: true, promo: true },
                 { id: 11, name: "Barra Payán", category: "Criolla", rating: 4.9, img: "https://barrapayan.com/wp-content/uploads/2021/08/logo-barra-payan.png", pickup: true, promo: false },
                 { id: 12, name: "Taco Bell", category: "Tacos", rating: 4.4, img: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b3/Taco_Bell_2016.svg/1200px-Taco_Bell_2016.svg.png", pickup: false, promo: true },
                 { id: 13, name: "Helados Bon", category: "Postres", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/f/f6/Helados_Bon_Logo.jpg", pickup: true, promo: true },
-                { id: 14, name: "Chili's Grill & Bar", category: "Mexicana", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/1/14/Chili%27s_Grill_%26_Bar_logo.svg/1200px-Chili%27s_Grill_%26_Bar_logo.svg.png", pickup: false, promo: false },
+                { id: 14, name: "Chili`s Grill & Bar", category: "Mexicana", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/1/14/Chili%27s_Grill_%26_Bar_logo.svg/1200px-Chili%27s_Grill_%26_Bar_logo.svg.png", pickup: false, promo: false },
                 { id: 15, name: "Panda Express", category: "Asiática", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/en/thumb/2/29/Panda_Express_logo.svg/1200px-Panda_Express_logo.svg.png", pickup: true, promo: true }
             ],
+            modalState: { sort: 'sugeridos', filters: [] },
 
-            // Estado del Modal
-            modalState: {
-                sort: 'sugeridos',
-                filters: []
-            },
-
-            init: function() {
-                this.renderGrid(this.data);
-            },
+            init: function() { this.renderGrid(this.data); },
 
             renderGrid: function(items) {
                 const container = document.getElementById('franchise-grid');
-                if(items.length === 0) {
-                    container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">No se encontraron resultados con estos filtros.</div>';
-                    return;
-                }
+                if(items.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">No se encontraron resultados con estos filtros.</div>'; return; }
                 container.innerHTML = items.map(item => `
                     <div class="bg-white rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm border border-transparent hover:border-orange-200 card-hover transition cursor-pointer fade-in group relative overflow-hidden" 
                         onclick="app.goToPage(${item.id}, '${item.name}')">
-                        
                         ${item.promo ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Promo</span>' : ''}
-
-                        <div class="w-24 h-24 mb-4 flex items-center justify-center relative z-10">
-                            <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain">
-                        </div>
-                        
+                        <div class="w-24 h-24 mb-4 flex items-center justify-center relative z-10"><img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain"></div>
                         <h3 class="font-bold text-lg text-slate-800 mb-1 group-hover:text-orange-600 transition">${item.name}</h3>
-                        <div class="flex items-center gap-1 text-sm font-medium text-slate-500">
-                            <i class="fa-solid fa-star text-xs text-yellow-500"></i> ${item.rating}
-                            <span class="mx-2 text-gray-300">|</span>
-                            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">${item.category}</span>
-                        </div>
+                        <div class="flex items-center gap-1 text-sm font-medium text-slate-500"><i class="fa-solid fa-star text-xs text-yellow-500"></i> ${item.rating}<span class="mx-2 text-gray-300">|</span><span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">${item.category}</span></div>
                         ${item.pickup ? '<div class="mt-2 text-[10px] text-green-600 font-bold"><i class="fa-solid fa-store"></i> Retiro disponible</div>' : ''}
-                    </div>
-                `).join('');
+                    </div>`).join('');
             },
 
             goToPage: function(id, name) {
-                if (id === 1) {
-                    window.location.href = 'Starbukz.html';
-                } else if (id === 2) {
-                    window.location.href = 'mcdonal.html'; 
-                } else {
-                    alert('Has seleccionado ' + name);
-                }
+                if (id === 1) window.location.href = 'Starbukz.html';
+                else if (id === 2) window.location.href = 'mcdonal.html'; 
+                else if (id === 3) window.location.href = 'kfc.html'; 
+                else if (id === 4) window.location.href = 'burgerking.html'; 
+                else if (id === 5) window.location.href = 'Little Ceasars.html'; 
+                else if (id === 6) window.location.href = 'Domino`s Pizza.html'; 
+                else if (id === 7) window.location.href = 'Pizza Hut.html'; 
+                else if (id === 8) window.location.href = 'Krispy Kreme.html'; 
+                else if (id === 9) window.location.href = 'Rico Hot Dog.html'; 
+                else if (id === 10) window.location.href = 'Pizzarelli.html'; 
+                else if (id === 11) window.location.href = 'Barra Payan.html'; 
+                else if (id === 12) window.location.href = 'Taco Bell.html'; 
+                else if (id === 13) window.location.href = 'Helados Bon.html'; 
+                else if (id === 14) window.location.href = 'Chili`s Grill & Bar.html'; 
+                else if (id === 15) window.location.href = 'Panda Express.html'; 
+                else alert('Has seleccionado ' + name);
             },
 
             filterCategory: function(category, btnElement) {
                 this.currentCategory = category;
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.remove('active', 'bg-red-700', 'text-white');
-                    btn.classList.add('text-red-700');
-                });
-                btnElement.classList.add('active', 'bg-red-700', 'text-white');
-                btnElement.classList.remove('text-red-700');
+                document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.remove('active', 'bg-red-700', 'text-white'); btn.classList.add('text-red-700'); });
+                btnElement.classList.add('active', 'bg-red-700', 'text-white'); btnElement.classList.remove('text-red-700');
                 this.runAllFilters();
             },
-
-            search: function(text) {
-                this.searchTerm = text.toLowerCase();
-                this.runAllFilters();
-            },
-
+            search: function(text) { this.searchTerm = text.toLowerCase(); this.runAllFilters(); },
             openModal: function() { document.getElementById('filterModal').classList.remove('hidden'); },
             closeModal: function() { document.getElementById('filterModal').classList.add('hidden'); },
-
-            setSort: function(sortType, btn) {
-                this.modalState.sort = sortType;
-                btn.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected'));
-                btn.classList.add('selected');
-            },
-
-            toggleFilter: function(filterType, btn) {
-                if (this.modalState.filters.includes(filterType)) {
-                    this.modalState.filters = this.modalState.filters.filter(f => f !== filterType);
-                    btn.classList.remove('selected');
-                } else {
-                    this.modalState.filters.push(filterType);
-                    btn.classList.add('selected');
-                }
-            },
-
-            applyModalFilters: function() {
-                this.runAllFilters();
-                this.closeModal();
-            },
-
+            setSort: function(sortType, btn) { this.modalState.sort = sortType; btn.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected')); btn.classList.add('selected'); },
+            toggleFilter: function(filterType, btn) { if (this.modalState.filters.includes(filterType)) { this.modalState.filters = this.modalState.filters.filter(f => f !== filterType); btn.classList.remove('selected'); } else { this.modalState.filters.push(filterType); btn.classList.add('selected'); } },
+            applyModalFilters: function() { this.runAllFilters(); this.closeModal(); },
+            
             runAllFilters: function() {
                 let result = [...this.data];
-
-                if (this.currentCategory !== 'all') {
-                    result = result.filter(item => item.category === this.currentCategory);
-                }
-
-                if (this.searchTerm) {
-                    result = result.filter(item => item.name.toLowerCase().includes(this.searchTerm) || item.category.toLowerCase().includes(this.searchTerm));
-                }
-
-                if (this.modalState.filters.includes('pickup')) {
-                    result = result.filter(item => item.pickup === true);
-                }
-                if (this.modalState.filters.includes('descuentos') || this.modalState.filters.includes('cupones')) {
-                    result = result.filter(item => item.promo === true);
-                }
-
-                if (this.modalState.sort === 'rating') {
-                    result.sort((a, b) => b.rating - a.rating);
-                } else if (this.modalState.sort === 'sugeridos') {
-                    result.sort((a, b) => a.id - b.id);
-                }
-
+                if (this.currentCategory !== 'all') result = result.filter(item => item.category === this.currentCategory);
+                if (this.searchTerm) result = result.filter(item => item.name.toLowerCase().includes(this.searchTerm) || item.category.toLowerCase().includes(this.searchTerm));
+                if (this.modalState.filters.includes('pickup')) result = result.filter(item => item.pickup === true);
+                if (this.modalState.filters.includes('descuentos') || this.modalState.filters.includes('cupones')) result = result.filter(item => item.promo === true);
+                if (this.modalState.sort === 'rating') result.sort((a, b) => b.rating - a.rating); else if (this.modalState.sort === 'sugeridos') result.sort((a, b) => a.id - b.id);
                 this.renderGrid(result);
             }
         };
-
         app.init();
     </script>
 </body>
