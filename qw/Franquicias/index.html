@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodRush | Inicio</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        // Paleta FoodRush: Rojo, Naranja, Negro
+                        primary: '#D90429',   // Rojo vibrante (Botones, Acciones)
+                        secondary: '#EF233C', // Rojo secundario
+                        dark: '#111111',      // Negro (Textos, Footer)
+                        accent: '#F48C06',    // Naranja (Detalles, Buscador)
+                        'accent-hover': '#E85D04', 
+                        cream: '#F8F9FA',     // Fondo casi blanco, muy limpio
+                        surface: '#FFFFFF'    // Tarjetas
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Titan One', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #F8F9FA; }
+        
+        /* Tarjetas Franquicias */
+        .card-franchise {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #f3f4f6;
+            position: relative;
+            overflow: hidden;
+        }
+        .card-franchise:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-color: #F48C06;
+        }
+        
+        /* Animaciones */
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Scroll Horizontal Oculto */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Filtros */
+        .filter-btn {
+            border: 1px solid #e5e7eb;
+            color: #4b5563;
+            background: white;
+            transition: all 0.2s;
+        }
+        .filter-btn:hover { border-color: #D90429; color: #D90429; }
+        .filter-btn.active { background-color: #D90429; color: white; border-color: #D90429; box-shadow: 0 4px 6px rgba(217, 4, 41, 0.2); }
+
+        /* Chips del Modal */
+        .modal-chip { padding: 8px 16px; border-radius: 9999px; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: 1px solid #e5e7eb; background-color: white; color: #4b5563; display: flex; align-items: center; gap: 6px; }
+        .modal-chip:hover { border-color: #F48C06; color: #F48C06; }
+        .modal-chip.selected { background-color: #F48C06; border-color: #F48C06; color: white; font-weight: 600; }
+
+        /* Auth Styles (Mantenidos y Ajustados a colores) */
+        .auth-card { background: white; width: 900px; max-width: 95%; height: 600px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+        .auth-header { background-color: #F48C06; padding: 15px 40px; display: flex; align-items: center; height: 80px; }
+        .auth-logo-box { background: white; padding: 5px; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd; }
+        .auth-logo-box i { font-size: 24px; color: #D90429; }
+        .auth-brand-name { font-family: 'Titan One', cursive; font-size: 32px; color: white; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+        .auth-forms-wrapper { display: flex; height: calc(100% - 80px); position: relative; }
+        .auth-panel { flex: 1; padding: 20px 40px; display: flex; flex-direction: column; justify-content: center; }
+        .auth-title { font-family: 'Titan One', cursive; color: #D90429; font-size: 28px; margin-bottom: 15px; }
+        .auth-label { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; display: block; }
+        .auth-input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.3s; }
+        .auth-input:focus { border-color: #F48C06; ring: 2px solid #F48C06; }
+        .auth-btn-action { width: 100%; background-color: #D90429; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
+        .auth-btn-action:hover { background-color: #b90322; }
+        .auth-separator { display: flex; align-items: center; margin: 15px 0; color: #9ca3af; font-size: 12px; }
+        .auth-separator::before, .auth-separator::after { content: ''; flex: 1; border-bottom: 1px solid #e5e7eb; }
+        .auth-social-btn { width: 100%; padding: 10px; margin-bottom: 8px; background: white; border: 1px solid #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 600; font-size: 13px; color: #374151; transition: bg 0.3s; }
+        .auth-social-btn:hover { background-color: #f9fafb; }
+        .auth-switch-link { text-align: center; margin-top: 15px; font-size: 13px; color: #6b7280; }
+        .auth-switch-link a { color: #D90429; font-weight: bold; cursor: pointer; text-decoration: underline; }
+        .auth-overlay-slider { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; transition: transform 0.6s ease-in-out; backdrop-filter: blur(5px); }
+        .auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
+
+        /* Slider */
+        #default-carousel { height: 380px; width: 100%; position: relative; z-index: 0; }
+        @media (max-width: 768px) { #default-carousel { height: 280px; } }
+        #default-carousel img { height: 100%; width: 100%; object-fit: cover; filter: brightness(0.65); }
+
+        /* BUSCADOR ESTILO LIMPIO (Naranja) */
+        .clean-search {
+            display: flex; align-items: center; background: white; border-radius: 12px;
+            overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); width: 100%; height: 55px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .clean-search input {
+            border: none !important; outline: none !important; box-shadow: none !important;
+            height: 100%; flex-grow: 1; padding-left: 15px; font-size: 16px; color: #333;
+        }
+        .clean-search button {
+            height: 100%; padding: 0 25px; background-color: #F48C06; color: white;
+            font-weight: 700; font-size: 15px; border: none; cursor: pointer; transition: background 0.3s;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .clean-search button:hover { background-color: #E85D04; }
+        .search-icon { padding-left: 20px; color: #9CA3AF; font-size: 18px; }
+    </style>
+</head>
+
+<body class="font-sans antialiased bg-cream overflow-x-hidden flex flex-col min-h-screen">
+
+    <div class="bg-dark text-white text-center py-2 text-xs font-bold tracking-widest uppercase relative z-50">
+        <span class="text-accent">⚡</span> ¡Tu Gusto Nuestra Felicidad! <span class="text-accent">⚡</span>
+    </div>
+
+    <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
+            <a href="principal.html" class="flex items-center space-x-2 group">
+                <i class="fas fa-bolt text-2xl md:text-3xl text-primary animate-pulse transform group-hover:scale-110 transition-transform"></i>
+                <span id="brand-text" class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter">FOOD<span class="text-primary">RUSH</span></span>
+            </a>
+            
+            <nav class="hidden md:flex gap-8 font-medium">
+                <a href="principal.html" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
+                <a href="#" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
+                <a href="#" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
+            </nav>
+            
+            <div class="flex items-center gap-4">
+                <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100" onclick="openAuthModal('login')">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="default-carousel" class="relative w-full" data-carousel="slide">
+        <div class="relative h-full overflow-hidden">
+            <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
+                <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1470&auto=format&fit=crop" class="absolute block w-full h-full object-cover" alt="Slide 1">
+            </div>
+            <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+                <img src="https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=1470&auto=format&fit=crop" class="absolute block w-full h-full object-cover" alt="Slide 2">
+            </div>
+            <div class="hidden duration-1000 ease-in-out" data-carousel-item>
+                <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1374&auto=format&fit=crop" class="absolute block w-full h-full object-cover" alt="Slide 3">
+            </div>
+        </div>
+
+        <div class="absolute inset-0 z-30 flex flex-col items-center justify-center px-4">
+            <div class="relative z-10 w-full max-w-2xl px-4 animate-[fadeIn_0.8s_ease-out]">
+                <h2 class="text-white text-center font-display text-2xl md:text-4xl mb-6 drop-shadow-md">¿Qué se te antoja hoy?</h2>
+                <div class="clean-search">
+                    <div class="search-icon">
+                        <i class="fa-solid fa-magnifying-glass text-accent"></i>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Buscar franquicia o comida..." onkeyup="app.search(this.value)">
+                    <button>Buscar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="container mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
+            <button onclick="app.openModal()" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Filtros</span>
+            </button>
+            
+            <div class="w-full overflow-x-auto no-scrollbar pb-2">
+                <div class="flex flex-wrap md:flex-nowrap gap-3 min-w-max" id="filter-container">
+                    <button onclick="app.filterCategory('all', this)" class="filter-btn active px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap">Todos</button>
+                    <button onclick="app.filterCategory('Hamburguesa', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
+                    <button onclick="app.filterCategory('Pizza', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
+                    <button onclick="app.filterCategory('Pollo', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
+                    <button onclick="app.filterCategory('Bebidas', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
+                    <button onclick="app.filterCategory('Tacos', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
+                    <button onclick="app.filterCategory('Postres', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
+                    <button onclick="app.filterCategory('Criolla', this)" class="filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="franchise-grid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            </div>
+    </section>
+
+    <footer class="bg-dark text-white mt-auto border-t-4 border-primary">
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="mb-8 md:mb-0">
+                 <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg transform -rotate-1">
+                    <span class="text-accent font-black text-xl italic font-display">Food</span>
+                    <span class="text-dark font-black text-xl italic -ml-1 font-display">Rush</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6 font-medium max-w-xs leading-relaxed">Conectando tus antojos con las mejores franquicias del mundo.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="flex gap-12 md:gap-20 text-sm text-left md:text-right w-full md:w-auto">
+                <div>
+                    <h4 class="font-bold mb-4 text-lg text-white">Ayuda</h4>
+                    <ul class="space-y-3 text-gray-400 font-medium">
+                        <li><a href="nosotros.html#faq" class="hover:text-accent transition">Preguntas Frecuentes</a></li>
+                        <li><a href="soporte.html" class="hover:text-accent transition">Soporte Técnico</a></li>
+                        <li><a href="terminos.html" class="hover:text-accent transition">Términos y Condiciones</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4 text-lg text-white">Empresa</h4>
+                    <ul class="space-y-3 text-gray-400 font-medium">
+                        <li><a href="nosotros.html" class="hover:text-accent transition">Sobre Nosotros</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Blog Corporativo</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Afíliate</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="bg-black text-center py-4 text-xs text-gray-600">
+            &copy; 2025 FoodRush Inc. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <div id="filterModal" class="fixed inset-0 bg-black/70 z-[60] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 relative shadow-2xl border-t-8 border-primary">
+            <button onclick="app.closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-primary transition bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h2 class="text-2xl font-bold text-center mb-6 text-dark font-display">Filtrar Búsqueda</h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Ordenar Por</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="modal-chip selected" onclick="app.setSort('sugeridos', this)"><i class="fa-solid fa-fire text-xs"></i> Sugeridos</button>
+                        <button class="modal-chip" onclick="app.setSort('rating', this)"><i class="fa-solid fa-star text-xs"></i> Calificación</button>
+                        <button class="modal-chip" onclick="app.setSort('rapidos', this)"><i class="fa-solid fa-clock text-xs"></i> Rapidez</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Tipo de Servicio</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="modal-chip" onclick="app.toggleFilter('delivery', this)">Delivery FoodRush</button>
+                        <button class="modal-chip" onclick="app.toggleFilter('pickup', this)">Pickup (Retiro)</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Ofertas</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="modal-chip" onclick="app.toggleFilter('descuentos', this)">Promo Activa</button>
+                        <button class="modal-chip" onclick="app.toggleFilter('envio', this)">Envío Gratis</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="app.applyModalFilters()" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
+                <span>Ver Resultados</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="authModal" class="fixed inset-0 bg-black/80 z-[9999] hidden flex items-center justify-center fade-in backdrop-blur-sm">
+        <div class="auth-card relative" id="authCard">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-white text-2xl font-bold z-50 hover:scale-110 transition opacity-80 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+            <div class="auth-header">
+                <div class="auth-logo-box"><i class="fa-solid fa-bolt"></i></div>
+                <div class="auth-brand-name">FoodRush</div>
+            </div>
+            <div class="auth-forms-wrapper">
+                <div class="auth-panel">
+                    <h2 class="auth-title">¡Bienvenido!</h2>
+                    <form>
+                        <label class="auth-label">Usuario / Correo</label>
+                        <input class="auth-input" type="text" placeholder="ejemplo@foodrush.com">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="••••••••">
+                        <button type="button" class="auth-btn-action">Iniciar Sesión</button>
+                    </form>
+                    <div class="auth-separator"><span>o continúa con</span></div>
+                    <div class="flex gap-2">
+                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-google mr-2 text-red-500"></i> Google</a>
+                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-apple mr-2"></i> Apple</a>
+                    </div>
+                    <div class="auth-switch-link">¿Nuevo aquí? <a onclick="switchToRegister()">Crea una cuenta</a></div>
+                </div>
+                <div class="auth-panel">
+                    <h2 class="auth-title">Regístrate</h2>
+                    <form>
+                        <label class="auth-label">Correo Electrónico</label>
+                        <input class="auth-input" type="email" placeholder="correo@ejemplo.com">
+                        <label class="auth-label">Nombre</label>
+                        <input class="auth-input" type="text" placeholder="Tu nombre">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="Crea una contraseña">
+                        <button type="button" class="auth-btn-action">Crear Cuenta</button>
+                    </form>
+                    <div class="auth-switch-link">¿Ya tienes cuenta? <a onclick="switchToLogin()">Inicia Sesión</a></div>
+                </div>
+                <div class="auth-overlay-slider"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
+    <script>
+        // --- AUTH ---
+        function openAuthModal(mode) {
+            document.getElementById('authModal').classList.remove('hidden');
+            const card = document.getElementById('authCard');
+            if (mode === 'register') card.classList.add('active-register'); else card.classList.remove('active-register');
+        }
+        function closeAuthModal() { document.getElementById('authModal').classList.add('hidden'); }
+        function switchToRegister() { document.getElementById('authCard').classList.add('active-register'); }
+        function switchToLogin() { document.getElementById('authCard').classList.remove('active-register'); }
+
+        // --- APP LOGIC ---
+        const app = {
+            currentCategory: 'all',
+            data: [
+                { id: 1, name: "Starbucks", category: "Bebidas", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png", pickup: true, promo: true },
+                { id: 2, name: "McDonald`s", category: "Hamburguesa", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png", pickup: true, promo: false },
+                { id: 3, name: "KFC", category: "Pollo", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png", pickup: false, promo: true },
+                { id: 4, name: "Burger King", category: "Hamburguesa", rating: 4.3, img: "https://upload.wikimedia.org/wikipedia/commons/c/cc/Burger_King_2020.svg", pickup: true, promo: true },
+                { id: 5, name: "Little Caesars", category: "Pizza", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Little_Caesars_pizza_logo.svg/1200px-Little_Caesars_pizza_logo.svg.png", pickup: true, promo: false },
+                { id: 6, name: "Domino`s", category: "Pizza", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png", pickup: true, promo: true },
+                { id: 7, name: "Pizza Hut", category: "Pizza", rating: 4.6, img: "https://upload.wikimedia.org/wikipedia/en/thumb/d/d2/Pizza_Hut_logo.svg/1200px-Pizza_Hut_logo.svg.png", pickup: false, promo: false },
+                { id: 8, name: "Krispy Kreme", category: "Postres", rating: 4.9, img: "https://upload.wikimedia.org/wikipedia/en/thumb/5/52/Krispy_Kreme_logo.svg/1200px-Krispy_Kreme_logo.svg.png", pickup: true, promo: true },
+                { id: 9, name: "Rico Hot Dog", category: "Criolla", rating: 4.2, img: "https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=100063636306692", pickup: true, promo: false },
+                { id: 10, name: "Pizzarelli", category: "Pizza", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Pizzarelli_Logo.png", pickup: true, promo: false },
+                { id: 11, name: "Barra Payán", category: "Criolla", rating: 4.9, img: "https://upload.wikimedia.org/wikipedia/commons/5/59/Barra_Payan_Logo.jpg", pickup: true, promo: true },
+                { id: 12, name: "Taco Bell", category: "Tacos", rating: 4.4, img: "https://upload.wikimedia.org/wikipedia/en/thumb/b/b3/Taco_Bell_2016.svg/1200px-Taco_Bell_2016.svg.png", pickup: false, promo: true },
+                { id: 13, name: "Helados Bon", category: "Postres", rating: 4.8, img: "https://upload.wikimedia.org/wikipedia/commons/8/82/Helados_Bon_Logo.png", pickup: true, promo: true },
+                { id: 14, name: "Chili`s", category: "Mexicana", rating: 4.5, img: "https://upload.wikimedia.org/wikipedia/en/thumb/4/41/Chili%27s_Grill_%26_Bar_logo.svg/1200px-Chili%27s_Grill_%26_Bar_logo.svg.png", pickup: false, promo: false },
+                { id: 15, name: "Panda Express", category: "Asiática", rating: 4.7, img: "https://upload.wikimedia.org/wikipedia/en/thumb/0/0f/Panda_Express_logo.svg/1200px-Panda_Express_logo.svg.png", pickup: true, promo: true }
+            ],
+            modalState: { sort: 'sugeridos', filters: [] },
+
+            init: function() { this.renderGrid(this.data); },
+
+            renderGrid: function(items) {
+                const container = document.getElementById('franchise-grid');
+                if(items.length === 0) { 
+                    container.innerHTML = '<div class="col-span-full flex flex-col items-center justify-center py-16 text-gray-400"><i class="fa-regular fa-face-frown text-4xl mb-4"></i><p>No se encontraron resultados.</p></div>'; 
+                    return; 
+                }
+                
+                container.innerHTML = items.map(item => `
+                    <div class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in" 
+                        onclick="app.goToPage(${item.id}, '${item.name}')">
+                        ${item.promo ? '<span class="absolute top-3 right-3 bg-accent text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-bold shadow-sm z-10">Promo</span>' : ''}
+                        
+                        <div class="w-28 h-28 mb-4 flex items-center justify-center relative z-10 transition-transform duration-300 group-hover:scale-110">
+                            <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain drop-shadow-sm">
+                        </div>
+                        
+                        <h3 class="font-bold text-lg text-dark mb-1 group-hover:text-primary transition line-clamp-1">${item.name}</h3>
+                        
+                        <div class="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                            <div class="flex items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>${item.rating}</div>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">${item.category}</span>
+                        </div>
+                        
+                        ${item.pickup ? '<div class="w-full mt-2 pt-2 border-t border-gray-50 text-[11px] text-green-600 font-bold flex items-center justify-center gap-1"><i class="fa-solid fa-bag-shopping"></i> Pickup</div>' : '<div class="w-full mt-2 pt-2 border-t border-transparent text-[11px] text-transparent">.</div>'}
+                    </div>`).join('');
+            },
+
+            goToPage: function(id, name) {
+                if (id === 1) window.location.href = 'Starbukz.html';
+                else if (id === 2) window.location.href = 'mcdonal.html'; 
+                else if (id === 3) window.location.href = 'kfc.html'; 
+                else if (id === 4) window.location.href = 'burger king.html'; 
+                else if (id === 5) window.location.href = 'Little Ceasars.html'; 
+                else if (id === 6) window.location.href = 'Domino`s Pizza.html'; 
+                else if (id === 7) window.location.href = 'Pizza Hut.html'; 
+                else if (id === 8) window.location.href = 'Krispy Kreme.html'; 
+                else if (id === 9) window.location.href = 'Rico Hot Dog.html'; 
+                else if (id === 10) window.location.href = 'Pizzarelli.html'; 
+                else if (id === 11) window.location.href = 'Barra Payan.html'; 
+                else if (id === 12) window.location.href = 'Taco Bell.html'; 
+                else if (id === 13) window.location.href = 'Helados Bon.html'; 
+                else if (id === 14) window.location.href = 'Chili`s Grill & Bar.html'; 
+                else if (id === 15) window.location.href = 'Panda Express.html'; 
+                else alert('Navegando a ' + name);
+            },
+
+            filterCategory: function(category, btnElement) {
+                this.currentCategory = category;
+                document.querySelectorAll('.filter-btn').forEach(btn => { 
+                    btn.classList.remove('active'); 
+                });
+                btnElement.classList.add('active');
+                this.runAllFilters();
+            },
+            search: function(text) { this.searchTerm = text.toLowerCase(); this.runAllFilters(); },
+            openModal: function() { document.getElementById('filterModal').classList.remove('hidden'); },
+            closeModal: function() { document.getElementById('filterModal').classList.add('hidden'); },
+            setSort: function(sortType, btn) { this.modalState.sort = sortType; btn.parentElement.querySelectorAll('.modal-chip').forEach(c => c.classList.remove('selected')); btn.classList.add('selected'); },
+            toggleFilter: function(filterType, btn) { if (this.modalState.filters.includes(filterType)) { this.modalState.filters = this.modalState.filters.filter(f => f !== filterType); btn.classList.remove('selected'); } else { this.modalState.filters.push(filterType); btn.classList.add('selected'); } },
+            applyModalFilters: function() { this.runAllFilters(); this.closeModal(); },
+            
+            runAllFilters: function() {
+                let result = [...this.data];
+                if (this.currentCategory !== 'all') result = result.filter(item => item.category === this.currentCategory);
+                if (this.searchTerm) result = result.filter(item => item.name.toLowerCase().includes(this.searchTerm) || item.category.toLowerCase().includes(this.searchTerm));
+                if (this.modalState.filters.includes('pickup')) result = result.filter(item => item.pickup === true);
+                if (this.modalState.filters.includes('descuentos') || this.modalState.filters.includes('cupones')) result = result.filter(item => item.promo === true);
+                if (this.modalState.sort === 'rating') result.sort((a, b) => b.rating - a.rating); else if (this.modalState.sort === 'sugeridos') result.sort((a, b) => a.id - b.id);
+                this.renderGrid(result);
+            }
+        };
+        app.init();
+    </script>
+</body>
+</html>
