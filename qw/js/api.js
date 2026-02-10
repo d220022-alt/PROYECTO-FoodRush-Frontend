@@ -38,7 +38,7 @@ const api = {
 
     // Iniciar sesión
     async login(email, password) {
-        return this.request('/auth/login', {
+        return this.request('/api/usuarios/login', {
             method: 'POST',
             body: JSON.stringify({ email, password })
         });
@@ -46,7 +46,7 @@ const api = {
 
     // Registrar usuario
     async register(userData) {
-        return this.request('/auth/register', {
+        return this.request('/api/usuarios', {
             method: 'POST',
             body: JSON.stringify(userData)
         });

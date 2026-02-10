@@ -384,7 +384,7 @@
                 }
 
                 alert('Login exitoso! Redirigiendo...');
-                window.location.href = 'index.html';
+                window.location.href = 'Franquicias/index.html';
 
             } catch (error) {
                 errorDiv.innerText = error.message || 'Error al iniciar sesión';
@@ -415,7 +415,11 @@
 
             try {
                 // Llamada a la API
-                const userData = { email, name, password: pass };
+                const userData = {
+                    nombre: name,
+                    correo: email,
+                    contrasena: pass
+                };
                 const response = await api.register(userData);
 
                 alert('Registro exitoso! Por favor inicia sesión.');
