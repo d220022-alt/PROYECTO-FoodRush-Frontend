@@ -8,7 +8,7 @@
     <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
       <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
         <a href="#" class="flex items-center space-x-2 group">
-          <i class="fas fa-bolt text-2xl md:text-3xl text-primary animate-pulse transform group-hover:scale-110 transition-transform"></i>
+          <i class="fas fa-bolt text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
           <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
             FOOD<span class="text-primary">RUSH</span>
           </span>
@@ -22,6 +22,7 @@
         
         <div class="flex items-center gap-4">
           <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+          
           <div class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100" 
                @click="openAuth('login')">
             <i class="fa-solid fa-user"></i>
@@ -347,15 +348,27 @@ export default {
 </script>
 
 <style scoped>
-/* IMPORTANTE: Asegúrate de importar estas fuentes en tu archivo principal (index.html o App.vue global) si no se ven */
+/* 1. ¡ESTA ES LA LÍNEA MÁGICA! Cárgala aquí mismo */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+
+/* 2. Tus fuentes */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
 
-/* Utilities customizadas que pediste */
+/* Utilities customizadas */
 .font-display { font-family: 'Titan One', cursive; }
 .font-sans { font-family: 'Poppins', sans-serif; }
 
-/* Tarjetas Franquicias - Diseño Original Exacto */
+/* ANIMACIÓN RAYO (Prende y apaga) */
+@keyframes electric-blink {
+  0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 2px #D90429); }
+  50% { opacity: 0.4; transform: scale(1.1); filter: drop-shadow(0 0 8px #F48C06); }
+}
+.electric-blink {
+  animation: electric-blink 5s infinite ease-in-out;
+}
+
+/* Tarjetas Franquicias */
 .card-franchise {
     background: white;
     border-radius: 16px;
@@ -368,7 +381,7 @@ export default {
 .card-franchise:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    border-color: #F48C06; /* Usando hexadecimal directo en CSS o variable si configuras Tailwind */
+    border-color: #F48C06;
 }
 
 /* Animaciones */
@@ -394,7 +407,7 @@ export default {
 .modal-chip:hover { border-color: #F48C06; color: #F48C06; }
 .modal-chip.selected { background-color: #F48C06; border-color: #F48C06; color: white; font-weight: 600; }
 
-/* Auth Styles - Diseño Original Exacto */
+/* Auth Styles */
 .auth-card { background: white; width: 900px; max-width: 95%; height: 600px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; position: relative; display: flex; flex-direction: column; }
 .auth-header { background-color: #F48C06; padding: 15px 40px; display: flex; align-items: center; height: 80px; }
 .auth-logo-box { background: white; padding: 5px; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd; }
@@ -417,7 +430,7 @@ export default {
 .auth-overlay-slider { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; transition: transform 0.6s ease-in-out; backdrop-filter: blur(5px); }
 .auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
 
-/* BUSCADOR ESTILO LIMPIO (Naranja) */
+/* BUSCADOR ESTILO LIMPIO */
 .clean-search {
     display: flex; align-items: center; background: white; border-radius: 12px;
     overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); width: 100%; height: 55px;
