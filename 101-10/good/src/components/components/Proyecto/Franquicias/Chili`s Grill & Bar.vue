@@ -110,7 +110,7 @@
                 </div>
 
                 <div class="flex gap-4 text-xl items-center">
-                    <button class="relative group" onclick="window.location.href='cart.html'">
+                    <button class="relative group" onclick="window.location.href='cart.vue'">
                         <i class="fa-solid fa-cart-shopping text-[#1e293b] group-hover:text-chili-red transition"></i>
                         <span id="cart-count" class="absolute -top-2 -right-2 bg-[#007A33] text-white font-bold text-[10px] w-5 h-5 rounded-full flex items-center justify-center hidden border border-white">0</span>
                     </button>
@@ -361,20 +361,20 @@
 
             renderSidebar: function() {
                 const container = document.getElementById('dynamic-sidebar-content');
-                let html = '';
+                let.vue = '';
                 const isActiveType = (type) => this.activeTypeFilters.includes(type) ? 'active' : '';
                 const isActiveSpec = (val) => this.activeSpecFilter === val ? 'active' : '';
 
                 if (this.currentCategory === 'Platos') {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">TIPO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Ribs')}" onclick="app.toggleTypeFilter('Ribs')">Costillas</p><p class="side-filter-btn ${isActiveType('Burger')}" onclick="app.toggleTypeFilter('Burger')">Hamburguesas</p><p class="side-filter-btn ${isActiveType('Pasta')}" onclick="app.toggleTypeFilter('Pasta')">Pastas</p></div></details>
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">TIPO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Ribs')}" onclick="app.toggleTypeFilter('Ribs')">Costillas</p><p class="side-filter-btn ${isActiveType('Burger')}" onclick="app.toggleTypeFilter('Burger')">Hamburguesas</p><p class="side-filter-btn ${isActiveType('Pasta')}" onclick="app.toggleTypeFilter('Pasta')">Pastas</p></div></details>
                     <details open class="group mb-4 border-t border-gray-100 pt-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">PROTEÍNA <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveSpec('pork')}" onclick="app.toggleSpecFilter('pork')">Cerdo</p><p class="side-filter-btn ${isActiveSpec('beef')}" onclick="app.toggleSpecFilter('beef')">Res</p><p class="side-filter-btn ${isActiveSpec('chicken')}" onclick="app.toggleSpecFilter('chicken')">Pollo</p></div></details>`;
                 } else if (this.currentCategory === 'Fajitas') {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">ESTILO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Fajitas')}" onclick="app.toggleTypeFilter('Fajitas')">Clásicas</p></div></details>`;
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">ESTILO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Fajitas')}" onclick="app.toggleTypeFilter('Fajitas')">Clásicas</p></div></details>`;
                 } else {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">TIPO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Appetizer')}" onclick="app.toggleTypeFilter('Appetizer')">Entradas</p><p class="side-filter-btn ${isActiveType('Wings')}" onclick="app.toggleTypeFilter('Wings')">Alitas</p><p class="side-filter-btn ${isActiveType('Bebida')}" onclick="app.toggleTypeFilter('Bebida')">Bebidas</p><p class="side-filter-btn ${isActiveType('Postre')}" onclick="app.toggleTypeFilter('Postre')">Postres</p></div></details>`;
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-chili-red transition">TIPO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Appetizer')}" onclick="app.toggleTypeFilter('Appetizer')">Entradas</p><p class="side-filter-btn ${isActiveType('Wings')}" onclick="app.toggleTypeFilter('Wings')">Alitas</p><p class="side-filter-btn ${isActiveType('Bebida')}" onclick="app.toggleTypeFilter('Bebida')">Bebidas</p><p class="side-filter-btn ${isActiveType('Postre')}" onclick="app.toggleTypeFilter('Postre')">Postres</p></div></details>`;
                 }
-                html += `<div class="pt-8 mt-4 border-t border-gray-100"><button onclick="app.resetFilters()" class="w-full py-2 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i> Limpiar Filtros</button></div>`;
-                container.innerHTML = html;
+               .vue += `<div class="pt-8 mt-4 border-t border-gray-100"><button onclick="app.resetFilters()" class="w-full py-2 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i> Limpiar Filtros</button></div>`;
+                container.innerHTML =.vue;
             },
 
             toggleTypeFilter: function(type) { if (this.activeTypeFilters.includes(type)) { this.activeTypeFilters = this.activeTypeFilters.filter(t => t !== type); } else { if (this.activeTypeFilters.length >= 2) this.activeTypeFilters.shift(); this.activeTypeFilters.push(type); } this.applyFilters(); this.renderSidebar(); },
@@ -402,7 +402,7 @@
                 grid.innerHTML = "";
                 if (items.length === 0) { grid.innerHTML = `<div class="col-span-4 text-center py-10 text-gray-400">No se encontraron productos.</div>`; return; }
                 items.forEach(item => {
-                    const html = `
+                    const.vue = `
                     <div class="fade-in border border-gray-200 rounded-xl p-6 flex flex-col items-center justify-between h-[360px] hover:shadow-xl hover:border-chili-red transition-all duration-300 cursor-pointer bg-white group" onclick="app.openProductDetail(${item.id})">
                         <div class="h-48 w-full flex items-center justify-center mb-4 overflow-hidden relative">
                             <div class="absolute inset-0 bg-red-50 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 opacity-30"></div>
@@ -418,7 +418,7 @@
                             </div>
                         </div>
                     </div>`;
-                    grid.innerHTML += html;
+                    grid.innerHTML +=.vue;
                 });
             },
 
@@ -537,7 +537,7 @@
                     cancelButtonColor: '#333'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = 'cart.html';
+                        window.location.href = 'cart.vue';
                     } else {
                         this.goBack();
                     }

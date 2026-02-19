@@ -95,7 +95,7 @@
         <nav class="bg-white/95 backdrop-blur-sm shadow-sm py-3 md:py-4 sticky top-0 z-50">
             <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4">
                 
-                <a href="index.html" class="flex items-center space-x-2 md:space-x-3 group">
+                <a href="index.vue" class="flex items-center space-x-2 md:space-x-3 group">
                     <i class="fas fa-bolt text-2xl md:text-3xl text-kfc animate-pulse transform group-hover:scale-110 transition-transform"></i>
                     <span class="self-center text-xl md:text-2xl font-extrabold whitespace-nowrap text-kfc-black tracking-tight">FOOD<span class="text-kfc">RUSH</span></span>
                 </a>
@@ -108,14 +108,14 @@
                 <div class="flex items-center gap-4 md:gap-6">
                     <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
 
-                    <button class="hover:text-kfc transition relative text-xl text-gray-600 p-1" onclick="window.location.href='cart.html'">
+                    <button class="hover:text-kfc transition relative text-xl text-gray-600 p-1" onclick="window.location.href='cart.vue'">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span id="cart-count" class="absolute -top-1 -right-1 bg-kfc text-white font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden shadow-sm border border-white">0</span>
                     </button>
                     
                     <button class="hover:text-kfc transition text-xl text-gray-600"><i class="fa-regular fa-user"></i></button>
                     
-                    <a href="principal.html" class="hidden md:block ml-2"><span class="bg-kfc-black text-white px-5 py-2 rounded-full hover:bg-black transition-all shadow-md text-sm font-semibold">Home</span></a>
+                    <a href="principal.vue" class="hidden md:block ml-2"><span class="bg-kfc-black text-white px-5 py-2 rounded-full hover:bg-black transition-all shadow-md text-sm font-semibold">Home</span></a>
                 </div>
             </div>
         </nav>
@@ -356,20 +356,20 @@
             // --- RENDER SIDEBAR ---
             renderSidebar: function() {
                 const container = document.getElementById('dynamic-sidebar-content');
-                let html = '';
+                let.vue = '';
                 const isActiveType = (type) => this.activeTypeFilters.includes(type) ? 'active' : '';
                 const isActiveSpec = (val) => this.activeSpecFilter === val ? 'active' : '';
 
                 if (this.currentCategory === 'Pollo') {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">TIPO DE COMIDA <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Pollo')}" onclick="app.toggleTypeFilter('Pollo')">Piezas de Pollo</p><p class="side-filter-btn ${isActiveType('Sandwich')}" onclick="app.toggleTypeFilter('Sandwich')">Sandwiches</p><p class="side-filter-btn ${isActiveType('Tenders')}" onclick="app.toggleTypeFilter('Tenders')">Tenders y Nuggets</p></div></details>
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">TIPO DE COMIDA <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Pollo')}" onclick="app.toggleTypeFilter('Pollo')">Piezas de Pollo</p><p class="side-filter-btn ${isActiveType('Sandwich')}" onclick="app.toggleTypeFilter('Sandwich')">Sandwiches</p><p class="side-filter-btn ${isActiveType('Tenders')}" onclick="app.toggleTypeFilter('Tenders')">Tenders y Nuggets</p></div></details>
                     <details open class="group mb-4 border-t border-gray-100 pt-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">ESTILO <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveSpec('original')}" onclick="app.toggleSpecFilter('original')">Receta Original</p><p class="side-filter-btn ${isActiveSpec('crispy')}" onclick="app.toggleSpecFilter('crispy')">Crujiente (Crispy)</p><p class="side-filter-btn ${isActiveSpec('spicy')}" onclick="app.toggleSpecFilter('spicy')">Picante</p></div></details>`;
                 } else if (this.currentCategory === 'Acompañantes') {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">CLASICOS <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Puré')}" onclick="app.toggleTypeFilter('Puré')">Puré</p><p class="side-filter-btn ${isActiveType('Papas')}" onclick="app.toggleTypeFilter('Papas')">Papas</p><p class="side-filter-btn ${isActiveType('Ensalada')}" onclick="app.toggleTypeFilter('Ensalada')">Ensalada</p><p class="side-filter-btn ${isActiveType('Pan')}" onclick="app.toggleTypeFilter('Pan')">Biscuits</p></div></details>`;
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">CLASICOS <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Puré')}" onclick="app.toggleTypeFilter('Puré')">Puré</p><p class="side-filter-btn ${isActiveType('Papas')}" onclick="app.toggleTypeFilter('Papas')">Papas</p><p class="side-filter-btn ${isActiveType('Ensalada')}" onclick="app.toggleTypeFilter('Ensalada')">Ensalada</p><p class="side-filter-btn ${isActiveType('Pan')}" onclick="app.toggleTypeFilter('Pan')">Biscuits</p></div></details>`;
                 } else {
-                    html += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">EXTRAS <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Helado')}" onclick="app.toggleTypeFilter('Helado')">Helados</p><p class="side-filter-btn ${isActiveType('Bebida')}" onclick="app.toggleTypeFilter('Bebida')">Bebidas</p></div></details>`;
+                   .vue += `<details open class="group mb-4"><summary class="flex justify-between items-center font-bold text-gray-500 cursor-pointer mb-3 hover:text-kfc transition text-sm uppercase tracking-wide">EXTRAS <i class="fa-solid fa-chevron-down text-xs"></i></summary><div class="space-y-1"><p class="side-filter-btn ${isActiveType('Helado')}" onclick="app.toggleTypeFilter('Helado')">Helados</p><p class="side-filter-btn ${isActiveType('Bebida')}" onclick="app.toggleTypeFilter('Bebida')">Bebidas</p></div></details>`;
                 }
-                html += `<div class="pt-6 mt-4 border-t border-gray-100"><button onclick="app.resetFilters()" class="w-full py-2.5 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i> Limpiar Filtros</button></div>`;
-                container.innerHTML = html;
+               .vue += `<div class="pt-6 mt-4 border-t border-gray-100"><button onclick="app.resetFilters()" class="w-full py-2.5 text-xs font-bold text-red-500 border border-red-200 rounded-lg hover:bg-red-50 transition flex items-center justify-center gap-2"><i class="fa-solid fa-rotate-left"></i> Limpiar Filtros</button></div>`;
+                container.innerHTML =.vue;
             },
 
             toggleTypeFilter: function(type) { if (this.activeTypeFilters.includes(type)) { this.activeTypeFilters = this.activeTypeFilters.filter(t => t !== type); } else { if (this.activeTypeFilters.length >= 2) this.activeTypeFilters.shift(); this.activeTypeFilters.push(type); } this.applyFilters(); this.renderSidebar(); },
@@ -394,7 +394,7 @@
                 grid.innerHTML = "";
                 if (items.length === 0) { grid.innerHTML = `<div class="col-span-full text-center py-20 text-gray-400 flex flex-col items-center"><i class="fa-solid fa-drumstick-bite text-4xl mb-4 text-gray-300"></i>No se encontraron productos.</div>`; return; }
                 items.forEach(item => {
-                    const html = `
+                    const.vue = `
                     <div class="fade-in border border-gray-100 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-between h-[340px] md:h-[360px] hover:shadow-xl hover:border-kfc transition-all duration-300 cursor-pointer bg-white group relative overflow-hidden" onclick="app.openProductDetail(${item.id})">
                         <div class="h-40 md:h-48 w-full flex items-center justify-center mb-4 relative p-2">
                              <div class="absolute inset-0 bg-kfc-light rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 opacity-50"></div>
@@ -409,7 +409,7 @@
                             </div>
                         </div>
                     </div>`;
-                    grid.innerHTML += html;
+                    grid.innerHTML +=.vue;
                 });
             },
 

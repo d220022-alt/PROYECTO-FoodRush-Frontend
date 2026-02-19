@@ -304,21 +304,21 @@ export default {
   },
   methods: {
     goToPage(id, name) {
-      if (id === 1) window.location.href = 'Starbukz.html';
-      else if (id === 2) window.location.href = 'mcdonal.html'; 
-      else if (id === 3) window.location.href = 'kfc.html'; 
-      else if (id === 4) window.location.href = 'burger king.html'; 
-      else if (id === 5) window.location.href = 'Little Ceasars.html'; 
-      else if (id === 6) window.location.href = 'Domino`s Pizza.html'; 
-      else if (id === 7) window.location.href = 'Pizza Hut.html'; 
-      else if (id === 8) window.location.href = 'Krispy Kreme.html'; 
-      else if (id === 9) window.location.href = 'Rico Hot Dog.html'; 
-      else if (id === 10) window.location.href = 'Pizzarelli.html'; 
-      else if (id === 11) window.location.href = 'Barra Payan.html'; 
-      else if (id === 12) window.location.href = 'Taco Bell.html'; 
-      else if (id === 13) window.location.href = 'Helados Bon.html'; 
-      else if (id === 14) window.location.href = 'Chili`s Grill & Bar.html'; 
-      else if (id === 15) window.location.href = 'Panda Express.html'; 
+       if (id === 1) window.location.href = '/src/components/components/Proyecto/Franquicias/Starbukz.vue';
+      else if (id === 2) window.location.href = '/src/components/components/Proyecto/Franquicias/mcdonal.vue'; 
+      else if (id === 3) window.location.href = '/src/components/components/Proyecto/Franquicias/kfc.vue'; 
+      else if (id === 4) window.location.href = '/src/components/components/Proyecto/Franquicias/burger king.vue'; 
+      else if (id === 5) window.location.href = '/src/components/components/Proyecto/Franquicias/Little Ceasars.vue'; 
+      else if (id === 6) window.location.href = '/src/components/components/Proyecto/Franquicias/Domino`s Pizza.vue'; 
+      else if (id === 7) window.location.href = '/src/components/components/Proyecto/Franquicias/Pizza Hut.vue'; 
+      else if (id === 8) window.location.href = '/src/components/components/Proyecto/Franquicias/Krispy Kreme.vue'; 
+      else if (id === 9) window.location.href = '/src/components/components/Proyecto/Franquicias/Rico Hot Dog.vue'; 
+      else if (id === 10) window.location.href = '/src/components/components/Proyecto/Franquicias/Pizzarelli.vue'; 
+      else if (id === 11) window.location.href = '/src/components/components/Proyecto/Franquicias/Barra Payan.vue'; 
+      else if (id === 12) window.location.href = '/src/components/components/Proyecto/Franquicias/Taco Bell.vue'; 
+      else if (id === 13) window.location.href = '/src/components/components/Proyecto/Franquicias/Helados Bon.vue'; 
+      else if (id === 14) window.location.href = '/src/components/components/Proyecto/Franquicias/Chili`s Grill & Bar.vue'; 
+      else if (id === 15) window.location.href = '/src/components/components/Proyecto/Franquicias/Panda Express.vue'; 
       else alert('Navegando a ' + name);
     },
     toggleModalFilter(filter) {

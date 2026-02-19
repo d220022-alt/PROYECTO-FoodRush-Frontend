@@ -43,7 +43,7 @@
 
     <header class="bg-white border-b border-gray-100 sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-1 group">
+            <a href="index.vue" class="flex items-center gap-1 group">
                 <div class="flex flex-col items-center leading-none">
                     <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
                     <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
@@ -60,7 +60,7 @@
         
         <div class="flex items-center justify-between mb-10">
             <h1 class="text-3xl font-bold text-slate-900 font-heading">Tu Carrito</h1>
-            <a href="starbucks.html" class="text-sm font-bold text-starbucks hover:underline flex items-center transition">
+            <a href="starbucks.vue" class="text-sm font-bold text-starbucks hover:underline flex items-center transition">
                 <i class="fa-solid fa-arrow-left mr-2"></i> Seguir comprando
             </a>
         </div>
@@ -79,7 +79,7 @@
                     <span class="text-4xl font-bold text-slate-900 font-heading" id="cart-total-price">$0</span>
                 </div>
                 
-                <a href="chekout.html" class="w-full md:w-auto bg-[#00704A] hover:bg-[#005c3d] text-white px-10 py-4 rounded-xl shadow-lg shadow-green-900/20 font-bold text-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-3">
+                <a href="chekout.vue" class="w-full md:w-auto bg-[#00704A] hover:bg-[#005c3d] text-white px-10 py-4 rounded-xl shadow-lg shadow-green-900/20 font-bold text-lg transition transform hover:scale-[1.02] flex items-center justify-center gap-3">
                     Pagar Ahora <i class="fa-solid fa-arrow-right"></i>
                 </a>
             </div>
@@ -91,7 +91,7 @@
             </div>
             <h2 class="text-2xl font-bold text-slate-700 mb-2 font-heading">Tu carrito está vacío</h2>
             <p class="text-gray-400 mb-8">Parece que aún no has agregado tu producto favorito.</p>
-            <a href="starbucks.html" class="inline-block bg-starbucks text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-[#005c3d] transition">
+            <a href="starbucks.vue" class="inline-block bg-starbucks text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-[#005c3d] transition">
                 Ir al Menú
             </a>
         </div>
@@ -126,7 +126,7 @@
                     const itemTotal = item.price * item.qty;
                     grandTotal += itemTotal;
 
-                    const html = `
+                    const.vue = `
                     <div id="cart-item-${index}" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6 transition hover:shadow-md fade-in">
                         
                         <div class="w-24 h-24 flex-shrink-0 bg-[#f2fcf8] rounded-xl flex items-center justify-center p-2 relative overflow-hidden">
@@ -157,7 +157,7 @@
                         </div>
                     </div>
                     `;
-                    container.innerHTML += html;
+                    container.innerHTML +=.vue;
                 });
                 
                 totalPriceEl.innerText = `$${grandTotal}`;

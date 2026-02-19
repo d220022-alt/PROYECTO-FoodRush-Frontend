@@ -40,7 +40,7 @@
 
     <header class="bg-white border-b py-4 sticky top-0 z-50 shadow-sm">
         <div class="container mx-auto px-6 flex justify-between items-center">
-            <a href="index.html" class="flex items-center gap-1 group">
+            <a href="index.vue" class="flex items-center gap-1 group">
                 <div class="flex flex-col items-center leading-none">
                     <span class="text-orange-500 font-bold text-lg italic tracking-tighter">Food</span>
                     <span class="text-slate-800 font-bold text-lg italic tracking-tighter -mt-1">Rush</span>
@@ -138,7 +138,7 @@
 
             <div class="lg:col-span-5 space-y-6">
                 <div class="bg-white rounded-2xl p-6 shadow-sm">
-                    <a href="cart.html" class="flex justify-between items-center mb-4 border-b pb-2 cursor-pointer hover:opacity-70 transition group">
+                    <a href="cart.vue" class="flex justify-between items-center mb-4 border-b pb-2 cursor-pointer hover:opacity-70 transition group">
                         <h2 class="text-lg text-slate-600 group-hover:text-slate-900 group-hover:underline">Resumen de carrito</h2>
                         <div class="relative">
                             <i class="fa-solid fa-cart-shopping text-slate-400 group-hover:text-slate-600 text-xl"></i>
@@ -283,7 +283,7 @@
             badge.innerText = totalItems;
             
             if(cart.length === 0) {
-                container.innerHTML = "<div class='text-center py-8 text-gray-400 text-sm'>Tu carrito está vacío.<br><a href='index.html' class='text-slate-800 font-bold hover:underline'>Ir a comprar</a></div>";
+                container.innerHTML = "<div class='text-center py-8 text-gray-400 text-sm'>Tu carrito está vacío.<br><a href='index.vue' class='text-slate-800 font-bold hover:underline'>Ir a comprar</a></div>";
                 subtotalAmt = 0;
             } else {
                 container.innerHTML = cart.map(item => `

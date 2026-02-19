@@ -113,7 +113,7 @@
         <nav class="bg-white/95 backdrop-blur-sm shadow-sm py-3 md:py-4 sticky top-0 z-50">
             <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4">
                 
-                <a href="index.html" class="flex items-center space-x-2 md:space-x-3 group">
+                <a href="index.vue" class="flex items-center space-x-2 md:space-x-3 group">
                     <i class="fas fa-bolt text-2xl md:text-3xl text-logo-red animate-pulse transform group-hover:scale-110 transition-transform"></i>
                     <span class="self-center text-xl md:text-2xl font-extrabold whitespace-nowrap text-slate-900 tracking-tight">FOOD<span class="text-payan">RUSH</span></span>
                 </a>
@@ -126,14 +126,14 @@
                 <div class="flex items-center gap-4 md:gap-6">
                     <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
 
-                    <button class="hover:text-payan transition relative text-xl text-gray-600 p-1" onclick="window.location.href='cart.html'">
+                    <button class="hover:text-payan transition relative text-xl text-gray-600 p-1" onclick="window.location.href='cart.vue'">
                         <i class="fa-solid fa-cart-shopping"></i>
                         <span id="cart-count" class="absolute -top-1 -right-1 bg-payan-yellow text-slate-900 font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center hidden shadow-sm border border-white">0</span>
                     </button>
                     
                     <button class="hover:text-payan transition text-xl text-gray-600"><i class="fa-regular fa-user"></i></button>
                     
-                    <a href="principal.html" class="hidden md:block ml-2"><span class="bg-slate-900 text-white px-5 py-2 rounded-full hover:bg-slate-800 transition-all shadow-md text-sm font-semibold">Home</span></a>
+                    <a href="principal.vue" class="hidden md:block ml-2"><span class="bg-slate-900 text-white px-5 py-2 rounded-full hover:bg-slate-800 transition-all shadow-md text-sm font-semibold">Home</span></a>
                 </div>
             </div>
         </nav>
@@ -543,7 +543,7 @@
                     cancelButtonColor: '#333'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = 'cart.html';
+                        window.location.href = 'cart.vue';
                     } else {
                         this.goBack();
                     }
