@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://proyecto-foodrush.onrender.com';
 
 export const api = {
     async request(endpoint, options = {}) {
@@ -8,7 +8,7 @@ export const api = {
         };
 
         const controller = new AbortController();
-        const id = setTimeout(() => controller.abort(), 5000); // 5 segundos de timeout
+        const id = setTimeout(() => controller.abort(), 60000); // 60 segundos de timeout (Render free tier tarda en despertar)
 
         const config = {
             ...options,

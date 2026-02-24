@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 
@@ -31,6 +31,40 @@ const currentCategory = ref('all');
 const router = useRouter();
 const userName = ref(localStorage.getItem('user_name') || '');
 
+// Cart State
+const cartCount = ref(0);
+const updateCartCount = () => {
+    try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cartCount.value = cart.reduce((acc, item) => acc + item.quantity, 0);
+    } catch {
+        cartCount.value = 0;
+    }
+};
+
+// Carousel
+const currentSlide = ref(0);
+let carouselInterval = null;
+const heroSlides = [
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1470&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=1470&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1374&auto=format&fit=crop'
+];
+const startCarousel = () => {
+    carouselInterval = setInterval(() => {
+        currentSlide.value = (currentSlide.value + 1) % heroSlides.length;
+    }, 4000);
+};
+
+// Modal State
+const showFilters = ref(false);
+const sortType = ref('sugeridos');
+const activeFilters = ref([]);
+
+// Auth Modal
+const showAuth = ref(false);
+const authMode = ref('login');
+
 const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_name');
@@ -38,57 +72,21 @@ const handleLogout = () => {
     window.location.reload();
 };
 
-// Modal State
-const isModalOpen = ref(false);
-const sortType = ref('sugeridos');
-const activeFilters = ref([]);
-
-// const categories = ['Pizza', 'Hamburguesa', 'Bebidas', 'Tacos', 'Criolla', 'Postres'];
-
 const franchiseMetadata = {
-    // 1. Starbucks
     "Starbucks Coffee": { img: logoStarbucks, category: "Bebidas", rating: 4.8, pickup: true, promo: true },
-    
-    // 2. McDonald's
     "McDonald's": { img: logoMcDonalds, category: "Hamburguesa", rating: 4.7, pickup: true, promo: false },
-    
-    // 3. KFC
     "KFC": { img: logoKFC, category: "Pollo", rating: 4.6, pickup: false, promo: true },
-    
-    // 4. Burger King
     "Burger King": { img: logoBurgerKing, category: "Hamburguesa", rating: 4.3, pickup: true, promo: true },
-    
-    // 5. Little Caesars
     "Little Caesars": { img: logoLittleCaesars, category: "Pizza", rating: 4.5, pickup: true, promo: false },
-    
-    // 6. Domino's
     "Domino's Pizza": { img: logoDominos, category: "Pizza", rating: 4.8, pickup: true, promo: true },
-    
-    // 7. Pizza Hut
     "Pizza Hut": { img: logoPizzaHut, category: "Pizza", rating: 4.6, pickup: false, promo: false },
-    
-    // 8. Krispy Kreme
     "Krispy Kreme": { img: logoKrispyKreme, category: "Postres", rating: 4.9, pickup: true, promo: true },
-    
-    // 9. Rico Hot Dog
     "Rico Hot Dog": { img: logoRicoHotDog, category: "Criolla", rating: 4.2, pickup: true, promo: false },
-    
-    // 10. Pizzarelli
     "Pizzarelli": { img: logoPizzarelli, category: "Pizza", rating: 4.7, pickup: true, promo: true },
-    
-    // 11. Barra Payán
     "Barra Payán": { img: logoBarraPayan, category: "Criolla", rating: 4.9, pickup: true, promo: false },
-    
-    // 12. Taco Bell
     "Taco Bell": { img: logoTacoBell, category: "Tacos", rating: 4.4, pickup: false, promo: true },
-    
-    // 13. Helados Bon
     "Helados Bon": { img: logoHeladosBon, category: "Postres", rating: 4.8, pickup: true, promo: true },
-    
-    // 14. Chili's
     "Chili's Grill & Bar": { img: logoChilis, category: "Mexicana", rating: 4.5, pickup: false, promo: false },
-    
-    // 15. Panda Express
     "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
 };
 
@@ -98,10 +96,8 @@ const fetchFranchises = async () => {
     try {
         const response = await api.getFranchises();
         const rawData = response.data || [];
-        
-        // Mapear datos del backend con la metadata visual
         franchises.value = rawData
-            .filter(tenant => franchiseMetadata[tenant.nombre]) // Solo mostrar los que tenemos en metadata
+            .filter(tenant => franchiseMetadata[tenant.nombre])
             .map(tenant => {
                 const meta = franchiseMetadata[tenant.nombre];
                 return {
@@ -114,7 +110,6 @@ const fetchFranchises = async () => {
                     promo: meta.promo !== undefined ? meta.promo : false
                 };
             });
-
     } catch (err) {
         console.error(err);
         error.value = err.message || 'Error al cargar restaurantes';
@@ -134,29 +129,34 @@ const checkBackend = async () => {
 };
 
 onMounted(async () => {
-    // Primero verificamos si el backend respira
+    updateCartCount();
+    window.addEventListener('storage', updateCartCount);
+    
     const isOnline = await checkBackend();
     if (!isOnline) {
-        error.value = 'No se puede conectar con el servidor. Asegúrate de que el backend esté corriendo en el puerto 3000.';
+        error.value = 'No se puede conectar con el servidor.';
         loading.value = false;
         return;
     }
     fetchFranchises();
+    startCarousel();
 });
+
+onBeforeUnmount(() => {
+    clearInterval(carouselInterval);
+    window.removeEventListener('storage', updateCartCount);
+});
+
 const setCategory = (category) => {
     currentCategory.value = category;
 };
 
-// Filtering Logic
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
 
-    // Category Filter
     if (currentCategory.value !== 'all') {
         result = result.filter(item => item.category === currentCategory.value);
     }
-
-    // Search Filter
     if (searchTerm.value) {
         const term = searchTerm.value.toLowerCase();
         result = result.filter(item => 
@@ -164,273 +164,465 @@ const filteredFranchises = computed(() => {
             item.category.toLowerCase().includes(term)
         );
     }
-
-    // Modal Filters
     if (activeFilters.value.includes('pickup')) {
         result = result.filter(item => item.pickup);
     }
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
     }
-
-    // Sorting
     if (sortType.value === 'rating') {
         result.sort((a, b) => b.rating - a.rating);
     } else if (sortType.value === 'sugeridos') {
         result.sort((a, b) => a.id - b.id);
     }
-
     return result;
 });
 
-
-// Modal Actions
-const openModal = () => isModalOpen.value = true;
-const closeModal = () => isModalOpen.value = false;
-const toggleFilter = (filter) => {
+const toggleModalFilter = (filter) => {
     if (activeFilters.value.includes(filter)) {
         activeFilters.value = activeFilters.value.filter(f => f !== filter);
     } else {
         activeFilters.value.push(filter);
     }
 };
-const setSort = (type) => sortType.value = type;
 
-// Navigation
-// This replaces the old goToPage function
+const openAuth = (mode) => {
+    authMode.value = mode;
+    showAuth.value = true;
+};
+
+const franchiseRoutes = {
+    "Starbucks Coffee": "/franchise/starbucks",
+    "McDonald's": "/franchise/mcdonalds",
+    "KFC": "/franchise/kfc",
+    "Burger King": "/franchise/burger-king",
+    "Little Caesars": "/franchise/little-caesars",
+    "Domino's Pizza": "/franchise/dominos-pizza",
+    "Pizza Hut": "/franchise/pizza-hut",
+    "Krispy Kreme": "/franchise/krispy-kreme",
+    "Rico Hot Dog": "/franchise/rico-hot-dog",
+    "Pizzarelli": "/franchise/pizzarelli",
+    "Barra Payán": "/franchise/barra-payan",
+    "Taco Bell": "/franchise/taco-bell",
+    "Helados Bon": "/franchise/helados-bon",
+    "Chili's Grill & Bar": "/franchise/chilis",
+    "Panda Express": "/franchise/panda-express"
+};
+
 const goToFranchise = (id, name) => {
-    // Normalizar nombre para coincidir con la ruta
-    const lowerName = name.toLowerCase();
-
-    if (lowerName.includes('starbucks')) {
-        router.push('/franchise/starbucks');
-    } else if (lowerName.includes('mcdonald')) {
-        router.push('/franchise/mcdonalds');
+    const route = franchiseRoutes[name];
+    if (route) {
+        router.push(route);
     } else {
-        // Fallback para las que no tienen página aún
         alert(`La página de ${name} está en construcción. Próximamente.`);
     }
-}
-
-// onMounted is handled above
+};
 
 const scrollToSection = (id) => {
     const element = document.getElementById(id);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-    }
+    if (element) element.scrollIntoView({ behavior: 'smooth' });
 };
 </script>
 
 <template>
-  <div class="flex flex-col min-h-screen text-slate-800">
-    <!-- Skip to main content for screen readers -->
-    <a href="#franchises" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-orange-500 text-white px-4 py-2 rounded-lg z-[100]">
-      Saltar al contenido principal
-    </a>
-    
-    <!-- HEADER -->
-    <header id="top" class="bg-white py-4 px-6 md:px-12 flex justify-between items-center shadow-sm sticky top-0 z-50">
-        <div class="flex items-center gap-2">
-            <div class="flex flex-col items-center leading-none">
-                <span class="text-orange-500 font-bold text-xl italic tracking-tighter">Food</span>
-                <span class="text-slate-800 font-bold text-xl italic tracking-tighter -mt-1">Rush</span>
-            </div>
-            <div class="w-10 h-10 ml-2 rounded-full border-2 border-orange-500 flex items-center justify-center p-1">
-                <i class="fa-solid fa-utensils text-orange-500"></i>
-            </div>
-        </div>
+<div class="font-sans antialiased bg-cream overflow-x-hidden flex flex-col min-h-screen">
 
-        <nav class="hidden md:flex gap-8 font-medium text-slate-600">
-            <a href="#" @click.prevent="scrollToSection('top')" class="text-slate-900 border-b-2 border-slate-900">Inicio</a>
-            <a href="#" @click.prevent="scrollToSection('franchises')" class="hover:text-orange-600 transition">Franquicias</a>
-            <a href="#" @click.prevent="scrollToSection('contact')" class="hover:text-orange-600 transition">Contactos</a>
-        </nav>
+    <!-- Announcement Bar -->
+    <div class="bg-dark text-white text-center py-2 text-xs font-bold tracking-widest uppercase relative z-50">
+        <span class="text-accent">⚡</span> ¡Tu Gusto Nuestra Felicidad! <span class="text-accent">⚡</span>
+    </div>
 
-        <div v-if="userName" class="flex items-center gap-3">
-            <div class="flex flex-col items-end">
-                <span class="font-bold text-slate-700 text-sm">Hola, {{ userName }}</span>
-                <button @click="handleLogout" class="text-xs text-red-500 hover:underline">Cerrar sesión</button>
-            </div>
-            <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 border border-orange-200 cursor-pointer hover:bg-orange-200 transition">
-                <i class="fa-solid fa-user"></i>
-            </div>
-        </div>
-        <router-link v-else to="/login" class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-300 transition" title="Iniciar Sesión">
-            <i class="fa-solid fa-user"></i>
-        </router-link>
-    </header>
+    <!-- NAV HEADER -->
+    <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
+            <a href="#" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
+                <i class="fas fa-bolt text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
+                <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
+                    FOOD<span class="text-primary">RUSH</span>
+                </span>
+            </a>
 
-    <!-- HERO SECTION -->
-    <section class="relative h-[300px] md:h-[400px] flex items-center justify-center">
-        <div class="absolute inset-0 z-0">
-            <img :src="heroBg" class="w-full h-full object-cover brightness-50" alt="Fondo decorativo de comida" loading="lazy">
-        </div>
-        <div class="relative z-10 w-full max-w-2xl px-4">
-            <div class="bg-white rounded-lg flex shadow-2xl overflow-hidden p-1">
-                <div class="pl-4 flex items-center text-gray-400">
-                    <i class="fa-solid fa-magnifying-glass"></i>
+            <nav class="hidden md:flex gap-8 font-medium">
+                <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
+                <a href="#" @click.prevent="scrollToSection('franchises')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
+                <a href="#" @click.prevent="scrollToSection('contact')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
+            </nav>
+
+            <div class="flex items-center gap-5">
+                <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+
+                <div v-if="userName" class="flex items-center gap-5">
+                    <!-- Nav Icons -->
+                    <div class="flex items-center gap-4 mr-2">
+                        <button class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
+                            <i class="fa-regular fa-bell text-xl"></i>
+                            <span class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold border-2 border-white">2</span>
+                        </button>
+                        <button @click="router.push('/cart')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Carrito de compras">
+                            <i class="fa-solid fa-cart-shopping text-xl"></i>
+                            <span v-if="cartCount > 0" class="absolute -top-1.5 -right-2 bg-orange-500 text-white text-[10px] w-4.5 h-4.5 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ cartCount }}</span>
+                        </button>
+                    </div>
+
+                    <div class="h-8 w-px bg-gray-200"></div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="flex flex-col items-end">
+                            <span class="font-bold text-slate-700 text-sm">{{ userName.split(' ')[0] }}</span>
+                            <button @click="handleLogout" class="text-[11px] text-red-500 font-bold hover:underline">Cerrar sesión</button>
+                        </div>
+                        <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                    </div>
                 </div>
-                <input v-model="searchTerm" type="text" placeholder="Buscar producto o franquicia..." class="w-full py-3 px-4 outline-none text-slate-700">
-                <button class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded font-bold transition">Buscar</button>
-            </div>
-        </div>
-    </section>
 
-    <!-- CONTENT -->
-    <section id="franchises" class="container mx-auto px-4 md:px-12 py-8">
-        <!-- FILTERS BAR -->
-        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
-            <button @click="openModal" class="bg-slate-900 hover:bg-slate-700 text-white px-6 py-2 rounded-full font-bold flex items-center gap-2 shadow-lg transition" aria-label="Abrir opciones de filtrado y ordenamiento">
-                <span>Filtrar</span>
-                <i class="fa-solid fa-filter text-xs" aria-hidden="true"></i>
-            </button>
-
-            <div class="flex flex-wrap gap-2" id="filter-container">
-                <button 
-                    v-for="cat in ['all', 'Pizza', 'Hamburguesa', 'Bebidas', 'Tacos', 'Criolla', 'Postres']" 
-                    :key="cat"
-                    @click="setCategory(cat)"
-                    :aria-current="currentCategory === cat ? 'page' : undefined"
-                    :class="[
-                        'filter-btn border px-4 py-1.5 rounded-lg font-bold text-sm transition focus:ring-2 focus:ring-red-500 outline-none',
-                        currentCategory === cat 
-                            ? 'active bg-red-700 text-white border-red-700' 
-                            : 'border-red-700 text-red-700 hover:bg-red-700 hover:text-white'
-                    ]"
-                >
-                    {{ cat === 'all' ? 'Todos' : cat }}
-                </button>
-            </div>
-        </div>
-
-        <!-- GRID -->
-        <div v-if="loading" class="text-center py-10 font-bold text-gray-400 animate-pulse">
-            Cargando restaurantes...
-        </div>
-
-        <div v-else-if="error" class="text-center py-10">
-             <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-             <p class="text-gray-500 font-medium">No se pudieron cargar los restaurantes.</p>
-             <button @click="fetchFranchises" class="mt-4 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm hover:bg-slate-700">Reintentar</button>
-        </div>
-
-        <div v-else-if="filteredFranchises.length === 0" class="col-span-full text-center py-10 text-gray-400">
-            No se encontraron resultados con estos filtros.
-        </div>
-
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div 
-                v-for="item in filteredFranchises" 
-                :key="item.id"
-                role="button"
-                tabindex="0"
-                @click="goToFranchise(item.id, item.name)"
-                @keydown.enter="goToFranchise(item.id, item.name)"
-                @keydown.space.prevent="goToFranchise(item.id, item.name)"
-                :aria-label="`Ver menú de ${item.name}`"
-                class="bg-white rounded-xl p-6 flex flex-col items-center justify-center text-center shadow-sm border border-transparent hover:border-orange-200 card-hover transition cursor-pointer fade-in group relative overflow-hidden focus:ring-2 focus:ring-orange-500 outline-none"
-            >
-                <span v-if="item.promo" class="absolute top-2 right-2 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Promo</span>
-                
-                <div class="w-24 h-24 mb-4 flex items-center justify-center relative z-10">
-                    <img :src="item.img" :alt="`Logo de ${item.name}`" class="max-w-full max-h-full object-contain" loading="lazy">
-                </div>
-                
-                <h3 class="font-bold text-lg text-slate-800 mb-1 group-hover:text-orange-600 transition">{{ item.name }}</h3>
-                <div class="flex items-center gap-1 text-sm font-medium text-slate-500">
-                    <i class="fa-solid fa-star text-xs text-yellow-500"></i> {{ item.rating }}
-                    <span class="mx-2 text-gray-300">|</span>
-                    <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">{{ item.category }}</span>
-                </div>
-                <div v-if="item.pickup" class="mt-2 text-[10px] text-green-600 font-bold">
-                    <i class="fa-solid fa-store"></i> Retiro disponible
+                <div v-else @click="openAuth('login')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100">
+                    <i class="fa-regular fa-user"></i>
                 </div>
             </div>
         </div>
-    </section>
+    </nav>
 
-    <!-- FOOTER -->
-    <footer id="contact" class="bg-[#BD0A0A] text-white mt-auto">
-        <div class="py-12 px-6 container mx-auto grid md:grid-cols-3 gap-8 text-sm">
-            <div>
-                <h3 class="font-bold text-lg mb-4">FoodRush</h3>
-                <p class="opacity-80">La mejor comida, de tus franquicias favoritas, directo a tu puerta.</p>
+    <!-- HERO CAROUSEL -->
+    <div id="top" class="relative w-full h-[320px] md:h-[380px] overflow-hidden">
+        <div class="relative h-full">
+            <div v-for="(slide, idx) in heroSlides" :key="idx"
+                 class="carousel-slide" :class="{ active: currentSlide === idx }">
+                <img :src="slide" class="w-full h-full object-cover brightness-[0.65]" :alt="'Slide ' + (idx + 1)">
             </div>
-            <div>
-                <h3 class="font-bold text-lg mb-4">Contactos</h3>
-                <p class="opacity-80 mb-2"><i class="fa-solid fa-envelope mr-2"></i> soporte@foodrush.com</p>
-                <p class="opacity-80"><i class="fa-solid fa-phone mr-2"></i> +1 (809) 555-0123</p>
-            </div>
-            <div>
-                <h3 class="font-bold text-lg mb-4">Síguenos</h3>
-                <div class="flex gap-4 text-xl">
-                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-facebook"></i></a>
-                    <a href="#" class="hover:text-orange-300 transition"><i class="fa-brands fa-twitter"></i></a>
+        </div>
+
+        <div class="absolute inset-0 z-30 flex flex-col items-center justify-center px-4">
+            <div class="relative z-10 w-full max-w-2xl px-4 animate-[fadeIn_0.8s_ease-out]">
+                <h2 class="text-white text-center font-display text-2xl md:text-4xl mb-6 drop-shadow-md">¿Qué se te antoja hoy?</h2>
+                <div class="clean-search">
+                    <div class="search-icon">
+                        <i class="fa-solid fa-magnifying-glass text-accent"></i>
+                    </div>
+                    <input type="text" v-model="searchTerm" placeholder="Buscar franquicia o comida...">
+                    <button>Buscar</button>
                 </div>
             </div>
         </div>
-        <div class="py-4 text-center text-xs text-white/60 border-t border-white/10">
-            &copy; 2025 FoodRush Inc.
-        </div>
-    </footer>
 
-    <!-- MODAL -->
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center fade-in" role="dialog" aria-labelledby="filter-title" aria-modal="true">
-        <div class="bg-white rounded-3xl p-8 w-full max-w-md mx-4 relative shadow-2xl">
-            <button @click="closeModal" class="absolute top-6 right-6 text-slate-400 hover:text-slate-800 transition" aria-label="Cerrar filtros"><i class="fa-solid fa-xmark text-2xl" aria-hidden="true"></i></button>
-            <h2 id="filter-title" class="text-3xl font-bold text-center mb-8 text-slate-800">Filtros</h2>
-            
-            <div class="mb-6">
-                <h3 class="font-bold text-lg text-slate-900 mb-3">Ordenar</h3>
-                <div class="flex flex-wrap gap-2">
-                    <button @click="setSort('sugeridos')" :class="['modal-chip', sortType === 'sugeridos' ? 'selected' : '']"><i class="fa-solid fa-arrow-down-up-across-line text-xs"></i> Sugeridos</button>
-                    <button @click="setSort('rating')" :class="['modal-chip', sortType === 'rating' ? 'selected' : '']"><i class="fa-regular fa-star text-xs"></i> Mejor puntuados</button>
-                </div>
-            </div>
-
-             <div class="mb-6">
-                <h3 class="font-bold text-lg text-slate-900 mb-3">Filtrar</h3>
-                <div class="flex flex-wrap gap-2">
-                    <button @click="toggleFilter('pickup')" :class="['modal-chip', activeFilters.includes('pickup') ? 'selected' : '']">Retiro en local</button>
-                    <button @click="toggleFilter('delivery')" :class="['modal-chip', activeFilters.includes('delivery') ? 'selected' : '']">Entrega FoodRush</button>
-                </div>
-            </div>
-
-            <button @click="closeModal" class="w-full bg-[#22c55e] hover:bg-[#16a34a] text-white font-bold py-3 rounded-xl transition shadow-md text-lg">Guardar</button>
+        <!-- Carousel Dots -->
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-40">
+            <div v-for="(_, idx) in heroSlides" :key="idx"
+                 class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all"
+                 :class="currentSlide === idx ? 'bg-white scale-110' : 'bg-white/50'"
+                 @click="currentSlide = idx"></div>
         </div>
     </div>
 
-  </div>
+    <!-- FRANCHISES SECTION -->
+    <section id="franchises" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
+            <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Filtros</span>
+            </button>
+
+            <div class="w-full overflow-x-auto no-scrollbar pb-2">
+                <div class="flex flex-wrap md:flex-nowrap gap-3 min-w-max">
+                    <button @click="setCategory('all')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'all' ? 'active' : '']">Todos</button>
+                    <button @click="setCategory('Hamburguesa')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Hamburguesa' ? 'active' : '']"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
+                    <button @click="setCategory('Pizza')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pizza' ? 'active' : '']"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
+                    <button @click="setCategory('Pollo')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pollo' ? 'active' : '']"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
+                    <button @click="setCategory('Bebidas')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Bebidas' ? 'active' : '']"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
+                    <button @click="setCategory('Tacos')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Tacos' ? 'active' : '']"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
+                    <button @click="setCategory('Postres')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Postres' ? 'active' : '']"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
+                    <button @click="setCategory('Criolla')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Criolla' ? 'active' : '']"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Skeletons -->
+        <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div v-for="i in 8" :key="i" class="bg-white rounded-2xl p-5 shadow-sm space-y-4 animate-pulse border border-gray-100 flex flex-col items-center justify-center h-[230px]">
+                <div class="w-24 h-24 bg-gray-200 rounded-full mb-2"></div>
+                <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                <div class="h-3 bg-gray-200 rounded w-1/2"></div>
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div v-else-if="error" class="text-center py-16">
+            <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
+            <p class="text-gray-500 font-medium">{{ error }}</p>
+            <button @click="fetchFranchises" class="mt-4 bg-dark text-white px-6 py-2 rounded-xl text-sm hover:bg-gray-800 transition font-bold">Reintentar</button>
+        </div>
+
+        <!-- No Results -->
+        <div v-else-if="filteredFranchises.length === 0" class="col-span-full flex flex-col items-center justify-center py-20 text-center fade-in">
+            <div class="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-300 border border-gray-100">
+                <i class="fa-solid fa-burger text-5xl opacity-50"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2 font-display">Ups, no hay resultados</h3>
+            <p class="text-gray-500 max-w-md mx-auto mb-6">No encontramos restaurantes que coincidan con tu búsqueda. Intenta con otros términos o quita los filtros activos.</p>
+            <button @click="searchTerm = ''; currentCategory = 'all'; activeFilters = []" class="bg-orange-50 text-orange-600 px-6 py-2.5 rounded-full font-bold border border-orange-200 hover:bg-orange-100 transition shadow-sm">
+                Limpiar Filtros
+            </button>
+        </div>
+
+        <!-- Franchise Grid -->
+        <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div v-for="item in filteredFranchises" :key="item.id"
+                 class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in"
+                 @click="goToFranchise(item.id, item.name)">
+                
+                <span v-if="item.promo" class="absolute top-3 right-3 bg-accent text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-bold shadow-sm z-10">Promo</span>
+
+                <div class="w-28 h-28 mb-4 flex items-center justify-center relative z-10 transition-transform duration-300 group-hover:scale-110">
+                    <img :src="item.img" :alt="item.name" class="max-w-full max-h-full object-contain drop-shadow-sm" loading="lazy">
+                </div>
+
+                <h3 class="font-bold text-lg text-dark mb-1 group-hover:text-primary transition line-clamp-1">{{ item.name }}</h3>
+
+                <div class="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                    <div class="flex items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>{{ item.rating }}</div>
+                    <span class="text-gray-300">|</span>
+                    <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{{ item.category }}</span>
+                </div>
+
+                <div v-if="item.pickup" class="w-full mt-2 pt-2 border-t border-gray-50 text-[11px] text-green-600 font-bold flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-bag-shopping"></i> Pickup
+                </div>
+                <div v-else class="w-full mt-2 pt-2 border-t border-transparent text-[11px] text-transparent">.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- DARK FOOTER -->
+    <footer id="contact" class="bg-dark text-white mt-auto border-t-4 border-primary">
+        <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div class="mb-8 md:mb-0">
+                <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg transform -rotate-1">
+                    <span class="text-accent font-black text-xl italic font-display">Food</span>
+                    <span class="text-dark font-black text-xl italic -ml-1 font-display">Rush</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6 font-medium max-w-xs leading-relaxed">Conectando tus antojos con las mejores franquicias del mundo.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="flex gap-12 md:gap-20 text-sm text-left md:text-right w-full md:w-auto">
+                <div>
+                    <h4 class="font-bold mb-4 text-lg text-white">Ayuda</h4>
+                    <ul class="space-y-3 text-gray-400 font-medium">
+                        <li><a href="#" class="hover:text-accent transition">Preguntas Frecuentes</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Soporte Técnico</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Términos y Condiciones</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold mb-4 text-lg text-white">Empresa</h4>
+                    <ul class="space-y-3 text-gray-400 font-medium">
+                        <li><a href="#" class="hover:text-accent transition">Sobre Nosotros</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Blog Corporativo</a></li>
+                        <li><a href="#" class="hover:text-accent transition">Afíliate</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="bg-black text-center py-4 text-xs text-gray-600">
+            &copy; 2025 FoodRush Inc. Todos los derechos reservados.
+        </div>
+    </footer>
+
+    <!-- FILTER MODAL -->
+    <div v-if="showFilters" class="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center fade-in backdrop-blur-sm" @click.self="showFilters = false">
+        <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 relative shadow-2xl border-t-8 border-primary">
+            <button @click="showFilters = false" class="absolute top-4 right-4 text-gray-400 hover:text-primary transition bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h2 class="text-2xl font-bold text-center mb-6 text-dark font-display">Filtrar Búsqueda</h2>
+
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Ordenar Por</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button @click="sortType = 'sugeridos'" :class="['modal-chip', sortType === 'sugeridos' ? 'selected' : '']"><i class="fa-solid fa-fire text-xs"></i> Sugeridos</button>
+                        <button @click="sortType = 'rating'" :class="['modal-chip', sortType === 'rating' ? 'selected' : '']"><i class="fa-solid fa-star text-xs"></i> Calificación</button>
+                        <button @click="sortType = 'rapidos'" :class="['modal-chip', sortType === 'rapidos' ? 'selected' : '']"><i class="fa-solid fa-clock text-xs"></i> Rapidez</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Tipo de Servicio</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button @click="toggleModalFilter('pickup')" :class="['modal-chip', activeFilters.includes('pickup') ? 'selected' : '']">Pickup (Retiro)</button>
+                        <button @click="toggleModalFilter('delivery')" :class="['modal-chip', activeFilters.includes('delivery') ? 'selected' : '']">Delivery FoodRush</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Ofertas</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button @click="toggleModalFilter('descuentos')" :class="['modal-chip', activeFilters.includes('descuentos') ? 'selected' : '']">Promo Activa</button>
+                        <button @click="toggleModalFilter('envio')" :class="['modal-chip', activeFilters.includes('envio') ? 'selected' : '']">Envío Gratis</button>
+                    </div>
+                </div>
+            </div>
+
+            <button @click="showFilters = false" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
+                <span>Ver Resultados</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- AUTH MODAL -->
+    <div v-if="showAuth" class="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center fade-in backdrop-blur-sm" @click.self="showAuth = false">
+        <div class="auth-card relative" :class="{ 'active-register': authMode === 'register' }">
+            <button @click="showAuth = false" class="absolute top-4 right-4 text-white text-2xl font-bold z-50 hover:scale-110 transition opacity-80 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
+            <div class="auth-header">
+                <div class="auth-logo-box"><i class="fa-solid fa-bolt"></i></div>
+                <div class="auth-brand-name">FoodRush</div>
+            </div>
+            <div class="auth-forms-wrapper">
+                <!-- Login Panel -->
+                <div class="auth-panel">
+                    <h2 class="auth-title">¡Bienvenido!</h2>
+                    <form @submit.prevent>
+                        <label class="auth-label">Usuario / Correo</label>
+                        <input class="auth-input" type="text" placeholder="ejemplo@foodrush.com">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="••••••••">
+                        <button type="button" class="auth-btn-action" @click="router.push('/login'); showAuth = false">Iniciar Sesión</button>
+                    </form>
+                    <div class="auth-separator"><span>o continúa con</span></div>
+                    <div class="flex gap-2">
+                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-google mr-2 text-red-500"></i> Google</a>
+                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-apple mr-2"></i> Apple</a>
+                    </div>
+                    <div class="auth-switch-link">¿Nuevo aquí? <a @click="authMode = 'register'">Crea una cuenta</a></div>
+                </div>
+                <!-- Register Panel -->
+                <div class="auth-panel">
+                    <h2 class="auth-title">Regístrate</h2>
+                    <form @submit.prevent>
+                        <label class="auth-label">Correo Electrónico</label>
+                        <input class="auth-input" type="email" placeholder="correo@ejemplo.com">
+                        <label class="auth-label">Nombre</label>
+                        <input class="auth-input" type="text" placeholder="Tu nombre">
+                        <label class="auth-label">Contraseña</label>
+                        <input class="auth-input" type="password" placeholder="Crea una contraseña">
+                        <button type="button" class="auth-btn-action">Crear Cuenta</button>
+                    </form>
+                    <div class="auth-switch-link">¿Ya tienes cuenta? <a @click="authMode = 'login'">Inicia Sesión</a></div>
+                </div>
+                <div class="auth-overlay-slider"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
 </template>
 
 <style scoped>
-/* Copiando estilos específicos del archivo HTML anterior */
-.card-hover:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-.fade-in { animation: fadeIn 0.4s ease-out; }
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
+
+/* ── Custom Tokens ── */
+.bg-cream { background-color: #FAFAF5; }
+.bg-dark { background-color: #1a1a2e; }
+.text-dark { color: #1a1a2e; }
+.text-primary { color: #D90429; }
+.bg-primary { background-color: #D90429; }
+.border-primary { border-color: #D90429; }
+.text-accent { color: #F48C06; }
+.bg-accent { background-color: #F48C06; }
+.font-display { font-family: 'Titan One', cursive; }
+
+/* ── Bolt Animation ── */
+@keyframes electric-blink {
+    0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 2px #D90429); }
+    50% { opacity: 0.4; transform: scale(1.1); filter: drop-shadow(0 0 8px #F48C06); }
+}
+.electric-blink { animation: electric-blink 5s infinite ease-in-out; }
+
+/* ── Carousel ── */
+.carousel-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1s ease-in-out; }
+.carousel-slide.active { opacity: 1; }
+
+/* ── Search Bar ── */
+.clean-search {
+    display: flex; align-items: center; background: white; border-radius: 12px;
+    overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); width: 100%; height: 55px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.clean-search input {
+    border: none !important; outline: none !important; box-shadow: none !important;
+    height: 100%; flex-grow: 1; padding-left: 15px; font-size: 16px; color: #333;
+}
+.clean-search button {
+    height: 100%; padding: 0 25px; background-color: #F48C06; color: white;
+    font-weight: 700; font-size: 15px; border: none; cursor: pointer; transition: background 0.3s;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+.clean-search button:hover { background-color: #E85D04; }
+.search-icon { padding-left: 20px; color: #9CA3AF; font-size: 18px; }
+
+/* ── Franchise Cards ── */
+.card-franchise {
+    background: white; border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #f3f4f6; position: relative; overflow: hidden;
+}
+.card-franchise:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: #F48C06;
+}
+
+/* ── Filter Buttons ── */
+.filter-btn {
+    border: 1px solid #e5e7eb; color: #4b5563;
+    background: white; transition: all 0.2s;
+}
+.filter-btn:hover { border-color: #D90429; color: #D90429; }
+.filter-btn.active { background-color: #D90429; color: white; border-color: #D90429; box-shadow: 0 4px 6px rgba(217, 4, 41, 0.2); }
+
+/* ── Modal Chips ── */
+.modal-chip {
+    padding: 8px 16px; border-radius: 9999px; font-size: 0.85rem;
+    font-weight: 500; cursor: pointer; transition: all 0.2s;
+    border: 1px solid #e5e7eb; background-color: white; color: #4b5563;
+    display: flex; align-items: center; gap: 6px;
+}
+.modal-chip:hover { border-color: #F48C06; color: #F48C06; }
+.modal-chip.selected { background-color: #F48C06; border-color: #F48C06; color: white; font-weight: 600; }
+
+/* ── Auth Styles ── */
+.auth-card { background: white; width: 900px; max-width: 95%; height: 600px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; position: relative; display: flex; flex-direction: column; }
+.auth-header { background-color: #F48C06; padding: 15px 40px; display: flex; align-items: center; height: 80px; }
+.auth-logo-box { background: white; padding: 5px; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd; }
+.auth-logo-box i { font-size: 24px; color: #D90429; }
+.auth-brand-name { font-family: 'Titan One', cursive; font-size: 32px; color: white; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+.auth-forms-wrapper { display: flex; height: calc(100% - 80px); position: relative; }
+.auth-panel { flex: 1; padding: 20px 40px; display: flex; flex-direction: column; justify-content: center; }
+.auth-title { font-family: 'Titan One', cursive; color: #D90429; font-size: 28px; margin-bottom: 15px; }
+.auth-label { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; display: block; }
+.auth-input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.3s; }
+.auth-input:focus { border-color: #F48C06; }
+.auth-btn-action { width: 100%; background-color: #D90429; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
+.auth-btn-action:hover { background-color: #b90322; }
+.auth-separator { display: flex; align-items: center; margin: 15px 0; color: #9ca3af; font-size: 12px; }
+.auth-separator::before, .auth-separator::after { content: ''; flex: 1; border-bottom: 1px solid #e5e7eb; }
+.auth-separator span { padding: 0 10px; }
+.auth-social-btn { width: 100%; padding: 10px; background: white; border: 1px solid #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 600; font-size: 13px; color: #374151; transition: background 0.3s; text-decoration: none; }
+.auth-social-btn:hover { background-color: #f9fafb; }
+.auth-switch-link { text-align: center; margin-top: 15px; font-size: 13px; color: #6b7280; }
+.auth-switch-link a { color: #D90429; font-weight: bold; cursor: pointer; text-decoration: underline; }
+.auth-overlay-slider { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; transition: transform 0.6s ease-in-out; backdrop-filter: blur(5px); }
+.auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
+
+/* ── Animations ── */
+.fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-.modal-chip {
-    padding: 8px 16px;
-    border-radius: 9999px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid transparent;
-    background-color: #f3f4f6;
-    color: #4b5563;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.modal-chip:hover { background-color: #e5e7eb; }
-.modal-chip.selected {
-    background-color: #fff;
-    border-color: #cbd5e1;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    color: #1e293b;
-    border: 1px solid #94a3b8;
-}
+/* ── Scrollbar Hide ── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

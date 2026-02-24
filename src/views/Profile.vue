@@ -10,10 +10,12 @@ const router = useRouter();
 const user = ref({
     name: localStorage.getItem('user_name') || "Invitado",
     email: localStorage.getItem('user_email') || "No registrado",
-    address: "Sin dirección registrada",
+    address: "",
     avatar: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
     phone: localStorage.getItem('user_phone') || ""
 });
+
+const isLoading = ref(true);
 
 onMounted(async () => {
     const userId = localStorage.getItem('user_id');
@@ -27,10 +29,18 @@ onMounted(async () => {
                 user.value.phone = userData.telefono || "";
                 user.value.address = userData.direccion || localStorage.getItem('user_address') || "Sin dirección registrada";
                 if (userData.zona) localStorage.setItem('user_zone', userData.zona);
+            } else {
+                if (!user.value.address) user.value.address = "Sin dirección registrada";
             }
         } catch (e) {
             console.error("Error fetching profile", e);
+            if (!user.value.address) user.value.address = "Sin dirección registrada";
+        } finally {
+            isLoading.value = false;
         }
+    } else {
+        isLoading.value = false;
+        if (!user.value.address) user.value.address = "Sin dirección registrada";
     }
 });
 
@@ -159,12 +169,24 @@ const saveProfile = async () => {
         <div>
             <div class="flex justify-between items-center mb-3 px-1">
                 <h3 class="font-bold text-lg text-slate-800">Información Personal</h3>
-                <button @click="openEditModal" class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline" aria-label="Editar información personal">
+                <button v-if="!isLoading" @click="openEditModal" class="text-red-500 text-sm font-semibold flex items-center gap-1 hover:underline" aria-label="Editar información personal">
                     <i class="fa-solid fa-pen text-xs" aria-hidden="true"></i> Editar
                 </button>
             </div>
             
-            <div class="bg-white rounded-3xl p-4 shadow-sm space-y-4">
+            <!-- Skeleton Loader -->
+            <div v-if="isLoading" class="bg-white rounded-3xl p-4 shadow-sm space-y-4 animate-pulse">
+                <div class="flex items-center gap-4 p-2" v-for="i in 4" :key="i">
+                    <div class="w-10 h-10 rounded-full bg-gray-200"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-3 bg-gray-200 rounded w-1/3"></div>
+                        <div class="h-4 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real Data -->
+            <div v-else class="bg-white rounded-3xl p-4 shadow-sm space-y-4">
                 <!-- Name -->
                 <div class="flex items-center gap-4 p-2">
                     <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-slate-800 text-lg">

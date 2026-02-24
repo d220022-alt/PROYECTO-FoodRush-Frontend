@@ -24,7 +24,7 @@ const updatePassword = async () => {
 
     // Manually fetch method since it's a new custom endpoint
     try {
-        const response = await fetch(`http://localhost:3000/api/usuarios/${userId}/password`, {
+        const response = await fetch(`https://proyecto-foodrush.onrender.com/api/usuarios/${userId}/password`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

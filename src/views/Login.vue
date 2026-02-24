@@ -93,9 +93,23 @@ const handleRegister = async () => {
 
     try {
         await api.register({ email, name, phone, password, direccion: address, zona: zone });
-        alert('Registro exitoso. Inicia sesión.');
-        togglePanel(false); // Switch to login
-        loginForm.value.email = email;
+        
+        // Auto-login
+        const loginRes = await api.login(email, password);
+        if (loginRes.success) {
+            localStorage.setItem('auth_token', loginRes.token);
+            localStorage.setItem('user_id', loginRes.user.id);
+            localStorage.setItem('user_name', loginRes.user.nombre);
+            localStorage.setItem('user_email', loginRes.user.correo);
+            if (loginRes.user.telefono) localStorage.setItem('user_phone', loginRes.user.telefono);
+            if (loginRes.user.direccion) localStorage.setItem('user_address', loginRes.user.direccion);
+            if (loginRes.user.zona) localStorage.setItem('user_zone', loginRes.user.zona);
+            router.push('/');
+        } else {
+            alert('Registro exitoso. Por favor inicia sesión.');
+            togglePanel(false);
+            loginForm.value.email = email;
+        }
     } catch (err) {
         registerError.value = err.message || 'Error al registrar';
     } finally {
@@ -153,13 +167,17 @@ const handleRegister = async () => {
                     <input id="reg-phone" v-model="registerForm.phone" type="tel" placeholder="809-000-0000" aria-required="true">
                     
                     <label for="reg-password">Contraseña</label>
-                    <input id="reg-password" v-model="registerForm.password" type="password" placeholder="Mínimo 6 caracteres" aria-required="true">
+                    <input id="reg-password" v-model.trim="registerForm.password" type="password" placeholder="Mínimo 6 caracteres" aria-required="true"
+                           :class="{ 'invalid-input': registerForm.password && registerForm.password.length < 6 }">
+                    <span v-if="registerForm.password && registerForm.password.length < 6" class="error-msg">La contraseña debe tener al menos 6 caracteres.</span>
                     
                     <label for="reg-confirm">Confirmar Contraseña</label>
-                    <input id="reg-confirm" v-model="registerForm.confirmPassword" type="password" placeholder="Repite tu contraseña" aria-required="true">
+                    <input id="reg-confirm" v-model.trim="registerForm.confirmPassword" type="password" placeholder="Repite tu contraseña" aria-required="true"
+                           :class="{ 'invalid-input': registerForm.confirmPassword && registerForm.password !== registerForm.confirmPassword }">
+                    <span v-if="registerForm.confirmPassword && registerForm.password !== registerForm.confirmPassword" class="error-msg">Las contraseñas no coinciden.</span>
                     
                     <label for="reg-address">Dirección de Entrega</label>
-                    <input id="reg-address" v-model="registerForm.address" type="text" placeholder="Calle, Número, Sector" aria-required="true">
+                    <input id="reg-address" v-model.trim="registerForm.address" type="text" placeholder="Calle, Número, Sector" aria-required="true">
                     
                     <label for="reg-zone">Zona de Entrega</label>
                     <select id="reg-zone" v-model="registerForm.zone" class="w-full padding-8 border rounded margin-bottom-10 outline-none p-2 mb-2 border-gray-300" aria-required="true">
@@ -172,7 +190,7 @@ const handleRegister = async () => {
                     <button type="submit" class="btn-action" :disabled="isSubmitting">
                         {{ isSubmitting ? 'Registrando...' : 'Registrar' }}
                     </button>
-                    <div v-if="registerError" class="text-red-600 text-xs mt-2 font-bold" role="alert">{{ registerError }}</div>
+                    <div v-if="registerError" class="text-red-600 text-xs mt-2 font-bold error-msg" role="alert">{{ registerError }}</div>
                 </form>
 
                 <div class="switch-link">
@@ -264,6 +282,10 @@ label { font-weight: bold; font-size: 13px; color: #333; margin-bottom: 4px; dis
 input { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #aaa; border-radius: 5px; font-size: 14px; outline: none; }
 input:focus { border-color: #C62828; }
 
+.invalid-input { border-color: #C62828 !important; background-color: #ffebee; }
+.invalid-input:focus { box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.2); }
+.error-msg { color: #C62828; font-size: 11px; margin-top: -8px; margin-bottom: 8px; display: block; font-weight: bold; }
+
 .btn-action {
     width: 100%; background-color: #C62828; color: white; border: none;
     padding: 10px; font-size: 16px; font-weight: bold; border-radius: 8px;
@@ -299,8 +321,7 @@ input:focus { border-color: #C62828; }
 .overlay-slider {
     position: absolute; top: 0; left: 50%; width: 50%; height: 100%;
     background: rgba(0,0,0,0.6); z-index: 10;
-    transition: transform 0.6s ease-in-out; pointer-events: none;
-    /* In the original HTML, pointers events were auto, but here we likely want it to be none or handle it carefully */
+    transition: transform 0.6s ease-in-out; pointer-events: auto;
 }
 
 /* Logic for slider */

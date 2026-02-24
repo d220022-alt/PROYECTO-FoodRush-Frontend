@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodRush | Admin Console</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#D90429',   // Rojo
+                        secondary: '#EF233C', 
+                        dark: '#111111',      // Negro
+                        accent: '#F48C06',    // Naranja
+                        'accent-hover': '#E85D04', 
+                        cream: '#F8F9FA',
+                        surface: '#FFFFFF'
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        display: ['Titan One', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .sidebar-link { transition: all 0.2s; border-radius: 12px; cursor: pointer; }
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: #D90429; color: white;
+            box-shadow: 0 4px 15px rgba(217, 4, 41, 0.3);
+        }
+        .sidebar-link:hover i, .sidebar-link.active i { color: white; }
+        
+        .stat-card {
+            background: white; border-radius: 20px; padding: 24px;
+            border-bottom: 4px solid #F48C06; transition: transform 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .admin-table thead { background-color: #111111; color: white; }
+        
+        /* Animaciones */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        
+        /* Modal Backdrop */
+        .modal-backdrop { background-color: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    </style>
+</head>
+
+<body class="bg-cream font-sans text-dark antialiased overflow-x-hidden">
+
+    <div id="toast-container" class="fixed top-5 right-5 z-[100] flex flex-col gap-3"></div>
+
+    <aside class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 bg-white border-r border-gray-200 shadow-xl">
+        <div class="h-full px-6 py-8 flex flex-col">
+            <div class="flex items-center gap-2 mb-10 px-2 group cursor-pointer" onclick="location.reload()">
+                <i class="fas fa-bolt text-2xl text-primary animate-pulse group-hover:scale-110 transition-transform"></i>
+                <span class="text-2xl font-extrabold tracking-tighter font-display">FOOD<span class="text-primary">RUSH</span></span>
+            </div>
+
+            <nav class="space-y-3 flex-1">
+                <div onclick="admin.setActive(this)" class="sidebar-link active flex items-center p-3 text-gray-600 font-semibold gap-3">
+                    <i class="fa-solid fa-chart-pie w-5 text-accent"></i> <span>Dashboard</span>
+                </div>
+                <div onclick="admin.setActive(this)" class="sidebar-link flex items-center p-3 text-gray-600 font-semibold gap-3 hover:text-white">
+                    <i class="fa-solid fa-shop w-5 text-gray-400"></i> <span>Mis Franquicias</span>
+                </div>
+                <div onclick="admin.setActive(this)" class="sidebar-link flex items-center p-3 text-gray-600 font-semibold gap-3 hover:text-white">
+                    <i class="fa-solid fa-utensils w-5 text-gray-400"></i> <span>Menú Global</span>
+                </div>
+                <div onclick="admin.setActive(this)" class="sidebar-link flex items-center p-3 text-gray-600 font-semibold gap-3 hover:text-white">
+                    <i class="fa-solid fa-clipboard-list w-5 text-gray-400"></i> <span>Pedidos</span>
+                    <span class="ml-auto bg-accent text-white text-[10px] font-bold px-2 py-0.5 rounded-full">12</span>
+                </div>
+                <div onclick="admin.setActive(this)" class="sidebar-link flex items-center p-3 text-gray-600 font-semibold gap-3 hover:text-white">
+                    <i class="fa-solid fa-users w-5 text-gray-400"></i> <span>Usuarios</span>
+                </div>
+            </nav>
+
+            <div class="border-t border-gray-100 pt-6 mt-4">
+                <div class="flex items-center gap-3 p-2 mb-4 bg-gray-50 rounded-xl cursor-pointer hover:bg-gray-100 transition">
+                    <div class="w-10 h-10 rounded-full bg-dark flex items-center justify-center text-white border-2 border-accent">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-400 uppercase">Administrador</p>
+                        <p class="text-sm font-bold text-dark">Admin FoodRush</p>
+                    </div>
+                </div>
+                <a href="#" onclick="alert('Cerrando sesión...')" class="flex items-center gap-2 text-primary font-bold hover:translate-x-2 transition-all px-2">
+                    <i class="fa-solid fa-right-from-bracket"></i> <span>Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+    </aside>
+
+    <main class="p-4 sm:ml-64 min-h-screen">
+        <div class="p-4 md:p-8 max-w-7xl mx-auto">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-dark tracking-tight font-display">Panel de Control</h1>
+                    <p class="text-gray-500 font-medium">Gestión en tiempo real del ecosistema Multi-Tenant.</p>
+                </div>
+                <div class="flex gap-3">
+                     <button onclick="admin.showToast('No tienes notificaciones nuevas', 'info')" class="bg-white text-dark border border-gray-200 hover:border-accent hover:text-accent px-4 py-3 rounded-xl font-bold shadow-sm transition-all relative">
+                        <i class="fa-solid fa-bell"></i>
+                        <span class="absolute top-2 right-3 w-2 h-2 bg-primary rounded-full animate-ping"></span>
+                        <span class="absolute top-2 right-3 w-2 h-2 bg-primary rounded-full"></span>
+                    </button>
+                    <button onclick="admin.openModal()" class="bg-primary hover:bg-red-700 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-red-200 transition-all w-fit active:scale-95">
+                        <i class="fa-solid fa-plus"></i> Nueva Franquicia
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card shadow-sm cursor-pointer hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Ventas Hoy</p>
+                            <h3 class="text-2xl font-black mt-1 text-dark" id="stat-sales">$12,450.00</h3>
+                        </div>
+                        <div class="bg-orange-100 w-10 h-10 flex items-center justify-center rounded-lg text-accent"><i class="fa-solid fa-sack-dollar text-lg"></i></div>
+                    </div>
+                    <p class="text-green-500 text-xs font-bold mt-4 flex items-center gap-1"><i class="fa-solid fa-arrow-trend-up"></i> +12% vs ayer</p>
+                </div>
+
+                <div class="stat-card shadow-sm border-b-primary cursor-pointer hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Franquicias</p>
+                            <h3 class="text-2xl font-black mt-1 text-dark" id="stat-count">Loading...</h3>
+                        </div>
+                        <div class="bg-red-100 w-10 h-10 flex items-center justify-center rounded-lg text-primary"><i class="fa-solid fa-store text-lg"></i></div>
+                    </div>
+                    <p class="text-gray-400 text-xs font-bold mt-4">Actualizado ahora</p>
+                </div>
+                
+                <div class="stat-card shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Pedidos</p>
+                            <h3 class="text-2xl font-black mt-1 text-dark">1,243</h3>
+                        </div>
+                        <div class="bg-gray-100 w-10 h-10 flex items-center justify-center rounded-lg text-dark"><i class="fa-solid fa-moped text-lg"></i></div>
+                    </div>
+                    <p class="text-accent text-xs font-bold mt-4">85 en proceso ahora</p>
+                </div>
+                 <div class="stat-card shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Calificación</p>
+                            <h3 class="text-2xl font-black mt-1 text-dark">4.8 / 5.0</h3>
+                        </div>
+                        <div class="bg-yellow-100 w-10 h-10 flex items-center justify-center rounded-lg text-yellow-500"><i class="fa-solid fa-star text-lg"></i></div>
+                    </div>
+                    <p class="text-green-500 text-xs font-bold mt-4">Excelente servicio</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100 mb-8">
+                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h2 class="text-xl font-bold flex items-center gap-2 text-dark">
+                        <span class="bg-dark text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm"><i class="fa-solid fa-list"></i></span>
+                        Listado de Franquicias
+                    </h2>
+                    
+                    <div class="relative w-full md:w-72">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-sm"></i>
+                        <input type="text" id="tableSearch" onkeyup="admin.filterTable()" placeholder="Buscar franquicia..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-accent focus:border-accent outline-none transition text-sm font-medium">
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left admin-table">
+                        <thead>
+                            <tr class="text-xs font-bold uppercase tracking-wider">
+                                <th class="px-6 py-4">Franquicia</th>
+                                <th class="px-6 py-4">Categoría</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Ingresos Mes</th>
+                                <th class="px-6 py-4 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="franchiseTableBody">
+                            </tbody>
+                    </table>
+                </div>
+                
+                <div class="p-4 border-t border-gray-100 flex justify-between items-center text-sm text-gray-500">
+                    <span id="showingText">Mostrando resultados</span>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50" disabled>Anterior</button>
+                        <button class="px-3 py-1 border rounded bg-dark text-white">1</button>
+                        <button class="px-3 py-1 border rounded hover:bg-gray-50">Siguiente</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="modalForm" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center fade-in">
+        <div class="bg-white rounded-2xl w-full max-w-lg mx-4 shadow-2xl transform transition-all scale-100">
+            <div class="bg-dark px-6 py-4 rounded-t-2xl flex justify-between items-center">
+                <h3 class="text-white font-bold font-display text-xl">Nueva Franquicia</h3>
+                <button onclick="admin.closeModal()" class="text-gray-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Nombre de la Franquicia</label>
+                    <input type="text" id="inputName" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-accent outline-none" placeholder="Ej. Subway">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Categoría</label>
+                        <select id="inputCategory" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-accent outline-none">
+                            <option value="Bebidas">Bebidas</option>
+                            <option value="Hamburguesa">Hamburguesa</option>
+                            <option value="Pizza">Pizza</option>
+                            <option value="Pollo">Pollo</option>
+                            <option value="Postres">Postres</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">Estado Inicial</label>
+                        <select id="inputStatus" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-accent outline-none">
+                            <option value="Activo">Activo</option>
+                            <option value="Pendiente">Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">URL del Logo (Opcional)</label>
+                    <input type="text" id="inputImg" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-accent outline-none" placeholder="https://...">
+                </div>
+            </div>
+            <div class="p-6 border-t bg-gray-50 rounded-b-2xl flex justify-end gap-3">
+                <button onclick="admin.closeModal()" class="px-5 py-2.5 rounded-lg border border-gray-300 text-gray-600 font-bold hover:bg-gray-100 transition">Cancelar</button>
+                <button onclick="admin.saveFranchise()" class="px-5 py-2.5 rounded-lg bg-primary text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition">Guardar Franquicia</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const admin = {
+            data: [
+                { id: 'FR-001', name: 'Starbucks', category: 'Bebidas', status: 'Activo', income: 45000, img: 'https://upload.wikimedia.org/wikipedia/en/thumb/d/d3/Starbucks_Corporation_Logo_2011.svg/1200px-Starbucks_Corporation_Logo_2011.svg.png' },
+                { id: 'FR-002', name: 'McDonald\'s', category: 'Hamburguesa', status: 'Activo', income: 82300, img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_Golden_Arches.svg/1200px-McDonald%27s_Golden_Arches.svg.png' },
+                { id: 'FR-003', name: 'KFC', category: 'Pollo', status: 'Inactivo', income: 0, img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png' },
+                { id: 'FR-004', name: 'Domino\'s', category: 'Pizza', status: 'Activo', income: 62150, img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Domino%27s_pizza_logo.svg/1200px-Domino%27s_pizza_logo.svg.png' }
+            ],
+
+            init: function() {
+                this.renderTable(this.data);
+                this.updateStats();
+            },
+
+            // Renderizar Tabla
+            renderTable: function(items) {
+                const tbody = document.getElementById('franchiseTableBody');
+                tbody.innerHTML = '';
+
+                if (items.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-400">No se encontraron resultados</td></tr>';
+                    return;
+                }
+
+                items.forEach(item => {
+                    const statusClass = item.status === 'Activo' 
+                        ? 'bg-green-100 text-green-700 border-green-200' 
+                        : 'bg-gray-200 text-gray-600 border-gray-300';
+                    
+                    const icon = this.getIcon(item.category);
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-orange-50/50 transition duration-200 group';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 p-1 border rounded-lg bg-white shadow-sm flex items-center justify-center">
+                                    <img src="${item.img || 'https://via.placeholder.com/50'}" class="max-w-full max-h-full object-contain" alt="Logo">
+                                </div>
+                                <div>
+                                    <p class="font-bold text-dark group-hover:text-primary transition">${item.name}</p>
+                                    <p class="text-[11px] text-gray-400 font-mono">ID: ${item.id}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-800">
+                                <i class="${icon} text-[10px]"></i> ${item.category}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="${statusClass} text-[10px] font-black uppercase px-3 py-1 rounded-full border shadow-sm">${item.status}</span>
+                        </td>
+                        <td class="px-6 py-4 font-bold text-sm text-dark">$${item.income.toLocaleString()}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="admin.editItem('${item.id}')" class="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-primary hover:bg-primary hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-pen text-xs"></i></button>
+                                <button onclick="admin.deleteItem('${item.id}')" class="w-9 h-9 rounded-xl bg-white border border-gray-200 text-gray-500 hover:border-dark hover:bg-dark hover:text-white transition shadow-sm flex items-center justify-center"><i class="fa-solid fa-trash text-xs"></i></button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById('showingText').innerText = `Mostrando ${items.length} resultados`;
+            },
+
+            // Utilidades
+            getIcon: function(cat) {
+                const map = { 'Bebidas': 'fa-solid fa-mug-hot', 'Hamburguesa': 'fa-solid fa-burger', 'Pizza': 'fa-solid fa-pizza-slice', 'Pollo': 'fa-solid fa-drumstick-bite' };
+                return map[cat] || 'fa-solid fa-utensils';
+            },
+
+            updateStats: function() {
+                document.getElementById('stat-count').innerText = this.data.length + ' Activas';
+            },
+
+            // Filtro (Search)
+            filterTable: function() {
+                const term = document.getElementById('tableSearch').value.toLowerCase();
+                const filtered = this.data.filter(i => i.name.toLowerCase().includes(term) || i.category.toLowerCase().includes(term));
+                this.renderTable(filtered);
+            },
+
+            // Acciones de UI
+            setActive: function(el) {
+                document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+                el.classList.add('active');
+            },
+
+            showToast: function(msg, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                const color = type === 'success' ? 'bg-green-500' : (type === 'error' ? 'bg-red-500' : 'bg-dark');
+                const icon = type === 'success' ? 'fa-check' : 'fa-bell';
+                
+                toast.className = `toast-enter flex items-center w-full max-w-xs p-4 text-white rounded-xl shadow-2xl ${color}`;
+                toast.innerHTML = `
+                    <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 bg-white/20 rounded-lg">
+                        <i class="fa-solid ${icon}"></i>
+                    </div>
+                    <div class="ml-3 text-sm font-bold">${msg}</div>
+                `;
+                container.appendChild(toast);
+                setTimeout(() => { toast.remove(); }, 3000);
+            },
+
+            // Modal & CRUD
+            openModal: function() {
+                document.getElementById('modalForm').classList.remove('hidden');
+            },
+            closeModal: function() {
+                document.getElementById('modalForm').classList.add('hidden');
+                document.getElementById('inputName').value = ''; // Limpiar
+                document.getElementById('inputImg').value = '';
+            },
+
+            saveFranchise: function() {
+                const name = document.getElementById('inputName').value;
+                const cat = document.getElementById('inputCategory').value;
+                const status = document.getElementById('inputStatus').value;
+                const img = document.getElementById('inputImg').value;
+
+                if(!name) { this.showToast('El nombre es obligatorio', 'error'); return; }
+
+                const newItem = {
+                    id: 'FR-00' + (this.data.length + 1),
+                    name: name,
+                    category: cat,
+                    status: status,
+                    income: 0,
+                    img: img || 'https://via.placeholder.com/50?text=' + name.charAt(0)
+                };
+
+                this.data.unshift(newItem); // Agregar al inicio
+                this.renderTable(this.data);
+                this.updateStats();
+                this.closeModal();
+                this.showToast('Franquicia creada correctamente');
+            },
+
+            deleteItem: function(id) {
+                if(confirm('¿Estás seguro de eliminar esta franquicia?')) {
+                    this.data = this.data.filter(item => item.id !== id);
+                    this.renderTable(this.data);
+                    this.updateStats();
+                    this.showToast('Franquicia eliminada', 'error');
+                }
+            },
+
+            editItem: function(id) {
+                this.showToast('Modo edición activado para ' + id, 'info');
+                this.openModal();
+                // Aquí podrías pre-llenar los inputs si quisieras ir más allá
+            }
+        };
+
+        // Arrancar
+        window.onload = function() { admin.init(); };
+    </script>
+</body>
+</html>

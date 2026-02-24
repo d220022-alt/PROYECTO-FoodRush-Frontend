@@ -3,5 +3,5 @@ import FranchiseUnified from './FranchiseUnified.vue';
 </script>
 
 <template>
-  <FranchiseUnified slug="mcdonalds" />
+  <FranchiseUnified slug="panda-express" />
 </template>
