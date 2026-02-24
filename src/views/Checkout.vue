@@ -298,7 +298,36 @@ const finishPurchase = async () => {
 
         <!-- CARD FORM -->
         <div v-if="step === 'card_form'" class="animate-fade-in" role="form" aria-labelledby="card-heading">
-            <h2 id="card-heading" class="text-xl font-bold text-slate-800 mb-6 font-bold">Agregar Tarjeta</h2>
+            <h2 id="card-heading" class="text-xl font-bold text-slate-800 mb-6">Agregar Tarjeta Segura</h2>
+            
+            <!-- VISUAL CREDIT CARD -->
+            <div class="relative w-full h-48 sm:h-56 rounded-2xl text-white shadow-xl mb-8 p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-tr from-slate-900 to-slate-700">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+                
+                <div class="flex justify-between items-start z-10 relative">
+                    <i class="fa-solid fa-microchip text-3xl opacity-80 text-yellow-300"></i>
+                    <i v-if="cardDetails.number && cardDetails.number.startsWith('4')" class="fa-brands fa-cc-visa text-4xl"></i>
+                    <i v-else-if="cardDetails.number && cardDetails.number.startsWith('5')" class="fa-brands fa-cc-mastercard text-4xl"></i>
+                    <i v-else-if="cardDetails.number && cardDetails.number.startsWith('3')" class="fa-brands fa-cc-amex text-4xl"></i>
+                    <i v-else class="fa-regular fa-credit-card text-4xl opacity-50"></i>
+                </div>
+                
+                <div class="z-10 relative mt-auto mb-6">
+                    <p class="font-mono text-xl sm:text-2xl tracking-[0.2em] font-medium text-shadow">{{ cardDetails.number || '#### #### #### ####' }}</p>
+                </div>
+                
+                <div class="flex justify-between z-10 relative text-sm uppercase">
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold mb-0.5">Nombre en Tarjeta</p>
+                        <p class="font-semibold tracking-wide truncate max-w-[150px]">{{ cardDetails.name || 'JANE DOE' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-gray-400 font-bold text-right mb-0.5">Expira</p>
+                        <p class="font-semibold text-right">{{ cardDetails.expiry || 'MM/AA' }}</p>
+                    </div>
+                </div>
+            </div>
             
             <div class="space-y-4 mb-8">
                 <div>

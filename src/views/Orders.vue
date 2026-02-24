@@ -26,6 +26,16 @@ const getStatusColor = (status) => {
     }
 };
 
+const getProgressStep = (status) => {
+    const s = status?.toLowerCase() || '';
+    if (s.includes('cancelado')) return 0;
+    if (s.includes('entregado')) return 4;
+    if (s.includes('en camino')) return 3;
+    if (s.includes('confirmado')) return 2;
+    if (s.includes('pendiente') || s.includes('recibido')) return 1;
+    return 1; // Default
+};
+
 const fetchOrders = async () => {
     try {
         isLoading.value = true;
@@ -106,8 +116,23 @@ onMounted(() => {
                     </span>
                 </div>
                 
-                <!-- Body -->
+                <!-- Body & Tracking -->
                 <div class="p-4">
+                    <!-- Tracking Progress Bar -->
+                    <div class="mb-5" v-if="order.estado?.descripcion?.toLowerCase() !== 'cancelado'">
+                        <div class="flex justify-between text-[10px] sm:text-xs font-bold text-gray-400 mb-2 relative px-1">
+                            <span :class="getProgressStep(order.estado?.descripcion) >= 1 ? 'text-orange-500' : ''">Recibido</span>
+                            <span :class="getProgressStep(order.estado?.descripcion) >= 2 ? 'text-orange-500' : ''" class="text-center">Preparando</span>
+                            <span :class="getProgressStep(order.estado?.descripcion) >= 3 ? 'text-orange-500' : ''" class="text-center">En Camino</span>
+                            <span :class="getProgressStep(order.estado?.descripcion) >= 4 ? 'text-green-500' : ''" class="text-right">Entregado</span>
+                        </div>
+                        <div class="h-2 w-full bg-gray-100 rounded-full overflow-hidden flex relative">
+                            <div class="h-full bg-orange-500 transition-all duration-700 ease-out" 
+                                 :style="`width: ${(getProgressStep(order.estado?.descripcion) / 4) * 100}%`"
+                                 :class="getProgressStep(order.estado?.descripcion) === 4 ? 'bg-green-500' : ''"></div>
+                        </div>
+                    </div>
+
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-gray-500 text-sm">Total</span>
                         <span class="font-bold text-slate-800 text-xl">${{ parseFloat(order.total).toFixed(2) }}</span>
