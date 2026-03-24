@@ -1,4 +1,5 @@
 import logoMcDonalds from "../assets/images/logo-mcdonalds.png";
+import logoStarbucks from "../assets/images/logo-starbucks.png";
 import logoKfc from "../assets/images/logo-kfc.png";
 import logoBurgerKing from "../assets/images/logo-burgerking.png";
 import logoLittleCaesars from "../assets/images/logo-littlecaesars.png";
@@ -41,6 +42,35 @@ const makeOptions = (config) => [
 ];
 
 export const franchiseConfigs = {
+  starbucks: {
+    slug: "starbucks",
+    name: "Starbucks",
+    tenantId: 1,
+    logo: logoStarbucks,
+    primary: "#00704A",
+    accent: "#D4E9E2",
+    background: "#F4FAF7",
+    heroTitle: "STARBUCKS",
+    heroSubtitle: "Tu cafe favorito, siempre",
+    categories: ['Todos', "Bebidas", "Comida", "Cafe en Casa"],
+    slides: [
+      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1600&q=80",
+    ],
+    comboLabel: "Hacer Combo",
+    comboDescription: "Bebida + snack",
+    comboPrice: 170,
+    extraLabel: "Shot extra",
+    extraDescription: "Personaliza tu bebida",
+    extraPrice: 35,
+    premiumLabel: "Edicion especial",
+    premiumDescription: "Version premium del producto",
+    premiumPrice: 55,
+    largeLabel: "Tamano grande",
+    largeDescription: "Sube de tamano",
+    largePrice: 45,
+  },
   mcdonalds: {
     slug: "mcdonalds",
     name: "McDonald's",
@@ -51,7 +81,7 @@ export const franchiseConfigs = {
     background: "#f6f6f6",
     heroTitle: "ME ENCANTA",
     heroSubtitle: "Tus favoritos de siempre",
-    categories: ["Hamburguesas", "Complementos", "Bebidas", "Postres"],
+    categories: ['Todos', "Hamburguesas", "Complementos", "Bebidas", "Postres"],
     slides: [
       "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
@@ -77,7 +107,7 @@ export const franchiseConfigs = {
     background: "#f8f8f8",
     heroTitle: "PARA CHUPARSE LOS DEDOS",
     heroSubtitle: "Pollo crujiente como ningún otro",
-    categories: ["Pollo", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pollo", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1585325701165-351af045e581?auto=format&fit=crop&w=1600&q=80",
@@ -103,7 +133,7 @@ export const franchiseConfigs = {
     background: "#F5EBDC",
     heroTitle: "A LA PARRILLA",
     heroSubtitle: "Sabor a fuego como debe ser",
-    categories: ["Hamburguesas", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Hamburguesas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
@@ -127,7 +157,7 @@ export const franchiseConfigs = {
     background: "#FFF7EE",
     heroTitle: "PIZZA PIZZA",
     heroSubtitle: "Rápida, caliente y deliciosa",
-    categories: ["Pizzas", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pizzas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?auto=format&fit=crop&w=1600&q=80",
@@ -151,7 +181,7 @@ export const franchiseConfigs = {
     background: "#F2F7FF",
     heroTitle: "DOMINO'S",
     heroSubtitle: "30 minutos o es gratis",
-    categories: ["Pizzas", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pizzas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1593504049359-74330189a345?auto=format&fit=crop&w=1600&q=80",
@@ -175,7 +205,7 @@ export const franchiseConfigs = {
     background: "#FFF1EE",
     heroTitle: "PIZZA HUT",
     heroSubtitle: "Nadie supera la Hut",
-    categories: ["Pizzas", "Pastas", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pizzas", "Pastas", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1600&q=80",
@@ -199,7 +229,7 @@ export const franchiseConfigs = {
     background: "#F5F0FF",
     heroTitle: "LIVE MÁS",
     heroSubtitle: "Sabor mexicano sin límites",
-    categories: ["Tacos", "Burritos", "Nachos", "Bebidas"],
+    categories: ['Todos', "Tacos", "Burritos", "Nachos", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=1600&q=80",
@@ -223,7 +253,7 @@ export const franchiseConfigs = {
     background: "#F4FFF9",
     heroTitle: "DOUGHNUTS",
     heroSubtitle: "Cada mordida sabe a felicidad",
-    categories: ["Donas", "Bebidas", "Combos", "Postres"],
+    categories: ['Todos', "Donas", "Bebidas", "Combos", "Postres"],
     slides: [
       "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=1600&q=80",
@@ -247,7 +277,7 @@ export const franchiseConfigs = {
     background: "#FFF6F8",
     heroTitle: "HELADOS BON",
     heroSubtitle: "El sabor que refresca tu día",
-    categories: ["Helados", "Postres", "Combos", "Bebidas"],
+    categories: ['Todos', "Helados", "Postres", "Combos", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1488900128323-21503983a07e?auto=format&fit=crop&w=1600&q=80",
@@ -271,7 +301,7 @@ export const franchiseConfigs = {
     background: "#FDF8E8",
     heroTitle: "BARRA PAYÁN",
     heroSubtitle: "Sabor dominicano auténtico",
-    categories: ["Hamburguesas", "Chimi", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Hamburguesas", "Chimi", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=1600&q=80",
@@ -295,7 +325,7 @@ export const franchiseConfigs = {
     background: "#F4FBF3",
     heroTitle: "PIZZARELLI",
     heroSubtitle: "Tradición italiana en cada pizza",
-    categories: ["Pizzas", "Pastas", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pizzas", "Pastas", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1600&q=80",
@@ -319,7 +349,7 @@ export const franchiseConfigs = {
     background: "#FFF4F1",
     heroTitle: "RICO HOT DOG",
     heroSubtitle: "Rápido, callejero y delicioso",
-    categories: ["Hot Dogs", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Hot Dogs", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1612392166886-ee8475b03f6c?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1534312954071-88812fca3c40?auto=format&fit=crop&w=1600&q=80",
@@ -343,7 +373,7 @@ export const franchiseConfigs = {
     background: "#F3F8F2",
     heroTitle: "CHILI'S",
     heroSubtitle: "Tex-Mex y grill con actitud",
-    categories: ["Platos", "Combos", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Platos", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80",
@@ -367,7 +397,7 @@ export const franchiseConfigs = {
     background: "#FFF8E1",
     heroTitle: "PANDA EXPRESS",
     heroSubtitle: "Comida china americana",
-    categories: ["Pollo", "Res", "Acompañantes", "Bebidas"],
+    categories: ['Todos', "Pollo", "Res", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1600&q=80",

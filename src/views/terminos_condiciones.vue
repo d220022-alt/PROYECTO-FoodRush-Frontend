@@ -1,83 +1,125 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Términos y Condiciones | FoodRush</title>
+<script setup>
+import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import Swal from 'sweetalert2';
+
+const router = useRouter();
+const currentSection = ref('intro');
+const termsAccepted = ref(false);
+const isLoggedIn = ref(false);
+
+const sections = [
+    { id: 'intro', title: '1. Introducción' },
+    { id: 'uso', title: '2. Uso de la Plataforma' },
+    { id: 'cuentas', title: '3. Registro y Seguridad' },
+    { id: 'pedidos', title: '4. Pedidos y Pagos' },
+    { id: 'cancelaciones', title: '5. Política de Reembolso' },
+    { id: 'propiedad', title: '6. Propiedad Intelectual' },
+    { id: 'datos', title: '7. Protección de Datos' },
+    { id: 'leyes', title: '8. Legislación Aplicable' },
+    { id: 'responsabilidad', title: '9. Limitación de Responsabilidad' },
+    { id: 'conducta', title: '10. Conducta del Usuario' },
+    { id: 'modificaciones', title: '11. Modificaciones' },
+    { id: 'contacto', title: '12. Contacto Legal' }
+];
+
+const handleScroll = () => {
+    const sectionElements = document.querySelectorAll('.section-target');
+    let current = 'intro';
     
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    sectionElements.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (window.scrollY >= sectionTop - 200) {
+            current = section.getAttribute('id');
+        }
+    });
+    currentSection.value = current;
+};
+
+const scrollToSection = (id) => {
+    const element = document.getElementById(id);
+    if (element) {
+        window.scrollTo({
+            top: element.offsetTop - 120,
+            behavior: 'smooth'
+        });
+        currentSection.value = id;
+    }
+};
+
+const goBackWithCancel = () => {
+    if (localStorage.getItem('register_draft')) {
+        const draft = JSON.parse(localStorage.getItem('register_draft'));
+        draft.termsChecked = false; // Always uncheck if they hit cancel
+        localStorage.setItem('register_draft', JSON.stringify(draft));
+        router.push('/login');
+    } else {
+        router.push('/');
+    }
+};
+
+const acceptTerms = () => {
+    if (!termsAccepted.value) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Atención',
+            text: 'Debes marcar la casilla para aceptar los términos y condiciones antes de continuar.'
+        });
+        return;
+    }
     
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    localStorage.setItem('terms_accepted', 'true');
+    Swal.fire({
+        icon: 'success',
+        title: '¡Términos Aceptados!',
+        text: 'Gracias por aceptar nuestros términos y condiciones.',
+        timer: 2000,
+        showConfirmButton: false
+    }).then(() => {
+        if (localStorage.getItem('register_draft')) {
+            router.push('/login');
+        } else {
+            router.push('/');
+        }
+    });
+};
+
+onMounted(() => {
+    window.addEventListener('scroll', handleScroll);
+    window.scrollTo(0, 0);
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#BD0A0A',
-                        secondary: '#f1faee',
-                        dark: '#1d3557',
-                        accent: '#ffb703',
-                        light: '#f8f9fa'
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    }
+    // Check if user is logged in
+    if (localStorage.getItem('auth_token')) {
+        isLoggedIn.value = true;
+        termsAccepted.value = true;
+    } else {
+        // Not logged in. Check for register draft preference OR absolute global preference
+        const savedForm = localStorage.getItem('register_draft');
+        if (savedForm) {
+            try {
+                const data = JSON.parse(savedForm);
+                if (data.termsChecked) {
+                    termsAccepted.value = true;
                 }
-            }
+            } catch (e) {}
+        } else if (localStorage.getItem('terms_accepted') === 'true') {
+            termsAccepted.value = true;
         }
-    </script>
-    
-    <style>
-        html { scroll-behavior: smooth; }
-        
-        /* CORRECCIÓN CLAVE: Margen de desplazamiento para que el navbar no tape el título */
-        .section-target {
-            scroll-margin-top: 140px; /* Esto asegura que el título se vea debajo del menú */
-        }
+    }
+});
 
-        /* Barra lateral pegajosa para navegación */
-        .sticky-sidebar {
-            position: -webkit-sticky;
-            position: sticky;
-            top: 100px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        /* Scrollbar fina para el menú lateral */
-        .sticky-sidebar::-webkit-scrollbar { width: 4px; }
-        .sticky-sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
+});
+</script>
 
-        .term-link.active {
-            color: #BD0A0A;
-            border-left: 3px solid #BD0A0A;
-            padding-left: 12px;
-            font-weight: 700;
-            background: rgba(189, 10, 10, 0.05);
-        }
-        .term-link {
-            border-left: 3px solid transparent;
-            padding-left: 12px;
-            transition: all 0.3s ease;
-            display: block;
-            padding-top: 5px;
-            padding-bottom: 5px;
-        }
-        .term-link:hover {
-            color: #BD0A0A;
-            padding-left: 15px;
-        }
-    </style>
-</head>
-<body class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+<template>
+<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
     <nav class="bg-white/90 backdrop-blur-md shadow-sm py-4 sticky top-0 z-50 transition-all h-[80px]">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4">
-            <a href="principal.html" class="flex items-center space-x-2 group">
-                <i class="fas fa-bolt text-3xl text-primary animate-pulse group-hover:scale-110 transition-transform"></i>
+            <a href="#" @click.prevent="router.push('/')" class="flex items-center space-x-2 group">
+                <i class="fas fa-bolt text-3xl text-[#BD0A0A] animate-pulse group-hover:scale-110 transition-transform"></i>
                 <span class="self-center text-2xl font-extrabold tracking-tight text-gray-900">FOODRUSH</span>
             </a>
             
@@ -87,19 +129,19 @@
 
             <div class="hidden w-full md:block md:w-auto" id="navbar-terms">
                 <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 md:flex-row md:space-x-8 md:mt-0 items-center">
-                    <li><a href="principal.html" class="block py-2 px-3 text-gray-700 hover:text-primary transition-colors font-semibold">Inicio</a></li>
-                    <li><a href="nosotros.html" class="block py-2 px-3 text-gray-700 hover:text-primary transition-colors font-semibold">Nosotros</a></li>
-                    <li><a href="soporte.html" class="block py-2 px-3 text-gray-700 hover:text-primary transition-colors font-semibold">Soporte</a></li>
-                    <li><a href="principal.html" class="block py-2 px-3 md:p-0 ms-4"><span class="bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-primary transition-all shadow-md text-sm font-semibold">Volver al Home</span></a></li>
+                    <li><a href="#" @click.prevent="router.push('/')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Inicio</a></li>
+                    <li><a href="#" @click.prevent="router.push('/about')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Nosotros</a></li>
+                    <li><a href="#" @click.prevent="router.push('/support')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Soporte</a></li>
+                    <li><a href="#" @click.prevent="router.push('/')" class="block py-2 px-3 md:p-0 ms-4"><span class="bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-[#BD0A0A] transition-all shadow-md text-sm font-semibold">Volver al Home</span></a></li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <div class="bg-gradient-to-r from-primary to-red-800 text-white py-20 text-center relative overflow-hidden">
+    <div class="bg-gradient-to-r from-[#BD0A0A] to-red-800 text-white py-20 text-center relative overflow-hidden">
         <i class="fas fa-balance-scale absolute top-10 left-10 text-9xl opacity-10 rotate-12"></i>
         <div class="container mx-auto px-4 relative z-10" data-aos="fade-up">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Términos y Condiciones</h1>
+            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 border-none">Términos y Condiciones</h1>
             <p class="text-white/80 text-lg max-w-2xl mx-auto">Marco legal y políticas de uso de la plataforma FoodRush.</p>
             <p class="text-xs mt-4 text-white/60">Actualizado: Febrero 2026</p>
         </div>
@@ -108,32 +150,29 @@
     <div class="container mx-auto px-4 py-16">
         <div class="flex flex-col lg:flex-row gap-12">
             
+            <!-- Sidebar -->
             <div class="w-full lg:w-1/4 hidden lg:block">
                 <div class="sticky-sidebar bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                     <h3 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</h3>
                     <ul class="space-y-1 text-sm text-gray-600">
-                        <li><a href="#intro" class="term-link active">1. Introducción</a></li>
-                        <li><a href="#uso" class="term-link">2. Uso de la Plataforma</a></li>
-                        <li><a href="#cuentas" class="term-link">3. Registro y Seguridad</a></li>
-                        <li><a href="#pedidos" class="term-link">4. Pedidos y Pagos</a></li>
-                        <li><a href="#cancelaciones" class="term-link">5. Política de Reembolso</a></li>
-                        <li><a href="#propiedad" class="term-link">6. Propiedad Intelectual</a></li>
-                        <li><a href="#datos" class="term-link">7. Protección de Datos</a></li>
-                        <li><a href="#leyes" class="term-link">8. Legislación Aplicable</a></li>
-                        <li><a href="#responsabilidad" class="term-link">9. Limitación de Responsabilidad</a></li>
-                        <li><a href="#conducta" class="term-link">10. Conducta del Usuario</a></li>
-                        <li><a href="#modificaciones" class="term-link">11. Modificaciones</a></li>
-                        <li><a href="#contacto" class="term-link">12. Contacto Legal</a></li>
+                        <li v-for="section in sections" :key="section.id">
+                            <a href="#" @click.prevent="scrollToSection(section.id)" 
+                               class="term-link" 
+                               :class="{ 'active': currentSection === section.id }">
+                                {{ section.title }}
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
 
+            <!-- Content -->
             <div class="w-full lg:w-3/4">
                 <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 space-y-16">
                     
                     <div id="intro" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
                             Introducción
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -143,7 +182,7 @@
 
                     <div id="uso" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">2</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">2</span>
                             Uso de la Plataforma Multi-Tenant
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -158,7 +197,7 @@
 
                     <div id="cuentas" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">3</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">3</span>
                             Registro y Seguridad de la Cuenta
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -168,7 +207,7 @@
 
                     <div id="pedidos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">4</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">4</span>
                             Pedidos y Pagos
                         </h2>
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r">
@@ -181,7 +220,7 @@
 
                     <div id="cancelaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">5</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">5</span>
                             Política de Reembolso y Cancelación
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -191,7 +230,7 @@
 
                     <div id="propiedad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">6</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">6</span>
                             Propiedad Intelectual
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -201,7 +240,7 @@
 
                     <div id="datos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">7</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">7</span>
                             Protección de Datos (Ley 172-13)
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -211,7 +250,7 @@
 
                     <div id="leyes" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">8</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">8</span>
                             Legislación Aplicable y Jurisdicción
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -224,7 +263,7 @@
 
                     <div id="responsabilidad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">9</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">9</span>
                             Limitación de Responsabilidad
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -234,7 +273,7 @@
 
                     <div id="conducta" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">10</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">10</span>
                             Conducta del Usuario
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -250,7 +289,7 @@
 
                     <div id="modificaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">11</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">11</span>
                             Modificaciones a los Términos
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -260,15 +299,42 @@
 
                     <div id="contacto" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-primary w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">12</span>
+                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">12</span>
                             Contacto Legal
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
                             Si tiene alguna pregunta sobre estos Términos, o desea ejercer sus derechos ARCO (Acceso, Rectificación, Cancelación y Oposición), por favor contáctenos:
                         </p>
-                        <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <div class="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 mb-8">
                             <p><strong>Email Legal:</strong> legal@foodrush.com</p>
                             <p><strong>Dirección:</strong> Av. 27 de Febrero, Santiago, República Dominicana.</p>
+                        </div>
+                    </div>
+
+                    <!-- Botón de aceptación y condiciones -->
+                    <div class="bg-white border-t border-gray-200 pt-8 mt-8 pb-4" data-aos="fade-up">
+                        <div class="flex items-center space-x-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                            <input id="accept-terms" type="checkbox" v-model="termsAccepted" :disabled="isLoggedIn" class="w-5 h-5 text-[#BD0A0A] bg-white border-gray-300 rounded focus:ring-[#BD0A0A] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <label for="accept-terms" class="text-gray-700 font-medium" :class="{ 'cursor-pointer': !isLoggedIn, 'cursor-not-allowed opacity-70': isLoggedIn }">
+                                He leído, entiendo y acepto por completo los términos y condiciones de FoodRush.
+                            </label>
+                        </div>
+                        
+                        <div class="flex justify-end gap-4">
+                            <button @click="goBackWithCancel" class="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
+                                {{ isLoggedIn ? 'Volver' : 'Cancelar' }}
+                            </button>
+                            <button v-if="!isLoggedIn" @click="acceptTerms" 
+                                    :class="termsAccepted ? 'bg-[#BD0A0A] hover:bg-red-800 text-white shadow-lg shadow-red-500/30' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    class="px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
+                                <i class="fa-solid fa-check" v-if="termsAccepted"></i>
+                                Confirmar y Aceptar
+                            </button>
+                            <button v-else disabled
+                                    class="bg-gray-300 text-gray-500 cursor-not-allowed px-8 py-3 rounded-xl font-bold flex items-center gap-2">
+                                <i class="fa-solid fa-check"></i>
+                                Términos Aceptados
+                            </button>
                         </div>
                     </div>
 
@@ -295,52 +361,64 @@
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="nosotros.html#faq" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
-                        <li><a href="soporte.html" class="hover:text-white hover:underline">Soporte</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline">Términos</a></li>
+                        <li><a href="#" @click.prevent="router.push('/support')" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
+                        <li><a href="#" @click.prevent="router.push('/support')" class="hover:text-white hover:underline">Soporte</a></li>
+                        <li><a href="#" @click.prevent="router.push('/terms')" class="hover:text-white hover:underline">Términos</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Empresa</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="nosotros.html" class="hover:text-white hover:underline">Sobre Nosotros</a></li>
+                        <li><a href="#" @click.prevent="router.push('/about')" class="hover:text-white hover:underline">Sobre Nosotros</a></li>
                         <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline">Afíliate</a></li>
+                        <li><a href="#" @click.prevent="router.push('/affiliate')" class="hover:text-white hover:underline">Afíliate</a></li>
                     </ul>
                 </div>
             </div>
         </div>
         <div class="border-t border-white/20 text-center py-4 text-xs text-white/60">
-            &copy; 2025 FoodRush Inc. Todos los derechos reservados.
+            &copy; 2026 FoodRush Inc. Todos los derechos reservados.
         </div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        AOS.init({ duration: 800, once: true });
+</div>
+</template>
 
-        // Script para resaltar la sección activa en el menú lateral
-        window.addEventListener('scroll', function() {
-            let current = '';
-            const sections = document.querySelectorAll('.section-target');
-            
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                // Ajuste de scrollSpy (punto de activación)
-                if (pageYOffset >= sectionTop - 200) {
-                    current = section.getAttribute('id');
-                }
-            });
+<style scoped>
+html { scroll-behavior: smooth; }
 
-            document.querySelectorAll('.term-link').forEach(li => {
-                li.classList.remove('active');
-                if (li.getAttribute('href').includes(current)) {
-                    li.classList.add('active');
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+.section-target {
+    scroll-margin-top: 140px; 
+}
+
+.sticky-sidebar {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 100px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.sticky-sidebar::-webkit-scrollbar { width: 4px; }
+.sticky-sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+.term-link.active {
+    color: #BD0A0A;
+    border-left: 3px solid #BD0A0A;
+    padding-left: 12px;
+    font-weight: 700;
+    background: rgba(189, 10, 10, 0.05);
+}
+.term-link {
+    border-left: 3px solid transparent;
+    padding-left: 12px;
+    transition: all 0.3s ease;
+    display: block;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+.term-link:hover {
+    color: #BD0A0A;
+    padding-left: 15px;
+}
+</style>

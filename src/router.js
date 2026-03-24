@@ -7,7 +7,7 @@ const routes = [
     { path: '/login', component: Login },
     // Franchise Routes
     { path: '/franchise/starbucks', component: () => import('./views/Starbucks.vue') },
-    { path: '/franchise/mcdonalds', component: () => import('./views/McDonalds.vue') },
+    { path: '/franchise/mcdonalds', component: () => import('./views/FranchiseUnified.vue'), props: { slug: 'mcdonalds' } },
     { path: '/franchise/kfc', component: () => import('./views/KFC.vue') },
     { path: '/franchise/burger-king', component: () => import('./views/BurgerKing.vue') },
     { path: '/franchise/little-caesars', component: () => import('./views/LittleCaesars.vue') },
@@ -32,7 +32,10 @@ const routes = [
     { path: '/tracking/:id', component: () => import('./views/Tracking.vue') },
     { path: '/change-password', component: () => import('./views/ChangePassword.vue') },
     { path: '/notifications', component: () => import('./views/Notifications.vue') },
-    { path: '/support', component: () => import('./views/Support.vue') }
+    { path: '/support', component: () => import('./views/Support.vue') },
+    { path: '/about', component: () => import('./views/about.vue') },
+    { path: '/terms', component: () => import('./views/terminos_condiciones.vue') },
+    { path: '/affiliate', component: () => import('./views/principal.vue') }
 ]
 
 const router = createRouter({

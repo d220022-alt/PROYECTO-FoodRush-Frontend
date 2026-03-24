@@ -5,3 +5,5 @@ import FranchiseUnified from './FranchiseUnified.vue';
 <template>
   <FranchiseUnified slug="dominos-pizza" />
 </template>
+
+

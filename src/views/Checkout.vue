@@ -1,426 +1,1139 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 const router = useRouter();
-const goBack = () => router.go(-1);
+const userName = ref('');
+const currentUserEmail = ref(localStorage.getItem('user_email') || 'usuario_invitado');
 
-// State
-const step = ref('summary'); // 'summary', 'payment_method_modal', 'card_form'
-const paymentMethod = ref(null); // 'cash', 'card', 'paypal'
-const billingAddress = ref({ street: '', city: '', zip: '' });
-const cardDetails = ref({ number: '', expiry: '', cvv: '', name: '' });
+const goBack = () => {
+    router.go(-1);
+};
+
+const mapEl = ref(null);
+const mapLoading = ref(true);
+
+const currentMode = ref('delivery'); // 'delivery' | 'pickup'
+const deliveryType = ref('basic'); // 'basic' | 'scheduled'
+const scheduleDate = ref('');
+
+const addressTitle = ref('Detectando ubicación...');
+const addressDetails = ref('Espere un momento');
+const instructionsText = ref('Nos vemos en la puerta');
+
+const paymentMethod = ref('cash'); // 'cash' | 'card' | 'paypal'
+const paypalEmail = ref('');
+const showPaymentModal = ref(false);
+const showChangeCardModal = ref(false);
+const showCardFormModal = ref(false);
+const cardFormTitle = ref('Add Credit or Debit Card');
+const cardFormReturnTo = ref('payment'); // 'payment' | 'change'
+
 const isProcessing = ref(false);
-const formErrors = ref({});
 
-const validateCard = () => {
-    const errors = {};
-    if (!/^\d{16}$/.test(cardDetails.value.number.replace(/\s/g, ''))) errors.number = 'Número inválido (16 dígitos)';
-    if (!/^\d{2}\/\d{2}$/.test(cardDetails.value.expiry)) errors.expiry = 'Formato MM/YY';
-    if (!/^\d{3,4}$/.test(cardDetails.value.cvv)) errors.cvv = 'CVV inválido';
-    if (cardDetails.value.name.length < 3) errors.name = 'Nombre muy corto';
-    
-    formErrors.value = errors;
-    return Object.keys(errors).length === 0;
-};
-
-// Address
-const address = ref(localStorage.getItem('user_address') || "Sin dirección registrada");
-const zoneLabel = computed(() => {
-    const z = localStorage.getItem('user_zone');
-    const labels = { 'pekin': 'Pekín', 'gurabo': 'Gurabo', 'villa_olga': 'Villa Olga' };
-    return labels[z] || 'Zona por defecto';
+const cardForm = ref({
+  number: '',
+  expiry: '',
+  cvv: '',
+  name: '',
+  save: true,
 });
 
-// Order Data
-const order = ref({
-    items: [],
-    subtotal: 0,
-    deliveryFee: 0 // Will be calculated
+const cardDisplay = ref({
+  number: '**** **** **** 1234',
+  name: 'JUAN PEREZ',
+  expiry: '12/26',
 });
 
-const zone = ref(localStorage.getItem('user_zone') || '');
-const zonePrices = {
-    'pekin': 25.00,
-    'gurabo': 50.00,
-    'villa_olga': 75.00
-};
+// Load saved methods for user
+const loadUserPaymentMethods = () => {
+    const email = currentUserEmail.value;
+    const savedCards = JSON.parse(localStorage.getItem('foodrush_saved_cards')) || {};
+    const savedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
 
-const total = computed(() => order.value.subtotal + order.value.deliveryFee);
-
-onMounted(() => {
-    loadCart();
-    // Calculate initial fee
-    if (zone.value && zonePrices[zone.value]) {
-        order.value.deliveryFee = zonePrices[zone.value];
+    if (savedCards[email]) {
+        cardDisplay.value = { ...savedCards[email] };
+        paymentMethod.value = 'card';
+    } else if (savedPaypals[email]) {
+        paypalEmail.value = savedPaypals[email].email;
+        paymentMethod.value = 'paypal';
     } else {
-        // Default or unconfigured
-        order.value.deliveryFee = 50.00; // Default to Gurabo price
+        paymentMethod.value = 'cash';
     }
-});
+};
+
+const cartItems = ref([]);
+
+const cartCount = computed(() =>
+  cartItems.value.reduce((sum, item) => sum + (Number(item.qty) || 0), 0)
+);
+
+const subtotal = computed(() =>
+  cartItems.value.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0)
+);
+
+const deliveryFee = computed(() => (currentMode.value === 'delivery' ? 5 : 0));
+const total = computed(() => subtotal.value + deliveryFee.value);
+
+const isCardSelected = computed(() => paymentMethod.value === 'card');
 
 const loadCart = () => {
-    const storedCart = localStorage.getItem('foodrush_cart');
-    if (storedCart) {
-        order.value.items = JSON.parse(storedCart);
-    }
-    calculateTotals();
+  const stored = localStorage.getItem('foodrush_cart');
+  cartItems.value = stored ? JSON.parse(stored) : [];
 };
 
-const calculateTotals = () => {
-    let sub = 0;
-    order.value.items.forEach(item => {
-        sub += item.price * item.qty;
-    });
-    order.value.subtotal = sub;
+const setMode = (mode) => {
+  currentMode.value = mode;
 };
 
-const deleteItem = (index) => {
-    order.value.items.splice(index, 1);
-    localStorage.setItem('foodrush_cart', JSON.stringify(order.value.items));
-    calculateTotals();
-    if (order.value.items.length === 0) {
-        Swal.fire('Carrito vacío', 'Has vaciado tu carrito.', 'info').then(() => router.push('/'));
-    }
+const formatCardNumber = () => {
+  const digits = cardForm.value.number.replace(/\D/g, '').slice(0, 16);
+  cardForm.value.number = digits.match(/.{1,4}/g)?.join(' ') || digits;
 };
 
-// Actions
+const formatExpiry = () => {
+  const digits = cardForm.value.expiry.replace(/\D/g, '').slice(0, 4);
+  if (digits.length >= 2) {
+    cardForm.value.expiry = `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
+  } else {
+    cardForm.value.expiry = digits;
+  }
+};
+
+const formatCVV = () => {
+  cardForm.value.cvv = cardForm.value.cvv.replace(/\D/g, '').slice(0, 3);
+};
+
+const resetCardForm = () => {
+  cardForm.value = { number: '', expiry: '', cvv: '', name: '', save: true };
+};
+
+const saveCardInfo = (event) => {
+  event.preventDefault();
+  const num = cardForm.value.number.replace(/\s/g, '');
+  const exp = cardForm.value.expiry;
+  const cvv = cardForm.value.cvv;
+  const name = cardForm.value.name.trim();
+
+  if (num.length !== 16) return Swal.fire('Error', '16 dígitos requeridos', 'error');
+  if (cvv.length !== 3) return Swal.fire('Error', 'CVV inválido', 'error');
+  if (!name.includes(' ') || name.length < 5) return Swal.fire('Error', 'Nombre y apellido requeridos', 'error');
+  if (exp.length !== 5) return Swal.fire('Error', 'Fecha inválida', 'error');
+
+  const [m, y] = exp.split('/').map(Number);
+  const now = new Date();
+  const cy = parseInt(now.getFullYear().toString().slice(-2), 10);
+  const cm = now.getMonth() + 1;
+
+  if (m < 1 || m > 12) return Swal.fire('Error', 'Mes inválido', 'error');
+  if (y < cy || (y === cy && m < cm)) return Swal.fire('Error', 'Tarjeta vencida', 'error');
+
+  showCardFormModal.value = false;
+  showPaymentModal.value = false;
+  showChangeCardModal.value = false;
+
+  paymentMethod.value = 'card';
+  cardDisplay.value.number = `**** **** **** ${num.slice(-4)}`;
+  cardDisplay.value.name = name.toUpperCase();
+  cardDisplay.value.expiry = exp;
+
+  if (cardForm.value.save) {
+      const email = currentUserEmail.value;
+      const savedCards = JSON.parse(localStorage.getItem('foodrush_saved_cards')) || {};
+      savedCards[email] = { ...cardDisplay.value };
+      localStorage.setItem('foodrush_saved_cards', JSON.stringify(savedCards));
+  }
+
+  Swal.fire({ icon: 'success', title: 'Tarjeta Guardada', showConfirmButton: false, timer: 1000 });
+};
+
 const openPaymentModal = () => {
-    step.value = 'payment_method_modal';
+  showPaymentModal.value = true;
 };
 
-const selectPaymentMethod = (method) => {
-    paymentMethod.value = method;
-    if (method === 'card') {
-        step.value = 'card_form';
-    } else {
-        step.value = 'summary'; 
-    }
+const openChangeCardModal = () => {
+  showChangeCardModal.value = true;
 };
 
-const saveCard = () => {
-    if (validateCard()) {
-        step.value = 'summary';
-    } else {
-        Swal.fire('Error en la tarjeta', 'Por favor revisa los datos de tu tarjeta.', 'warning');
-    }
+const openCardForm = (isChanging) => {
+  showPaymentModal.value = false;
+  showChangeCardModal.value = false;
+  cardFormTitle.value = isChanging ? 'Cambiar Tarjeta' : 'Add Credit or Debit Card';
+  cardFormReturnTo.value = isChanging ? 'change' : 'payment';
+  resetCardForm();
+  showCardFormModal.value = true;
 };
 
-const finishPurchase = async () => {
-    // Validation
-    if (order.value.items.length === 0) {
-        return Swal.fire('Error', 'El carrito está vacío.', 'error');
-    }
+const closeCardForm = () => {
+  showCardFormModal.value = false;
+  if (cardFormReturnTo.value === 'change') {
+    showChangeCardModal.value = true;
+  } else {
+    showPaymentModal.value = true;
+  }
+};
 
-    isProcessing.value = true;
-    
-    // Unify flow: All payments go to DB
-    try {
-        // 1. Simulate Processing for Card/PayPal (UX only)
-        if (paymentMethod.value !== 'cash') {
-            await new Promise(resolve => setTimeout(resolve, 2000));
-        }
+const closeModal = (modalName) => {
+  if (modalName === 'payment') showPaymentModal.value = false;
+  if (modalName === 'change') showChangeCardModal.value = false;
+  if (modalName === 'card') showCardFormModal.value = false;
+};
 
-        // 2. Get User Info
-        let userEmail = localStorage.getItem('user_email');
-        const userName = localStorage.getItem('user_name') || 'Invitado';
-        const userPhone = localStorage.getItem('user_phone') || '000-000-0000';
-        const tenantId = 1; 
+const selectCash = () => {
+  showPaymentModal.value = false;
+  showChangeCardModal.value = false;
+  paymentMethod.value = 'cash';
+};
 
-        // Session Fallback
-        if (!userEmail) {
-             console.warn("User email missing. Using fallback for record keeping.");
-             userEmail = "usuario_test@foodrush.com"; 
-        }
+const selectPayPal = () => {
+  showPaymentModal.value = false;
+  showChangeCardModal.value = false;
 
-        // 3. Resolve Client ID (Find or Create)
-        let clientId = null;
-        try {
-            const clientsResponse = await api.getClients({ correo: userEmail });
-            if (clientsResponse.success && clientsResponse.data.length > 0) {
-                clientId = clientsResponse.data[0].id; 
-            } else {
-                // Create Client
-                const newClientFn = await api.createClient({
-                    nombre: userName,
-                    correo: userEmail,
-                    telefono: userPhone,
-                    tenant_id: tenantId
-                });
-                if (newClientFn && newClientFn.id) clientId = newClientFn.id;
-                else if (newClientFn.success && newClientFn.data) clientId = newClientFn.data.id;
-            }
-        } catch (clientErr) {
-            console.warn("Client resolve error", clientErr);
-        }
+  const email = currentUserEmail.value;
+  const savedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
+  const prefilledEmail = savedPaypals[email]?.email || 'usuario@ejemplo.com';
 
-        if (!clientId) clientId = 1; // Fallback ID
-
-        // 4. Create Order (REAL DB SAVE)
-        // We add the mock payment method to notes so it's recorded
-        const methodMap = {
-            'cash': 'Efectivo',
-            'card': 'Tarjeta (Simulado)',
-            'paypal': 'PayPal (Simulado)'
-        };
-
-        const orderPayload = {
-            cliente_id: clientId,
-            total: total.value,
-            direccion_entrega: address.value,
-            notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
-            estado_id: 1, // Pendiente
-            items: order.value.items,
-            metodo_pago: paymentMethod.value
-        };
-
-        const orderParams = await api.createOrder(orderPayload);
+  Swal.fire({
+    title: '<i class="fa-brands fa-paypal text-blue-600 text-4xl mb-2"></i><br>Iniciar Sesión',
+    html: `
+      <div class="text-left mt-2">
+        <label class="block text-xs font-bold text-slate-600 mb-1">Correo Electrónico</label>
+        <input id="swal-paypal-email" type="email" class="w-full border-2 border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none mb-4" placeholder="correo@ejemplo.com" value="${prefilledEmail}">
         
-        if (orderParams.success) {
-            Swal.fire({
-                icon: 'success',
-                title: paymentMethod.value === 'cash' ? '¡Pedido Realizado!' : '¡Pago Aprobado!',
-                text: `Tu pedido #${orderParams.data.id} ha sido registrado exitosamente en la base de datos.`,
-                confirmButtonColor: '#00704A'
-            }).then(() => {
-                localStorage.removeItem('foodrush_cart');
-                router.push(`/tracking/${orderParams.data.id}`);
-            });
-        } else {
-            throw new Error(orderParams.message || 'Error al crear la orden');
-        }
+        <label class="block text-xs font-bold text-slate-600 mb-1">Contraseña</label>
+        <input id="swal-paypal-pass" type="password" class="w-full border-2 border-gray-200 rounded-lg p-3 text-sm focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none" placeholder="••••••••" value="demo1234">
+      </div>
+      <div class="flex items-center gap-2 mt-4 text-sm text-gray-600">
+        <input type="checkbox" id="swal-paypal-save" checked class="rounded border-gray-300">
+        <label for="swal-paypal-save">Guardar PayPal para la próxima vez</label>
+      </div>
+      <p class="text-xs text-gray-500 mt-4 text-center">Simulación segura. No uses datos reales.</p>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Iniciar Sesión',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#0070BA',
+    cancelButtonColor: '#64748b',
+    focusConfirm: false,
+    preConfirm: () => {
+      const emailInput = document.getElementById('swal-paypal-email').value;
+      const passInput = document.getElementById('swal-paypal-pass').value;
+      const saveInput = document.getElementById('swal-paypal-save').checked;
 
-    } catch (e) {
-        console.error(e);
-        Swal.fire('Error', e.message || 'Hubo un problema procesando tu orden.', 'error');
-    } finally {
-        isProcessing.value = false;
+      if (!emailInput || !passInput) {
+        Swal.showValidationMessage('Por favor completa ambos campos');
+        return false;
+      }
+      if (!emailInput.includes('@')) {
+        Swal.showValidationMessage('El correo no es válido');
+        return false;
+      }
+      return { email: emailInput, save: saveInput };
     }
+  }).then((result) => {
+    if (result.isConfirmed) {
+      paypalEmail.value = result.value.email;
+
+      if (result.value.save) {
+          const userEmail = currentUserEmail.value;
+          const storedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
+          storedPaypals[userEmail] = { email: paypalEmail.value };
+          localStorage.setItem('foodrush_saved_paypals', JSON.stringify(storedPaypals));
+      }
+
+      Swal.fire({
+        title: 'Vinculando Cuenta...',
+        text: 'Aprobando conexión con FoodRush',
+        timer: 1500,
+        timerProgressBar: true,
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      }).then(() => {
+        paymentMethod.value = 'paypal';
+        Swal.fire({
+          icon: 'success',
+          title: 'Cuenta vinculada',
+          text: `PayPal conectado como ${paypalEmail.value}`,
+          timer: 1500,
+          showConfirmButton: false
+        });
+      });
+    }
+  });
 };
+
+const editAddress = async () => {
+  const { value } = await Swal.fire({
+    title: 'Editar Dirección',
+    input: 'text',
+    inputValue: addressDetails.value,
+    showCancelButton: true,
+  });
+  if (value) addressDetails.value = value;
+};
+
+const editInstructions = async () => {
+  const { value } = await Swal.fire({
+    title: 'Instrucciones',
+    input: 'textarea',
+    inputValue: instructionsText.value,
+    showCancelButton: true,
+  });
+  if (value) instructionsText.value = value;
+};
+
+const processOrder = async () => {
+  if (cartItems.value.length === 0) {
+      return Swal.fire('Error', 'El carrito está vacío.', 'error');
+  }
+
+  isProcessing.value = true;
+  Swal.fire({
+    title: 'Procesando...',
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+  
+  try {
+      if (paymentMethod.value === 'paypal') {
+          // PayPal Simulation
+          isProcessing.value = false;
+          const { isConfirmed } = await Swal.fire({
+              title: '<i class="fa-brands fa-paypal text-blue-600 text-4xl mb-2"></i><br>Conectando con PayPal',
+              html: `Vas a pagar <b>$${total.value.toFixed(2)}</b> con tu cuenta de PayPal.<br><br><span class="text-sm text-gray-500">Haz clic en continuar para autorizar el cargo.</span>`,
+              showCancelButton: true,
+              confirmButtonText: 'Autorizar Pago',
+              cancelButtonText: 'Cancelar',
+              confirmButtonColor: '#0070BA',
+              cancelButtonColor: '#d33',
+              reverseButtons: true,
+              allowOutsideClick: false,
+          });
+
+          if (!isConfirmed) {
+              return Swal.fire('Cancelado', 'El pago con PayPal fue cancelado.', 'info');
+          }
+          
+          isProcessing.value = true;
+          Swal.fire({
+            title: 'Procesando PayPal...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+          });
+          await new Promise(resolve => setTimeout(resolve, 1500));
+      } else if (paymentMethod.value === 'card') {
+          // Card Simulation
+          Swal.fire({
+            title: 'Verificando Tarjeta...',
+            html: `Contactando con el banco emisor de la tarjeta terminada en <b>${cardDisplay.value.number.slice(-4)}</b>...`,
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading(),
+          });
+          await new Promise(resolve => setTimeout(resolve, 2500));
+          
+          // Simulate 10% chance of failure for realism, or specific failure if card ends in 0000
+          if (cardDisplay.value.number.endsWith('0000')) {
+             isProcessing.value = false;
+             return Swal.fire({
+                 icon: 'error',
+                 title: 'Pago Declinado',
+                 text: 'El banco ha rechazado la transacción. Por favor, intenta con otra tarjeta.',
+                 confirmButtonColor: '#BD0A0A'
+             });
+          }
+      }
+
+      let userEmail = localStorage.getItem('user_email');
+      const userName = localStorage.getItem('user_name') || 'Invitado';
+      const userPhone = localStorage.getItem('user_phone') || '000-000-0000';
+      const tenantId = 1; 
+
+      if (!userEmail) {
+           console.warn("User email missing. Using fallback for record keeping.");
+           userEmail = "usuario_test@foodrush.com"; 
+      }
+
+      let clientId = null;
+      try {
+          const clientsResponse = await api.getClients({ correo: userEmail });
+          if (clientsResponse.success && clientsResponse.data.length > 0) {
+              clientId = clientsResponse.data[0].id; 
+          } else {
+              const newClientFn = await api.createClient({
+                  nombre: userName,
+                  correo: userEmail,
+                  telefono: userPhone,
+                  tenant_id: tenantId
+              });
+              if (newClientFn && newClientFn.id) clientId = newClientFn.id;
+              else if (newClientFn.success && newClientFn.data) clientId = newClientFn.data.id;
+          }
+      } catch (clientErr) {
+          console.warn("Client resolve error", clientErr);
+      }
+
+      if (!clientId) clientId = 1; 
+
+      const methodMap = {
+          'cash': 'Efectivo',
+          'card': 'Tarjeta (Pagado)',
+          'paypal': 'PayPal (Pagado)'
+      };
+
+      const orderPayload = {
+          cliente_id: clientId,
+          total: total.value,
+          direccion_entrega: addressDetails.value,
+          notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}. Instrucciones: ${instructionsText.value}`,
+          estado_id: 1, // Pendiente
+          items: cartItems.value.map(i => ({ ...i, price: Number(i.price), qty: Number(i.qty) })),
+          metodo_pago: paymentMethod.value
+      };
+
+      const orderParams = await api.createOrder(orderPayload);
+      
+      if (orderParams.success) {
+          Swal.fire({
+              icon: 'success',
+              title: paymentMethod.value === 'cash' ? '¡Pedido Confirmado!' : '¡Pago Procesado con Éxito!',
+              html: `Tu pedido <b>#${orderParams.data.id}</b> está siendo preparado.<br><br><span class="text-sm text-gray-500">Recibirás actualizaciones sobre el estado de tu entrega.</span>`,
+              confirmButtonColor: '#BD0A0A',
+              allowOutsideClick: false
+          }).then(() => {
+              localStorage.removeItem('foodrush_cart');
+              router.push(`/tracking/${orderParams.data.id}`);
+          });
+      } else {
+          throw new Error(orderParams.message || 'Error al crear la orden en el servidor');
+      }
+
+  } catch (e) {
+      console.error(e);
+      Swal.fire('Error en el Servidor', e.message || 'Hubo un problema de comunicación con FoodRush.', 'error');
+  } finally {
+      isProcessing.value = false;
+  }
+};
+
+let leaflet = null;
+let mapInstance = null;
+let userMarker = null;
+let storeMarker = null;
+let cachedPos = null;
+
+const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+
+const ensureLeaflet = () =>
+  new Promise((resolve, reject) => {
+    if (window.L) return resolve(window.L);
+
+    if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = LEAFLET_CSS;
+      document.head.appendChild(link);
+    }
+
+    const existingScript = document.querySelector(`script[src="${LEAFLET_JS}"]`);
+    if (existingScript) {
+      existingScript.addEventListener('load', () => resolve(window.L), { once: true });
+      existingScript.addEventListener('error', reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = LEAFLET_JS;
+    script.async = true;
+    script.onload = () => resolve(window.L);
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+
+const updateMap = (lat, lng, label, isUser) => {
+  if (!mapInstance || !leaflet) return;
+
+  mapLoading.value = false;
+  mapInstance.setView([lat, lng], 15);
+
+  if (userMarker) mapInstance.removeLayer(userMarker);
+  if (storeMarker) mapInstance.removeLayer(storeMarker);
+
+  if (isUser) {
+    userMarker = leaflet.marker([lat, lng]).addTo(mapInstance).bindPopup(label).openPopup();
+  } else {
+    storeMarker = leaflet.marker([lat, lng]).addTo(mapInstance).bindPopup(label).openPopup();
+  }
+};
+
+const locateUser = () => {
+  if (!mapInstance) return;
+
+  if (cachedPos) {
+    updateMap(cachedPos.lat, cachedPos.lng, 'Tu Ubicación', true);
+    return;
+  }
+
+  mapLoading.value = true;
+
+  if (!navigator.geolocation) {
+    updateMap(19.4517, -70.697, 'Default', true);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const lat = pos.coords.latitude;
+      const lng = pos.coords.longitude;
+      cachedPos = { lat, lng };
+      updateMap(lat, lng, 'Tu Ubicación', true);
+      addressTitle.value = 'Ubicación Actual';
+      addressDetails.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    },
+    () => {
+      updateMap(19.4517, -70.697, 'Default', true);
+    }
+  );
+};
+
+const showStoreLocation = () => {
+  updateMap(19.459, -70.69, 'Tienda', false);
+};
+
+const initMapDefault = () => {
+  if (!mapEl.value || !leaflet) return;
+
+  if (mapInstance) mapInstance.remove();
+  mapInstance = leaflet.map(mapEl.value).setView([19.4517, -70.697], 15);
+  leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapInstance);
+
+  if (currentMode.value === 'pickup') {
+    showStoreLocation();
+  } else {
+    locateUser();
+  }
+};
+
+watch(currentMode, (mode) => {
+  if (!mapInstance) return;
+  if (mode === 'delivery') locateUser();
+  if (mode === 'pickup') showStoreLocation();
+});
+
+const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_email');
+    userName.value = '';
+    currentUserEmail.value = 'usuario_invitado';
+    window.location.reload();
+};
+
+onMounted(async () => {
+  loadCart();
+  userName.value = localStorage.getItem('user_name');
+  currentUserEmail.value = localStorage.getItem('user_email') || 'usuario_invitado';
+  
+  // Intenta cargar métodos de pago guardados por usuario
+  loadUserPaymentMethods();
+  
+  try {
+    leaflet = await ensureLeaflet();
+    initMapDefault();
+  } catch (error) {
+    console.error('Leaflet no pudo cargar', error);
+    mapLoading.value = false;
+  }
+});
+
+onBeforeUnmount(() => {
+  if (mapInstance) mapInstance.remove();
+});
 </script>
 
 <template>
-<div class="min-h-screen bg-white font-sans pb-10">
-    <!-- Header -->
-    <header class="p-6 border-b flex items-center gap-4 bg-white sticky top-0 z-10" role="banner">
-        <button @click="goBack" class="text-xl text-slate-800 hover:text-orange-500 transition" aria-label="Volver">
-            <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <h1 class="text-2xl font-bold text-slate-800">Checkout</h1>
-    </header>
+  <div class="checkout-page flex flex-col min-h-screen text-slate-800 bg-cream">
+    <!-- Navbar from Home.vue design -->
+    <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
+            <div class="flex items-center gap-4">
+              <button @click="goBack" class="md:hidden text-gray-500 hover:text-primary transition">
+                <i class="fa-solid fa-arrow-left text-xl"></i>
+              </button>
+              <a href="#" @click.prevent="router.push('/')" class="flex items-center space-x-2 group">
+                  <i class="fas fa-bolt text-2xl md:text-3xl text-primary transform group-hover:scale-110 transition-transform"></i>
+                  <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
+                      FOOD<span class="text-primary">RUSH</span>
+                  </span>
+              </a>
+            </div>
 
-    <div class="max-w-xl mx-auto p-6" role="main">
-        
-        <!-- SUMMARY VIEW -->
-        <div v-if="step === 'summary' || step === 'payment_method_modal'">
-             <p class="text-xs text-gray-400 mb-6">Revisa tu orden, ajusta los detalles y selecciona tu método de pago.</p>
+            <nav class="hidden md:flex gap-8 font-medium">
+                <a @click.prevent="goBack" class="text-gray-500 hover:text-primary transition font-medium cursor-pointer"><i class="fa-solid fa-arrow-left mr-1"></i> Volver a Comprar</a>
+            </nav>
 
-             <!-- Order Items List -->
-             <div v-if="order.items.length > 0">
-                 <div v-for="(item, index) in order.items" :key="index" class="border rounded-xl p-4 flex gap-4 items-center relative mb-6">
-                     <button @click="deleteItem(index)" class="absolute top-2 right-2 text-gray-400 hover:text-red-500" :aria-label="'Eliminar ' + item.name">
-                        <i class="fa-solid fa-trash-can"></i>
-                     </button>
-                     <div class="w-20 h-20 bg-gray-50 rounded flex items-center justify-center overflow-hidden">
-                         <img :src="item.img" :alt="item.name" class="w-full h-full object-contain">
-                     </div>
-                     <div>
-                         <h3 class="font-bold text-slate-800">{{ item.name }} <span class="ml-2 bg-gray-100 px-2 py-0.5 rounded text-xs">${{ item.price }}</span></h3>
-                         <p class="text-xs text-gray-500">{{ item.detail || item.category }}</p>
-                         <p class="text-xs text-gray-500">Cantidad: {{ item.qty }}</p>
-                     </div>
-                     <div class="ml-auto mt-auto">
-                         <span class="font-bold text-slate-800 text-lg">${{ (item.price * item.qty).toFixed(2) }}</span>
-                     </div>
-                 </div>
-             </div>
-             <div v-else class="text-center py-10 text-gray-500">
-                 Tu carrito está vacío.
-             </div>
+            <div class="flex items-center gap-5">
+                <div v-if="userName" class="flex items-center gap-5">
+                    <div class="flex items-center gap-4 mr-2">
+                        <button class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
+                            <i class="fa-regular fa-bell text-xl"></i>
+                        </button>
+                    </div>
 
-             <!-- Totals -->
-             <div class="space-y-2 mb-8 text-sm" role="region" aria-label="Resumen de costos">
-                 <div class="flex justify-between text-gray-500">
-                     <span>Subtotal</span>
-                     <span>${{ order.subtotal.toFixed(2) }}</span>
-                 </div>
-                 <div class="flex justify-between text-gray-500">
-                     <span>Costo de Envío</span>
-                     <span>${{ order.deliveryFee.toFixed(2) }}</span>
-                 </div>
-                 <div class="flex justify-between font-bold text-slate-800 text-lg border-t pt-2 mt-2">
-                     <span>Total</span>
-                     <span aria-live="polite" aria-atomic="true">${{ total.toFixed(2) }}</span>
-                 </div>
-             </div>
+                    <div class="h-8 w-px bg-gray-200"></div>
 
-             <!-- Location -->
-             <div class="mb-6">
-                  <h3 class="font-bold text-slate-800 mb-2">Ubicación</h3>
-                  <div class="border rounded-lg p-4 flex items-center justify-between bg-white text-gray-500 cursor-not-allowed">
-                      <div class="flex items-center gap-3">
-                          <span class="w-3 h-3 bg-slate-800 rounded-full"></span>
-                          <div class="flex flex-col">
-                              <span class="text-gray-800 font-bold text-sm">{{ address }}</span>
-                              <span class="text-xs text-gray-400">{{ zoneLabel }} - Costo: ${{ order.deliveryFee }}</span>
-                          </div>
-                      </div>
-                      <i class="fa-solid fa-chevron-down text-gray-400"></i>
+                    <div class="flex items-center gap-3">
+                        <div class="flex flex-col items-end">
+                            <span class="font-bold text-slate-700 text-sm">{{ userName.split(' ')[0] }}</span>
+                            <button @click="handleLogout" class="text-[11px] text-red-500 font-bold hover:underline">Cerrar sesión</button>
+                        </div>
+                        <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-user text-xs"></i> Iniciar Sesión
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8 flex-grow">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <h2 class="text-xl font-medium text-slate-700 mb-6 text-center">Detalles de la entrega</h2>
+
+            <div class="flex justify-center mb-8 relative z-10">
+              <div class="bg-gray-100 p-1.5 rounded-full flex text-sm font-bold transition-all shadow-inner border border-gray-200/50">
+                <button
+                  id="btn-delivery"
+                  class="px-8 py-2 rounded-full transition-all duration-300 relative overflow-hidden"
+                  :class="currentMode === 'delivery' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(189,10,10,0.2)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
+                  @click="setMode('delivery')"
+                >
+                  <i class="fa-solid fa-bicycle mr-2 transition-transform duration-300" :class="currentMode === 'delivery' ? 'scale-110 translate-x-1' : ''"></i>
+                  Delivery
+                </button>
+                <button
+                  id="btn-pickup"
+                  class="px-8 py-2 rounded-full transition-all duration-300 relative overflow-hidden"
+                  :class="currentMode === 'pickup' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(189,10,10,0.2)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
+                  @click="setMode('pickup')"
+                >
+                  <i class="fa-solid fa-store mr-2 transition-transform duration-300" :class="currentMode === 'pickup' ? 'scale-110 -translate-x-1' : ''"></i>
+                  Pickup
+                </button>
+              </div>
+            </div>
+
+            <div class="border border-slate-200/60 rounded-2xl p-1.5 mb-8 relative shadow-sm hover:shadow-lg hover:border-red-100 transition-all duration-500 bg-white/50 backdrop-blur-sm group">
+              <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div id="map" ref="mapEl" class="rounded-xl overflow-hidden shadow-inner h-[200px] z-10 relative"></div>
+              <div
+                v-show="mapLoading"
+                id="map-loading"
+                class="absolute inset-0 bg-gray-100 flex items-center justify-center z-10 rounded-xl"
+              >
+                <span class="text-sm text-gray-500 animate-pulse">
+                  <i class="fa-solid fa-location-dot animate-bounce"></i>
+                  Buscando ubicación...
+                </span>
+              </div>
+            </div>
+
+            <div class="space-y-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between border-b border-gray-100 pb-4">
+                <div class="flex gap-4 items-center">
+                  <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 shadow-sm border border-red-100">
+                    <i class="fa-solid fa-location-dot text-lg"></i>
                   </div>
-             </div>
+                  <div>
+                    <p class="font-extrabold text-slate-800 text-sm tracking-wide">{{ addressTitle }}</p>
+                    <p class="text-xs text-slate-500 mt-0.5 tracking-wide">{{ addressDetails }}</p>
+                  </div>
+                </div>
+                <button
+                  v-show="currentMode === 'delivery'"
+                  id="btn-edit-address"
+                  class="text-xs px-3 py-1.5 rounded-lg font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm"
+                  @click="editAddress"
+                >
+                  Editar
+                </button>
+              </div>
 
-             <!-- Payment Method Trigger -->
-             <div class="mb-8">
-                 <h3 class="font-bold text-slate-800 mb-2">Método de pago</h3>
-                 <button @click="openPaymentModal" class="w-full border rounded-lg p-4 flex items-center justify-between bg-white hover:border-gray-400 transition" aria-haspopup="dialog" :aria-expanded="step === 'payment_method_modal'">
-                     <div class="flex items-center gap-3">
-                         <span class="w-3 h-3 bg-slate-800 rounded-full" v-if="!paymentMethod"></span>
-                         <span class="text-gray-600" v-if="!paymentMethod">Agregar método de pago</span>
-                         
-                         <div v-else class="flex items-center gap-2">
-                            <i v-if="paymentMethod === 'cash'" class="fa-solid fa-money-bill text-green-600"></i>
-                            <i v-if="paymentMethod === 'card'" class="fa-regular fa-credit-card text-slate-600"></i>
-                            <i v-if="paymentMethod === 'paypal'" class="fa-brands fa-paypal text-blue-600"></i>
-                            <span class="font-semibold capitalize">{{ paymentMethod === 'card' ? 'Tarjeta terminada en 1234' : paymentMethod }}</span>
-                         </div>
-                     </div>
-                     <i class="fa-solid fa-chevron-down text-gray-400"></i>
-                 </button>
-             </div>
-             
-             <button v-if="paymentMethod" @click="finishPurchase" :disabled="isProcessing" class="w-full bg-[#333] hover:bg-black disabled:bg-gray-400 text-white font-bold py-4 rounded-xl transition shadow-lg flex justify-center items-center gap-2">
-                 <span v-if="isProcessing"><i class="fa-solid fa-circle-notch fa-spin"></i> Procesando...</span>
-                 <span v-else>Realizar Pedido</span>
-             </button>
+              <div v-show="currentMode === 'delivery'" id="instructions-container" class="flex items-start justify-between transition-all duration-500 pt-2 animate-fade-in">
+                <div class="flex gap-4 items-center">
+                  <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm border border-orange-100">
+                    <i class="fa-solid fa-clipboard-list text-lg"></i>
+                  </div>
+                  <div>
+                    <p class="font-bold text-slate-800 text-sm tracking-wide">Instrucciones de Entrega</p>
+                    <p class="text-xs text-slate-400 mt-0.5 italic max-w-[200px] truncate" :title="instructionsText">"{{ instructionsText }}"</p>
+                  </div>
+                </div>
+                <button class="text-xs px-3 py-1.5 rounded-lg font-bold text-orange-600 bg-orange-50 hover:bg-orange-500 hover:text-white transition-all duration-300 shadow-sm" @click="editInstructions">
+                  Añadir
+                </button>
+              </div>
+            </div>
+
+            <div v-show="currentMode === 'delivery'" id="delivery-options-container" class="mt-8 border-t border-gray-100 pt-6 transition-all duration-500 animate-fade-in">
+              <h3 class="text-left text-slate-800 font-extrabold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock text-red-500"></i>
+                Opciones de entrega
+              </h3>
+              <div class="grid grid-cols-2 gap-4">
+                <label class="cursor-pointer group">
+                  <input v-model="deliveryType" type="radio" name="delivery_type" value="basic" class="radio-box hidden" />
+                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-red-200 hover:bg-red-50/30">
+                    <div class="radio-indicator flex-shrink-0"></div>
+                    <div class="flex-grow">
+                      <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">Básica</p>
+                      <p class="text-[10px] text-gray-500 mt-0.5">30-45 min</p>
+                    </div>
+                    <i class="fa-solid fa-bolt text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  </div>
+                </label>
+                <label class="cursor-pointer group">
+                  <input v-model="deliveryType" type="radio" name="delivery_type" value="scheduled" class="radio-box hidden" />
+                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-red-200 hover:bg-red-50/30">
+                    <div class="radio-indicator flex-shrink-0"></div>
+                    <div class="flex-grow">
+                      <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">Programar</p>
+                      <p class="text-[10px] text-gray-500 mt-0.5">Elegir hora</p>
+                    </div>
+                    <i class="fa-regular fa-calendar text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  </div>
+                </label>
+              </div>
+              <div v-show="deliveryType === 'scheduled'" id="schedule-selector" class="mt-4 bg-orange-50/50 p-5 rounded-xl border border-orange-100 animate-fade-in shadow-inner">
+                <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Fecha y Hora de Entrega</label>
+                <input v-model="scheduleDate" type="datetime-local" class="w-full border-2 border-gray-200 rounded-lg p-3 text-sm font-medium text-slate-700 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 outline-none transition-all shadow-sm" />
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg flex items-center justify-between text-white overflow-hidden relative group">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors duration-500"></div>
+            <div class="relative z-10">
+              <h2 class="text-sm font-bold text-gray-300 mb-1 uppercase tracking-widest">Método de Pago</h2>
+              <div class="flex items-center gap-3 mt-2">
+                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10">
+                  <i v-if="paymentMethod === 'cash'" class="fa-solid fa-money-bill text-green-400 text-lg"></i>
+                  <i v-else-if="paymentMethod === 'card'" class="fa-regular fa-credit-card text-blue-400 text-lg"></i>
+                  <i v-else class="fa-brands fa-paypal text-blue-400 text-lg"></i>
+                </div>
+                <div>
+                  <span class="font-extrabold text-lg tracking-wide block leading-tight">
+                    {{ paymentMethod === 'card' ? 'Tarjeta' : paymentMethod === 'paypal' ? 'PayPal' : 'Efectivo' }}
+                  </span>
+                  <span v-if="paymentMethod === 'paypal'" class="text-xs text-blue-300 font-medium">{{ paypalEmail }}</span>
+                </div>
+              </div>
+            </div>
+            <button class="relative z-10 bg-white/10 hover:bg-white/20 px-5 py-2 rounded-xl text-sm font-bold border border-white/10 backdrop-blur-sm transition-all duration-300 hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]" @click="openPaymentModal">
+              Cambiar
+            </button>
+          </div>
         </div>
 
-        <!-- CARD FORM -->
-        <div v-if="step === 'card_form'" class="animate-fade-in" role="form" aria-labelledby="card-heading">
-            <h2 id="card-heading" class="text-xl font-bold text-slate-800 mb-6">Agregar Tarjeta Segura</h2>
-            
-            <!-- VISUAL CREDIT CARD -->
-            <div class="relative w-full h-48 sm:h-56 rounded-2xl text-white shadow-xl mb-8 p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-tr from-slate-900 to-slate-700">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10"></div>
-                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8"></div>
-                
-                <div class="flex justify-between items-start z-10 relative">
-                    <i class="fa-solid fa-microchip text-3xl opacity-80 text-yellow-300"></i>
-                    <i v-if="cardDetails.number && cardDetails.number.startsWith('4')" class="fa-brands fa-cc-visa text-4xl"></i>
-                    <i v-else-if="cardDetails.number && cardDetails.number.startsWith('5')" class="fa-brands fa-cc-mastercard text-4xl"></i>
-                    <i v-else-if="cardDetails.number && cardDetails.number.startsWith('3')" class="fa-brands fa-cc-amex text-4xl"></i>
-                    <i v-else class="fa-regular fa-credit-card text-4xl opacity-50"></i>
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <a @click.prevent="router.push('/cart')" class="flex justify-between items-center mb-4 border-b pb-2 cursor-pointer hover:opacity-70 transition group">
+              <h2 class="text-lg text-slate-600 font-bold group-hover:text-red-600 transition-colors">Resumen de carrito</h2>
+              <div class="relative">
+                <i class="fa-solid fa-cart-shopping text-slate-400 group-hover:text-red-500 text-xl transition-colors"></i>
+                <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                  {{ cartCount }}
+                </span>
+              </div>
+            </a>
+
+            <div v-if="cartItems.length === 0" class="text-center py-8 text-gray-400 text-sm">
+              Tu carrito está vacío.<br />
+              <a @click.prevent="router.push('/')" class="text-slate-800 font-bold hover:underline cursor-pointer">Ir a comprar</a>
+            </div>
+            <div v-else class="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+              <div v-for="(item, index) in cartItems" :key="index" class="flex gap-4 items-center border border-gray-100 p-3 rounded-xl mb-3 hover:shadow-md hover:border-red-100 transition-all duration-300 bg-white group cursor-default">
+                <div class="w-14 h-14 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:bg-red-50 transition-colors">
+                  <img :src="item.img" :alt="item.name" class="h-full object-contain transform group-hover:scale-110 transition-transform duration-300" />
                 </div>
-                
-                <div class="z-10 relative mt-auto mb-6">
-                    <p class="font-mono text-xl sm:text-2xl tracking-[0.2em] font-medium text-shadow">{{ cardDetails.number || '#### #### #### ####' }}</p>
+                <div class="flex-grow">
+                  <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">{{ item.name }}</p>
+                  <p class="text-xs text-gray-500 font-medium mt-0.5">Cant: <span class="bg-gray-100 text-slate-700 font-bold px-1.5 py-0.5 rounded ml-1">{{ item.qty }}</span></p>
                 </div>
-                
-                <div class="flex justify-between z-10 relative text-sm uppercase">
+                <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-red-50 group-hover:text-red-600 transition-colors">${{ (item.price * item.qty).toFixed(2) }}</span>
+              </div>
+            </div>
+
+            <div class="border-t mt-4 pt-4 space-y-2 text-sm text-slate-500">
+              <div class="flex justify-between">
+                <span>Subtotal</span>
+                <span>${{ subtotal.toFixed(2) }}</span>
+              </div>
+              <div class="flex justify-between" :class="currentMode === 'pickup' ? 'opacity-20 line-through' : ''">
+                <span>Delivery Fee</span>
+                <span>$5.00</span>
+              </div>
+              <div class="flex justify-between text-lg font-bold text-slate-800 mt-2">
+                <span>Total</span>
+                <span>${{ total.toFixed(2) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-6 shadow-sm">
+            <div v-if="!isCardSelected" class="text-center py-6">
+              <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-green-100">
+                <i class="fa-solid fa-hand-holding-dollar text-4xl text-green-500"></i>
+              </div>
+              <h3 class="font-extrabold text-2xl text-slate-800 mb-2">Pago en Efectivo</h3>
+              <p class="text-sm text-gray-500 mb-8 max-w-[250px] mx-auto leading-relaxed">Paga directamente al repartidor cuando recibas tu pedido.</p>
+              
+              <div class="bg-slate-50 rounded-2xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a Preparar</p>
+                <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">${{ total.toFixed(2) }}</p>
+                <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y Sin Comisiones</p>
+              </div>
+            </div>
+
+            <div v-else>
+              <h3 class="font-bold text-lg mb-4 text-center">Tarjeta Seleccionada</h3>
+              <div class="credit-card-visual mb-4 shadow-xl border border-white/10 rounded-2xl">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-sm"></div>
+                <div class="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full -ml-8 -mb-8 blur-sm"></div>
+                <div class="relative z-10">
+                  <div class="flex justify-between items-center mb-8">
+                    <i class="fa-solid fa-microchip text-2xl opacity-80 text-yellow-400"></i>
+                    <i class="fa-brands fa-cc-visa text-4xl opacity-90"></i>
+                  </div>
+                  <div class="mb-5">
+                    <p class="text-[10px] opacity-60 uppercase tracking-widest font-semibold mb-1">Card Number</p>
+                    <p class="font-mono text-xl tracking-widest text-shadow">{{ cardDisplay.number }}</p>
+                  </div>
+                  <div class="flex justify-between">
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold mb-0.5">Nombre en Tarjeta</p>
-                        <p class="font-semibold tracking-wide truncate max-w-[150px]">{{ cardDetails.name || 'JANE DOE' }}</p>
+                      <p class="text-[10px] opacity-60 uppercase font-semibold mb-0.5">Holder</p>
+                      <p class="font-medium text-sm tracking-wide">{{ cardDisplay.name }}</p>
                     </div>
                     <div>
-                        <p class="text-[10px] text-gray-400 font-bold text-right mb-0.5">Expira</p>
-                        <p class="font-semibold text-right">{{ cardDetails.expiry || 'MM/AA' }}</p>
+                      <p class="text-[10px] opacity-60 uppercase font-semibold mb-0.5 text-right">Expires</p>
+                      <p class="font-medium text-sm tracking-wide text-right">{{ cardDisplay.expiry }}</p>
                     </div>
+                  </div>
                 </div>
+              </div>
+              <div class="mt-8 bg-slate-50 p-5 rounded-xl border border-gray-100">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-slate-500 text-sm uppercase tracking-wide">Total a cobrar</span>
+                  <span class="font-black text-2xl text-slate-800">${{ total.toFixed(2) }}</span>
+                </div>
+              </div>
+              <button
+                class="block w-full text-center text-sm text-red-600 font-bold mt-4 hover:bg-red-50 border border-transparent hover:border-red-100 py-3 rounded-xl transition-all duration-300"
+                @click="openChangeCardModal"
+              >
+                Cambiar Método de Pago
+              </button>
             </div>
-            
-            <div class="space-y-4 mb-8">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1" for="card_number">Número de Tarjeta</label>
-                    <div class="relative">
-                        <input id="card_number" v-model="cardDetails.number" type="text" placeholder="1234 5678 1234 5678" :class="['w-full border rounded-lg p-3 pl-4 pr-10 outline-none focus:border-blue-500', formErrors.number ? 'border-red-500' : 'border-gray-300']">
-                        <i class="fa-regular fa-credit-card absolute right-3 top-3.5 text-gray-400"></i>
-                    </div>
-                    <p v-if="formErrors.number" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.number }}</p>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="flex-1">
-                        <label class="block text-sm font-bold text-gray-700 mb-1" for="expiry">Expiración</label>
-                        <input id="expiry" v-model="cardDetails.expiry" type="text" placeholder="MM/YY" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.expiry ? 'border-red-500' : 'border-gray-300']">
-                        <p v-if="formErrors.expiry" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.expiry }}</p>
-                    </div>
-                    <div class="flex-1">
-                        <label class="block text-sm font-bold text-gray-700 mb-1" for="cvv">CVV</label>
-                        <input id="cvv" v-model="cardDetails.cvv" type="text" placeholder="123" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.cvv ? 'border-red-500' : 'border-gray-300']">
-                        <p v-if="formErrors.cvv" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.cvv }}</p>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1" for="card_name">Nombre en Tarjeta</label>
-                    <input id="card_name" v-model="cardDetails.name" type="text" placeholder="Como aparece en la tarjeta" :class="['w-full border rounded-lg p-3 outline-none focus:border-blue-500', formErrors.name ? 'border-red-500' : 'border-gray-300']">
-                    <p v-if="formErrors.name" class="text-red-500 text-xs mt-1 font-bold">{{ formErrors.name }}</p>
-                </div>
-            </div>
-
-            <div class="flex gap-3">
-                <button @click="step = 'summary'" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-4 rounded-xl transition">Cancelar</button>
-                <button @click="saveCard" class="flex-2 bg-[#333] hover:bg-black text-white font-bold py-4 rounded-xl transition shadow-lg px-8">Guardar Tarjeta</button>
-            </div>
+          </div>
         </div>
+      </div>
 
+      <div class="fixed bottom-0 left-0 w-full bg-white border-t p-4 z-40 flex justify-center lg:static lg:bg-transparent lg:border-none lg:p-0 lg:mt-8">
+        <button
+          class="w-full max-w-4xl bg-gradient-to-r from-red-600 to-orange-500 text-white font-extrabold text-xl py-4 rounded-xl shadow-[0_8px_15px_rgba(189,10,10,0.2)] hover:shadow-[0_12px_20px_rgba(189,10,10,0.3)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+          @click="processOrder"
+          :disabled="isProcessing"
+        >
+          <template v-if="isProcessing">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i> 
+            <span>Procesando...</span>
+          </template>
+          <template v-else>
+            <span>Pagar Ahora</span>
+            <i class="fa-solid fa-arrow-right text-lg ml-1"></i>
+          </template>
+        </button>
+      </div>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-auto py-8">
+      <div class="container mx-auto px-6 text-center text-sm text-gray-400">
+        <p>&copy; 2025 FoodRush. Pagos seguros y encriptados.</p>
+      </div>
+    </footer>
+
+    <div v-if="showPaymentModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button class="absolute top-4 right-4 text-gray-400 hover:text-black" @click="closeModal('payment')">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <div class="flex items-center gap-2 mb-6">
+          <i class="fa-solid fa-chevron-left text-sm cursor-pointer" @click="closeModal('payment')"></i>
+          <h3 class="text-xl font-bold">Agrega un método de pago</h3>
+        </div>
+        <div class="space-y-2">
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectCash"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-green-100 rounded flex items-center justify-center text-green-700">
+                <i class="fa-solid fa-money-bill"></i>
+              </div>
+              <span class="font-bold text-slate-700">Efectivo</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="openCardForm(false)"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-700">
+                <i class="fa-regular fa-credit-card"></i>
+              </div>
+              <span class="font-bold text-slate-700">Tarjeta de crédito</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectPayPal"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-blue-50 rounded flex items-center justify-center text-blue-600">
+                <i class="fa-brands fa-paypal"></i>
+              </div>
+              <span class="font-bold text-slate-700">PayPal</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- MODAL: Payment Method Selection -->
-    <div v-if="step === 'payment_method_modal'" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div class="bg-white rounded-3xl w-full max-w-md overflow-hidden relative shadow-2xl">
-            <!-- Modal Header -->
-            <div class="p-6 pb-2">
-                <button @click="step = 'summary'" class="text-gray-500 hover:text-black flex items-center gap-2 text-sm font-semibold mb-4" aria-label="Cerrar modal">
-                    <i class="fa-solid fa-chevron-left"></i> Volver
-                </button>
-                <h2 id="modal-title" class="text-3xl font-extrabold text-slate-900 leading-tight">Agrega un método<br>de pago</h2>
-            </div>
-            
-            <!-- Options -->
-            <div class="p-6 space-y-4">
-                <button @click="selectPaymentMethod('cash')" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition group border border-transparent hover:border-gray-100" aria-label="Pago en efectivo">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded bg-[#4CAF50] bg-opacity-20 flex items-center justify-center text-[#2E7D32]">
-                            <i class="fa-solid fa-money-bill-1 text-xl"></i>
-                        </div>
-                        <span class="font-bold text-lg text-slate-800">Efectivo</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-gray-500"></i>
-                </button>
-
-                <div class="border-t border-gray-100"></div>
-
-                <button @click="selectPaymentMethod('card')" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition group border border-transparent hover:border-gray-100" aria-label="Pago con tarjeta de crédito o débito">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded bg-[#424242] bg-opacity-20 flex items-center justify-center text-[#212121]">
-                            <i class="fa-solid fa-credit-card text-xl"></i>
-                        </div>
-                        <span class="font-bold text-lg text-slate-800">Tarjeta de crédito o de débito</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-gray-500"></i>
-                </button>
-
-                 <div class="border-t border-gray-100"></div>
-
-                <button @click="selectPaymentMethod('paypal')" class="w-full flex items-center justify-between p-4 hover:bg-gray-50 rounded-xl transition group border border-transparent hover:border-gray-100" aria-label="Pago con PayPal">
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded bg-[#E3F2FD] flex items-center justify-center text-[#1565C0]">
-                            <i class="fa-brands fa-paypal text-xl"></i>
-                        </div>
-                        <span class="font-bold text-lg text-slate-800">PayPal</span>
-                    </div>
-                    <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-gray-500"></i>
-                </button>
-            </div>
-            
+    <div v-if="showChangeCardModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button class="absolute top-4 right-4 text-gray-400 hover:text-black" @click="closeModal('change')">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <div class="mb-6">
+          <h3 class="text-xl font-bold">Cambiar método de pago</h3>
         </div>
+        <div class="space-y-2">
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectCash"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-green-100 rounded flex items-center justify-center text-green-700">
+                <i class="fa-solid fa-money-bill"></i>
+              </div>
+              <span class="font-bold text-slate-700">Efectivo</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="openCardForm(true)"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-700">
+                <i class="fa-regular fa-credit-card"></i>
+              </div>
+              <span class="font-bold text-slate-700">Nueva Tarjeta</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectPayPal"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-blue-50 rounded flex items-center justify-center text-blue-600">
+                <i class="fa-brands fa-paypal"></i>
+              </div>
+              <span class="font-bold text-slate-700">PayPal</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+
+    <div v-if="showCardFormModal" class="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 fade-in">
+      <div class="bg-white rounded-3xl w-full max-w-md p-8 relative shadow-2xl">
+        <div class="flex items-center gap-2 mb-6">
+          <i class="fa-solid fa-chevron-left text-lg cursor-pointer hover:text-slate-600" @click="closeCardForm"></i>
+          <h3 class="text-xl font-bold text-slate-900">{{ cardFormTitle }}</h3>
+        </div>
+        <form class="space-y-6" @submit="saveCardInfo">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Número de Tarjeta</label>
+            <div class="relative group">
+              <input
+                v-model="cardForm.number"
+                type="text"
+                placeholder="**** **** **** 1234"
+                maxlength="19"
+                class="input-field pl-5 border-2 border-gray-200 focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 font-mono text-lg tracking-wider"
+                @input="formatCardNumber"
+                required
+              />
+              <i class="fa-regular fa-credit-card absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl group-focus-within:text-slate-800 transition-colors"></i>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-5">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Fecha Exp.</label>
+              <input
+                v-model="cardForm.expiry"
+                type="text"
+                placeholder="MM/YY"
+                maxlength="5"
+                class="input-field border-2 border-gray-200 focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 font-mono text-center tracking-widest text-lg"
+                @input="formatExpiry"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">CVV</label>
+              <input
+                v-model="cardForm.cvv"
+                type="text"
+                placeholder="123"
+                maxlength="3"
+                class="input-field border-2 border-gray-200 focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 font-mono text-center tracking-widest text-lg"
+                @input="formatCVV"
+                required
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-2 uppercase tracking-wider">Nombre del Titular</label>
+            <input v-model="cardForm.name" type="text" placeholder="EJ. JUAN PEREZ" class="input-field border-2 border-gray-200 focus:border-slate-800 focus:ring-4 focus:ring-slate-800/10 font-bold uppercase" required />
+          </div>
+          <div class="flex items-center gap-3 pt-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <input
+              v-model="cardForm.save"
+              type="checkbox"
+              class="w-4 h-4 rounded border-gray-300 text-slate-900 focus:ring-slate-900"
+              checked
+            />
+            <label class="text-sm font-bold text-slate-700 cursor-pointer">Guardar tarjeta para futuras compras</label>
+          </div>
+          <button type="submit" class="w-full bg-slate-900 text-white font-extrabold py-4 rounded-xl hover:bg-black transition-all duration-300 mt-6 text-lg shadow-[0_8px_15px_rgba(0,0,0,0.1)] hover:shadow-[0_12px_20px_rgba(0,0,0,0.2)] hover:-translate-y-1">
+            Revisar y Guardar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
-.fade-in { animation: fadeIn 0.2s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+.checkout-page {
+  font-family: 'Poppins', sans-serif;
+  background-color: #FAFAF5; /* bg-cream from Home */
+}
+
+/* Home Tokens for navbar */
+.bg-cream { background-color: #FAFAF5; }
+.bg-dark { background-color: #1a1a2e; }
+.text-dark { color: #1a1a2e; }
+.text-primary { color: #D90429; }
+.bg-primary { background-color: #D90429; }
+.text-accent { color: #F48C06; }
+.font-display { font-family: 'Titan One', cursive; }
+
+#map {
+  height: 180px;
+  width: 100%;
+  border-radius: 12px;
+  z-index: 1;
+}
+
+.radio-box:checked + div {
+  border-color: #BD0A0A;
+  background-color: #fff0f0;
+}
+
+.radio-box:checked + div .radio-indicator {
+  border: 5px solid #BD0A0A;
+}
+
+.radio-indicator {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  transition: all 0.2s;
+}
+
+.credit-card-visual {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-btn-active {
+  background-color: #BD0A0A;
+  color: white;
+  box-shadow: 0 4px 6px -1px rgba(189, 10, 10, 0.3);
+}
+
+.mode-btn-inactive {
+  color: #475569;
+  background-color: transparent;
+}
+
+.mode-btn-inactive:hover {
+  background-color: #d1d5db;
+}
+
+.input-field {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px;
+  width: 100%;
+  outline: none;
+  color: #334155;
+  font-weight: 500;
+}
+
+.input-field:focus {
+  border-color: #0f172a;
+}
+
+.fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 </style>

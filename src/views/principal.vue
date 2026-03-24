@@ -1,54 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoodRush | Inicio</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.css" rel="stylesheet" />
+<template>
+<div class="font-sans antialiased bg-gray-50 overflow-x-hidden flex flex-col min-h-screen">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#BD0A0A', 
-                        secondary: '#f1faee',
-                        dark: '#1d3557',
-                        accent: '#ffb703',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
-        /* Corrección para que el slide ocupe toda la pantalla sin espacios blancos */
-        #default-carousel {
-            height: 100vh;
-            width: 100%;
-            position: relative;
-            z-index: 0;
-        }
-    </style>
-</head>
-<body class="font-sans antialiased bg-gray-50 overflow-x-hidden flex flex-col min-h-screen">
 
     <div class="bg-accent text-center py-2 text-sm font-bold tracking-widest uppercase relative z-50">
         ¡Tu Gusto Nuestra Felicidad!
@@ -75,7 +27,7 @@
                 <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
                     <li><a href="#" class="block py-2 px-3 text-current hover:text-primary md:p-0 font-bold border-b-2 border-transparent hover:border-primary transition-all">Inicio</a></li>
                     <li><a href="#marcas" class="block py-2 px-3 text-current hover:text-primary md:p-0 transition-all">Marcas</a></li>
-                    <li><a href="nosotros.html" class="block py-2 px-3 text-current hover:text-primary md:p-0 transition-all">Nosotros</a></li>
+                    <li><a href="/about" class="block py-2 px-3 text-current hover:text-primary md:p-0 transition-all">Nosotros</a></li>
                 </ul>
             </div>
         </div>
@@ -202,7 +154,7 @@
                     <ul class="space-y-3 text-white/90 font-medium">
                         <li><a href="#faq" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
                         <li><a href="soporte.html" class="hover:text-white hover:underline">Soporte</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline">Términos</a></li>
+                        <li><a @click.prevent="$router.push('/terms')" class="hover:text-white hover:underline cursor-pointer">Términos</a></li>
                     </ul>
                 </div>
                 <div>
@@ -273,5 +225,26 @@
             }
         });
     </script>
-</body>
-</html>
+
+</div>
+</template>
+
+<style>
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        /* Corrección para que el slide ocupe toda la pantalla sin espacios blancos */
+        #default-carousel {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            z-index: 0;
+        }
+    
+</style>

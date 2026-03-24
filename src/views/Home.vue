@@ -60,11 +60,6 @@ const startCarousel = () => {
 const showFilters = ref(false);
 const sortType = ref('sugeridos');
 const activeFilters = ref([]);
-
-// Auth Modal
-const showAuth = ref(false);
-const authMode = ref('login');
-
 const handleLogout = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_name');
@@ -186,11 +181,6 @@ const toggleModalFilter = (filter) => {
     }
 };
 
-const openAuth = (mode) => {
-    authMode.value = mode;
-    showAuth.value = true;
-};
-
 const franchiseRoutes = {
     "Starbucks Coffee": "/franchise/starbucks",
     "McDonald's": "/franchise/mcdonalds",
@@ -226,13 +216,9 @@ const scrollToSection = (id) => {
 
 <template>
 <div class="font-sans antialiased bg-cream overflow-x-hidden flex flex-col min-h-screen">
-
-    <!-- Announcement Bar -->
     <div class="bg-dark text-white text-center py-2 text-xs font-bold tracking-widest uppercase relative z-50">
         <span class="text-accent">⚡</span> ¡Tu Gusto Nuestra Felicidad! <span class="text-accent">⚡</span>
     </div>
-
-    <!-- NAV HEADER -->
     <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
         <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
             <a href="#" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
@@ -252,7 +238,6 @@ const scrollToSection = (id) => {
                 <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
 
                 <div v-if="userName" class="flex items-center gap-5">
-                    <!-- Nav Icons -->
                     <div class="flex items-center gap-4 mr-2">
                         <button class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
                             <i class="fa-regular fa-bell text-xl"></i>
@@ -277,14 +262,13 @@ const scrollToSection = (id) => {
                     </div>
                 </div>
 
-                <div v-else @click="openAuth('login')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100">
-                    <i class="fa-regular fa-user"></i>
-                </div>
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-sm">
+                    <i class="fa-solid fa-user text-xs"></i> Iniciar Sesión
+                </button>
             </div>
         </div>
     </nav>
 
-    <!-- HERO CAROUSEL -->
     <div id="top" class="relative w-full h-[320px] md:h-[380px] overflow-hidden">
         <div class="relative h-full">
             <div v-for="(slide, idx) in heroSlides" :key="idx"
@@ -306,7 +290,6 @@ const scrollToSection = (id) => {
             </div>
         </div>
 
-        <!-- Carousel Dots -->
         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-40">
             <div v-for="(_, idx) in heroSlides" :key="idx"
                  class="w-2.5 h-2.5 rounded-full cursor-pointer transition-all"
@@ -315,7 +298,6 @@ const scrollToSection = (id) => {
         </div>
     </div>
 
-    <!-- FRANCHISES SECTION -->
     <section id="franchises" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
             <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
@@ -337,7 +319,6 @@ const scrollToSection = (id) => {
             </div>
         </div>
 
-        <!-- Loading Skeletons -->
         <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             <div v-for="i in 8" :key="i" class="bg-white rounded-2xl p-5 shadow-sm space-y-4 animate-pulse border border-gray-100 flex flex-col items-center justify-center h-[230px]">
                 <div class="w-24 h-24 bg-gray-200 rounded-full mb-2"></div>
@@ -346,14 +327,12 @@ const scrollToSection = (id) => {
             </div>
         </div>
 
-        <!-- Error -->
         <div v-else-if="error" class="text-center py-16">
             <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
             <p class="text-gray-500 font-medium">{{ error }}</p>
             <button @click="fetchFranchises" class="mt-4 bg-dark text-white px-6 py-2 rounded-xl text-sm hover:bg-gray-800 transition font-bold">Reintentar</button>
         </div>
 
-        <!-- No Results -->
         <div v-else-if="filteredFranchises.length === 0" class="col-span-full flex flex-col items-center justify-center py-20 text-center fade-in">
             <div class="w-32 h-32 bg-gray-50 rounded-full flex items-center justify-center mb-6 text-gray-300 border border-gray-100">
                 <i class="fa-solid fa-burger text-5xl opacity-50"></i>
@@ -365,7 +344,6 @@ const scrollToSection = (id) => {
             </button>
         </div>
 
-        <!-- Franchise Grid -->
         <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             <div v-for="item in filteredFranchises" :key="item.id"
                  class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in"
@@ -393,7 +371,6 @@ const scrollToSection = (id) => {
         </div>
     </section>
 
-    <!-- DARK FOOTER -->
     <footer id="contact" class="bg-dark text-white mt-auto border-t-4 border-primary">
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div class="mb-8 md:mb-0">
@@ -412,17 +389,17 @@ const scrollToSection = (id) => {
                 <div>
                     <h4 class="font-bold mb-4 text-lg text-white">Ayuda</h4>
                     <ul class="space-y-3 text-gray-400 font-medium">
-                        <li><a href="#" class="hover:text-accent transition">Preguntas Frecuentes</a></li>
-                        <li><a href="#" class="hover:text-accent transition">Soporte Técnico</a></li>
-                        <li><a href="#" class="hover:text-accent transition">Términos y Condiciones</a></li>
+                        <li><a @click.prevent="router.push('/support')" class="hover:text-accent transition">Preguntas Frecuentes</a></li>
+                        <li><a @click.prevent="router.push('/support')" class="hover:text-accent transition">Soporte Técnico</a></li>
+                        <li><a @click.prevent="router.push('/terms')" class="hover:text-accent transition">Términos y Condiciones</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-4 text-lg text-white">Empresa</h4>
                     <ul class="space-y-3 text-gray-400 font-medium">
-                        <li><a href="#" class="hover:text-accent transition">Sobre Nosotros</a></li>
+                        <li><a @click.prevent="router.push('/about')" class="hover:text-accent transition cursor-pointer">Sobre Nosotros</a></li>
                         <li><a href="#" class="hover:text-accent transition">Blog Corporativo</a></li>
-                        <li><a href="#" class="hover:text-accent transition">Afíliate</a></li>
+                        <li><a @click.prevent="router.push('/affiliate')" class="hover:text-accent transition">Afíliate</a></li>
                     </ul>
                 </div>
             </div>
@@ -432,7 +409,6 @@ const scrollToSection = (id) => {
         </div>
     </footer>
 
-    <!-- FILTER MODAL -->
     <div v-if="showFilters" class="fixed inset-0 bg-black/70 z-[60] flex items-center justify-center fade-in backdrop-blur-sm" @click.self="showFilters = false">
         <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md mx-4 relative shadow-2xl border-t-8 border-primary">
             <button @click="showFilters = false" class="absolute top-4 right-4 text-gray-400 hover:text-primary transition bg-gray-100 w-8 h-8 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -467,51 +443,6 @@ const scrollToSection = (id) => {
                 <span>Ver Resultados</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
-        </div>
-    </div>
-
-    <!-- AUTH MODAL -->
-    <div v-if="showAuth" class="fixed inset-0 bg-black/80 z-[9999] flex items-center justify-center fade-in backdrop-blur-sm" @click.self="showAuth = false">
-        <div class="auth-card relative" :class="{ 'active-register': authMode === 'register' }">
-            <button @click="showAuth = false" class="absolute top-4 right-4 text-white text-2xl font-bold z-50 hover:scale-110 transition opacity-80 hover:opacity-100"><i class="fa-solid fa-xmark"></i></button>
-            <div class="auth-header">
-                <div class="auth-logo-box"><i class="fa-solid fa-bolt"></i></div>
-                <div class="auth-brand-name">FoodRush</div>
-            </div>
-            <div class="auth-forms-wrapper">
-                <!-- Login Panel -->
-                <div class="auth-panel">
-                    <h2 class="auth-title">¡Bienvenido!</h2>
-                    <form @submit.prevent>
-                        <label class="auth-label">Usuario / Correo</label>
-                        <input class="auth-input" type="text" placeholder="ejemplo@foodrush.com">
-                        <label class="auth-label">Contraseña</label>
-                        <input class="auth-input" type="password" placeholder="••••••••">
-                        <button type="button" class="auth-btn-action" @click="router.push('/login'); showAuth = false">Iniciar Sesión</button>
-                    </form>
-                    <div class="auth-separator"><span>o continúa con</span></div>
-                    <div class="flex gap-2">
-                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-google mr-2 text-red-500"></i> Google</a>
-                        <a href="#" class="auth-social-btn flex-1"><i class="fa-brands fa-apple mr-2"></i> Apple</a>
-                    </div>
-                    <div class="auth-switch-link">¿Nuevo aquí? <a @click="authMode = 'register'">Crea una cuenta</a></div>
-                </div>
-                <!-- Register Panel -->
-                <div class="auth-panel">
-                    <h2 class="auth-title">Regístrate</h2>
-                    <form @submit.prevent>
-                        <label class="auth-label">Correo Electrónico</label>
-                        <input class="auth-input" type="email" placeholder="correo@ejemplo.com">
-                        <label class="auth-label">Nombre</label>
-                        <input class="auth-input" type="text" placeholder="Tu nombre">
-                        <label class="auth-label">Contraseña</label>
-                        <input class="auth-input" type="password" placeholder="Crea una contraseña">
-                        <button type="button" class="auth-btn-action">Crear Cuenta</button>
-                    </form>
-                    <div class="auth-switch-link">¿Ya tienes cuenta? <a @click="authMode = 'login'">Inicia Sesión</a></div>
-                </div>
-                <div class="auth-overlay-slider"></div>
-            </div>
         </div>
     </div>
 
@@ -593,31 +524,6 @@ const scrollToSection = (id) => {
 }
 .modal-chip:hover { border-color: #F48C06; color: #F48C06; }
 .modal-chip.selected { background-color: #F48C06; border-color: #F48C06; color: white; font-weight: 600; }
-
-/* ── Auth Styles ── */
-.auth-card { background: white; width: 900px; max-width: 95%; height: 600px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); overflow: hidden; position: relative; display: flex; flex-direction: column; }
-.auth-header { background-color: #F48C06; padding: 15px 40px; display: flex; align-items: center; height: 80px; }
-.auth-logo-box { background: white; padding: 5px; border-radius: 8px; margin-right: 15px; display: flex; align-items: center; justify-content: center; width: 50px; height: 50px; border: 1px solid #ddd; }
-.auth-logo-box i { font-size: 24px; color: #D90429; }
-.auth-brand-name { font-family: 'Titan One', cursive; font-size: 32px; color: white; letter-spacing: 1px; text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
-.auth-forms-wrapper { display: flex; height: calc(100% - 80px); position: relative; }
-.auth-panel { flex: 1; padding: 20px 40px; display: flex; flex-direction: column; justify-content: center; }
-.auth-title { font-family: 'Titan One', cursive; color: #D90429; font-size: 28px; margin-bottom: 15px; }
-.auth-label { font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 4px; display: block; }
-.auth-input { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; outline: none; transition: border 0.3s; }
-.auth-input:focus { border-color: #F48C06; }
-.auth-btn-action { width: 100%; background-color: #D90429; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
-.auth-btn-action:hover { background-color: #b90322; }
-.auth-separator { display: flex; align-items: center; margin: 15px 0; color: #9ca3af; font-size: 12px; }
-.auth-separator::before, .auth-separator::after { content: ''; flex: 1; border-bottom: 1px solid #e5e7eb; }
-.auth-separator span { padding: 0 10px; }
-.auth-social-btn { width: 100%; padding: 10px; background: white; border: 1px solid #d1d5db; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 600; font-size: 13px; color: #374151; transition: background 0.3s; text-decoration: none; }
-.auth-social-btn:hover { background-color: #f9fafb; }
-.auth-switch-link { text-align: center; margin-top: 15px; font-size: 13px; color: #6b7280; }
-.auth-switch-link a { color: #D90429; font-weight: bold; cursor: pointer; text-decoration: underline; }
-.auth-overlay-slider { position: absolute; top: 0; left: 50%; width: 50%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10; transition: transform 0.6s ease-in-out; backdrop-filter: blur(5px); }
-.auth-card.active-register .auth-overlay-slider { transform: translateX(-100%); }
-
 /* ── Animations ── */
 .fade-in { animation: fadeIn 0.5s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
