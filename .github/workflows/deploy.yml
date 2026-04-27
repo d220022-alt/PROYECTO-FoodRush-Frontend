@@ -1,0 +1,37 @@
+name: Deploy to GitHub Pages
+
+# El flujo de trabajo se activa cada vez que hay un "push" a la rama principal (main)
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # Ambiente de ejecución: Servidor Linux de GitHub
+
+    steps:
+      # 1. Obtener el código del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Configurar el ambiente compatible (Node.js)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Se especifica la versión compatible con el proyecto
+
+      # 3. Instalar las dependencias de la aplicación
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Construir (Build) la aplicación para producción
+      - name: Build project
+        run: npm run build
+
+      # 5. Desplegar los archivos estáticos resultantes
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist # Carpeta donde se genera el build (común en Vue.js/Vite)
