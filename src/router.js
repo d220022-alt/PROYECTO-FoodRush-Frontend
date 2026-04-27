@@ -34,6 +34,8 @@ const routes = [
     { path: '/notifications', component: () => import('./views/Notifications.vue') },
     { path: '/support', component: () => import('./views/Support.vue') },
     { path: '/about', component: () => import('./views/about.vue') },
+    { path: '/administracion', component: () => import('./views/administracion.vue') },
+    { path: '/delivery', component: () => import('./views/delivery.vue') },
     { path: '/terms', component: () => import('./views/terminos_condiciones.vue') },
     { path: '/affiliate', component: () => import('./views/principal.vue') }
 ]
