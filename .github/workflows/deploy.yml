@@ -1,13 +1,17 @@
 name: Deploy to GitHub Pages
 
-# El flujo de trabajo se activa cada vez que hay un "push" a la rama principal (main)
 on:
   push:
     branches:
       - main
 
+# Agrega este bloque para dar permisos de escritura al bot
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
+   
     runs-on: ubuntu-latest # Ambiente de ejecución: Servidor Linux de GitHub
 
     steps:
