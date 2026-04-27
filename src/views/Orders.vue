@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../services/api';
+import { getCachedOrders, getLastClientId, getSession, saveCachedOrder, setLastClientId } from '../services/storage';
 
 const router = useRouter();
 const orders = ref([]);
@@ -19,6 +20,7 @@ const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
         case 'pendiente': return 'text-yellow-600 bg-yellow-50';
         case 'confirmado': return 'text-blue-600 bg-blue-50';
+        case 'preparando': return 'text-blue-600 bg-blue-50';
         case 'en camino': return 'text-orange-600 bg-orange-50';
         case 'entregado': return 'text-green-600 bg-green-50';
         case 'cancelado': return 'text-red-600 bg-red-50';
@@ -32,6 +34,7 @@ const getProgressStep = (status) => {
     if (s.includes('entregado')) return 4;
     if (s.includes('en camino')) return 3;
     if (s.includes('confirmado')) return 2;
+    if (s.includes('preparando')) return 2;
     if (s.includes('pendiente') || s.includes('recibido')) return 1;
     return 1; // Default
 };
@@ -39,33 +42,35 @@ const getProgressStep = (status) => {
 const fetchOrders = async () => {
     try {
         isLoading.value = true;
-        
-        // Resolve logic to get current Client ID.
-        // We might store 'client_id' in localStorage on Checkout or login. 
-        // For now, let's try to lookup by email again if we don't have ID.
-        // Or assume Checkout saved it? 
-        
-        // Simpler approach: Checkout saves 'last_client_id'. 
-        // Or we lookup by email.
-        
-        const email = localStorage.getItem('user_email');
+        const email = getSession().userEmail || localStorage.getItem('user_email');
+        orders.value = getCachedOrders(email);
+
         if (!email) {
             isLoading.value = false;
             return;
         }
 
         const clientsRes = await api.getClients({ correo: email });
-        if (clientsRes.success && clientsRes.data.length > 0) {
-            const clientId = clientsRes.data[0].id; // Assuming first match is correct
-            
+        const clientId =
+            (clientsRes.success && clientsRes.data.length > 0 && clientsRes.data[0].id) ||
+            getLastClientId(email);
+
+        if (clientId) {
+            setLastClientId(email, clientId);
             const ordersRes = await api.getOrders({ cliente_id: clientId });
             if (ordersRes.success) {
-                orders.value = ordersRes.data;
+                const remoteOrders = (ordersRes.data || []).map((order) =>
+                    saveCachedOrder({ ...order, user_email: email, source: 'remote' }, email)
+                );
+
+                orders.value = remoteOrders.length > 0 ? remoteOrders : getCachedOrders(email);
             }
         }
 
     } catch (e) {
         console.error("Error loading orders", e);
+        const email = getSession().userEmail || localStorage.getItem('user_email');
+        orders.value = getCachedOrders(email);
     } finally {
         isLoading.value = false;
     }

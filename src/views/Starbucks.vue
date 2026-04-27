@@ -5,6 +5,17 @@ import Swal from 'sweetalert2';
 import { api } from '../services/api';
 import starbucksLogo from '../assets/images/logo-starbucks.png';
 import { getProductImage } from '../utils/productImages';
+import {
+    APP_EVENTS,
+    addCartItem,
+    clearCart,
+    getCartCount,
+    getCartRestaurantInfo,
+    getFavorites,
+    getSession,
+    hasCartRestaurantConflict,
+    toggleFavoriteItem
+} from '../services/storage';
 
 const router = useRouter();
 
@@ -510,23 +521,30 @@ watch(
 // ── Favorites ──
 const checkFavorite = () => {
     if (!selectedProduct.value) return;
-    const favorites = JSON.parse(localStorage.getItem('foodrush_favorites')) || [];
+    const favorites = getFavorites();
     isFavorite.value = favorites.some(f => f.id === selectedProduct.value.id);
 };
 
 const toggleFavorite = () => {
     if (!selectedProduct.value) return;
-    let favorites = JSON.parse(localStorage.getItem('foodrush_favorites')) || [];
-    if (isFavorite.value) {
-        favorites = favorites.filter(f => f.id !== selectedProduct.value.id);
-        isFavorite.value = false;
+
+    const added = toggleFavoriteItem({
+        id: selectedProduct.value.id,
+        name: selectedProduct.value.name,
+        img: selectedProduct.value.img,
+        price: selectedProduct.value.price,
+        place: 'Starbucks',
+        franchiseSlug: 'starbucks',
+        tenantId: 1
+    });
+
+    isFavorite.value = added;
+
+    if (!added) {
         Swal.fire({ title: 'Eliminado de favoritos', icon: 'info', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
     } else {
-        favorites.push({ id: selectedProduct.value.id, name: selectedProduct.value.name, img: selectedProduct.value.img, price: selectedProduct.value.price, place: 'Starbucks' });
-        isFavorite.value = true;
         Swal.fire({ title: 'Añadido a favoritos', icon: 'success', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false });
     }
-    localStorage.setItem('foodrush_favorites', JSON.stringify(favorites));
 };
 
 // ── Fetch Real Data ──
@@ -888,8 +906,7 @@ const extrasTotal = computed(() =>
 
 // ── Cart Logic ──
 const updateCartBadge = () => {
-    const cart = JSON.parse(localStorage.getItem('foodrush_cart')) || [];
-    cartCount.value = cart.reduce((acc, item) => acc + (item.qty || 1), 0);
+    cartCount.value = getCartCount();
 };
 
 const createCartItem = () => {
@@ -922,21 +939,37 @@ const createCartItem = () => {
         price: currentUnitPrice.value,
         img: selectedProduct.value.img,
         qty: currentQty.value,
-        details: detailsStr
+        details: detailsStr,
+        place: 'Starbucks',
+        franchiseSlug: 'starbucks',
+        tenantId: 1
     };
 };
 
-const addToCart = () => {
+const addToCart = async () => {
     if (!selectedProduct.value) return;
     const cartItem = createCartItem();
-    let cart = JSON.parse(localStorage.getItem('foodrush_cart')) || [];
-    const existing = cart.find(i => i.id === cartItem.id && i.details === cartItem.details);
-    if (existing) {
-        existing.qty += currentQty.value;
-    } else {
-        cart.push(cartItem);
+
+    if (hasCartRestaurantConflict(cartItem)) {
+        const currentRestaurant = getCartRestaurantInfo();
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Cambiar restaurante',
+            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por Starbucks.`,
+            showCancelButton: true,
+            confirmButtonText: 'Reemplazar carrito',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: bgBrand
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        clearCart();
     }
-    localStorage.setItem('foodrush_cart', JSON.stringify(cart));
+
+    addCartItem(cartItem);
     updateCartBadge();
     Swal.fire({
         icon: 'success', title: '¡Añadido!',
@@ -953,13 +986,15 @@ const goBackHome = () => {
 
 onMounted(() => {
     updateCartBadge();
-    const storedName = localStorage.getItem('user_name');
+    window.addEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+    const storedName = getSession().userName;
     if (storedName) userName.value = storedName;
     fetchProducts();
     startSlideShow();
 });
 
 onBeforeUnmount(() => {
+    window.removeEventListener(APP_EVENTS.cartChanged, updateCartBadge);
     clearInterval(slideInterval);
 });
 </script>

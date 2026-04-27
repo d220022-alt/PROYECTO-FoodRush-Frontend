@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
+import { setSessionFromAuth } from '../services/storage';
 
 const router = useRouter();
 
@@ -83,15 +84,7 @@ const handleLogin = async () => {
     try {
         const response = await api.login(email, password);
         if (response.success) {
-            localStorage.setItem('auth_token', response.token);
-            localStorage.setItem('user_id', response.user.id);
-            localStorage.setItem('user_name', response.user.nombre);
-            localStorage.setItem('user_email', response.user.correo);
-            if (response.user.telefono) localStorage.setItem('user_phone', response.user.telefono);
-            
-            if (response.user.direccion) localStorage.setItem('user_address', response.user.direccion);
-            if (response.user.zona) localStorage.setItem('user_zone', response.user.zona);
-
+            setSessionFromAuth({ ...response, email, userEmail: email });
             router.push('/');
         } else {
             loginError.value = response.message || 'Error al iniciar sesión';
@@ -132,18 +125,19 @@ const handleRegister = async () => {
     isSubmitting.value = true;
 
     try {
-        await api.register({ email, name, phone, password, direccion: address, zona: zone });
-        
+        const registerRes = await api.register({ email, name, phone, password, direccion: address, zona: zone });
+
+        if (registerRes?.success && registerRes?.user && registerRes?.token) {
+            localStorage.removeItem('register_draft');
+            setSessionFromAuth({ ...registerRes, email, userEmail: email });
+            router.push('/');
+            return;
+        }
+
         const loginRes = await api.login(email, password);
         if (loginRes.success) {
             localStorage.removeItem('register_draft');
-            localStorage.setItem('auth_token', loginRes.token);
-            localStorage.setItem('user_id', loginRes.user.id);
-            localStorage.setItem('user_name', loginRes.user.nombre);
-            localStorage.setItem('user_email', loginRes.user.correo);
-            if (loginRes.user.telefono) localStorage.setItem('user_phone', loginRes.user.telefono);
-            if (loginRes.user.direccion) localStorage.setItem('user_address', loginRes.user.direccion);
-            if (loginRes.user.zona) localStorage.setItem('user_zone', loginRes.user.zona);
+            setSessionFromAuth({ ...loginRes, email, userEmail: email });
             router.push('/');
         } else {
             alert('Registro exitoso. Por favor inicia sesión.');

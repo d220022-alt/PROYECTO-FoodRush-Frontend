@@ -22,23 +22,20 @@ const updatePassword = async () => {
     isLoading.value = true;
     const userId = localStorage.getItem('user_id');
 
-    // Manually fetch method since it's a new custom endpoint
-    try {
-        const response = await fetch(`https://proyecto-foodrush.onrender.com/api/usuarios/${userId}/password`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Tenant-ID': '123' // Hardcoded for now or get from localStorage if available
-            },
-            body: JSON.stringify({
-                currentPassword: currentPassword.value,
-                newPassword: newPassword.value
-            })
+    if (!userId) {
+        isLoading.value = false;
+        Swal.fire({
+            icon: 'warning',
+            title: 'Sesión requerida',
+            text: 'Debes iniciar sesión para cambiar tu contraseña.'
         });
+        return;
+    }
 
-        const data = await response.json();
+    try {
+        const response = await api.changePassword(userId, currentPassword.value, newPassword.value);
 
-        if (data.success) {
+        if (response.success) {
             Swal.fire({
                 icon: 'success',
                 title: 'Contraseña Actualizada',
@@ -48,7 +45,7 @@ const updatePassword = async () => {
             });
             setTimeout(() => goBack(), 2000);
         } else {
-            throw new Error(data.message || 'Error al actualizar contraseña');
+            throw new Error(response.message || 'Error al actualizar contraseña');
         }
     } catch (e) {
         Swal.fire({

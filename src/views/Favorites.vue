@@ -1,7 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
+import {
+    APP_EVENTS,
+    addCartItem,
+    clearCart,
+    getCartRestaurantInfo,
+    getFavorites,
+    hasCartRestaurantConflict,
+    removeFavoriteItem
+} from '../services/storage';
 
 const router = useRouter();
 
@@ -10,40 +19,38 @@ const goBack = () => router.go(-1);
 // State
 const favorites = ref([]);
 
-// Mock fallback if empty, but we prefer real data
-// We will store just IDs and minimal data in localStorage for now
-// Or full objects. To be simple: Store full objects.
-
 const loadFavorites = () => {
-    const stored = localStorage.getItem('foodrush_favorites');
-    if (stored) {
-        favorites.value = JSON.parse(stored);
-    } else {
-        favorites.value = []; 
-    }
+    favorites.value = getFavorites();
 };
 
 const removeFavorite = (id) => {
-    favorites.value = favorites.value.filter(item => item.id !== id);
-    localStorage.setItem('foodrush_favorites', JSON.stringify(favorites.value));
+    favorites.value = removeFavoriteItem(id);
 };
 
-const addToCart = (item) => {
-    let cart = JSON.parse(localStorage.getItem('foodrush_cart')) || [];
-    
-    // Check if exists to avoid duplicates or minimal logic
-    // For simplicity, we just add as new item with Qty 1
-    const cartItem = {
-        id: item.id,
-        name: item.name,
-        price: item.price || 0, // Ensure price exists
-        img: item.img,
-        qty: 1,
-        details: ''
-    };
+const addToCart = async (item) => {
+    if (hasCartRestaurantConflict(item)) {
+        const currentRestaurant = getCartRestaurantInfo();
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Cambiar restaurante',
+            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por este nuevo pedido.`,
+            showCancelButton: true,
+            confirmButtonText: 'Reemplazar carrito',
+            cancelButtonText: 'Cancelar'
+        });
 
-    cart.push(cartItem);
-    localStorage.setItem('foodrush_cart', JSON.stringify(cart));
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        clearCart();
+    }
+
+    addCartItem({
+        ...item,
+        qty: 1,
+        details: 'Sin adicionales'
+    });
 
     Swal.fire({
         icon: 'success',
@@ -56,6 +63,13 @@ const addToCart = (item) => {
 
 onMounted(() => {
     loadFavorites();
+    window.addEventListener(APP_EVENTS.favoritesChanged, loadFavorites);
+    window.addEventListener(APP_EVENTS.authChanged, loadFavorites);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener(APP_EVENTS.favoritesChanged, loadFavorites);
+    window.removeEventListener(APP_EVENTS.authChanged, loadFavorites);
 });
 </script>
 

@@ -2,12 +2,15 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { api } from '../services/api';
+import { getCachedOrderById, getSession, saveCachedOrder, updateCachedOrderStatus } from '../services/storage';
 
 const route = useRoute();
 const router = useRouter();
 const orderId = route.params.id;
+const currentUserEmail = getSession().userEmail || '';
 
 const order = ref(null);
+const isLoading = ref(true);
 const currentStep = ref(0); // 0: Pendiente, 1: Preparando, 2: En Camino, 3: Entregado
 const steps = [
     { label: 'Confirmado', icon: 'fa-solid fa-clipboard-check', statusId: 1 },
@@ -22,12 +25,26 @@ let simulationInterval = null;
 const fetchOrder = async () => {
     try {
         const response = await api.getOrder(orderId);
-        if (response.success) {
-            order.value = response.data;
+        if (response.success && response.data) {
+            order.value = saveCachedOrder(
+                {
+                    ...response.data,
+                    user_email: currentUserEmail || response.data.user_email,
+                    source: 'remote'
+                },
+                currentUserEmail || response.data.user_email
+            );
             updateStepFromStatus(parseInt(order.value.estado_id));
+            return;
         }
     } catch (e) {
         console.error("Error fetching order", e);
+    }
+
+    const cachedOrder = getCachedOrderById(orderId, currentUserEmail);
+    if (cachedOrder) {
+        order.value = cachedOrder;
+        updateStepFromStatus(parseInt(order.value.estado_id));
     }
 };
 
@@ -50,17 +67,35 @@ const advanceSimulation = async () => {
     let nextStatus = parseInt(order.value.estado_id) + 1;
 
     try {
-        // En un mundo real, el restaurante hace esto. Aquí lo simulamos.
-        await api.updateOrder(orderId, { estado_id: nextStatus });
-        order.value.estado_id = nextStatus;
-        updateStepFromStatus(nextStatus);
+        const response = await api.updateOrder(orderId, { estado_id: nextStatus });
+        if (response.success && response.data) {
+            order.value = saveCachedOrder(
+                {
+                    ...response.data,
+                    user_email: currentUserEmail || response.data.user_email,
+                    source: 'remote'
+                },
+                currentUserEmail || response.data.user_email
+            );
+        } else {
+            throw new Error(response.message || 'No se pudo actualizar el pedido');
+        }
     } catch (e) {
         console.error("Simulation error", e);
+        const localOrder = updateCachedOrderStatus(orderId, nextStatus, currentUserEmail);
+        if (localOrder) {
+            order.value = localOrder;
+        }
+    }
+
+    if (order.value) {
+        updateStepFromStatus(nextStatus);
     }
 };
 
 onMounted(async () => {
     await fetchOrder();
+    isLoading.value = false;
     
     // Start simulation: Update every 5 seconds for demo speed
     if (order.value && order.value.estado_id < 4) {
@@ -149,8 +184,8 @@ const goHome = () => router.push('/');
         
     </div>
     <div v-else class="p-10 text-center text-gray-500 flex flex-col items-center justify-center min-h-[50vh]">
-        <i class="fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-orange-500"></i>
-        <p class="text-lg">Cargando pedido...</p>
+        <i :class="isLoading ? 'fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-orange-500' : 'fa-solid fa-receipt text-4xl mb-4 text-gray-300'"></i>
+        <p class="text-lg">{{ isLoading ? 'Cargando pedido...' : 'No se encontró la información del pedido.' }}</p>
     </div>
 </div>
 </template>

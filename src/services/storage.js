@@ -1,0 +1,743 @@
+const STORAGE_KEYS = {
+  authToken: 'auth_token',
+  userId: 'user_id',
+  userName: 'user_name',
+  userEmail: 'user_email',
+  userPhone: 'user_phone',
+  userAddress: 'user_address',
+  userZone: 'user_zone',
+  cart: 'foodrush_cart',
+  favorites: 'foodrush_favorites',
+  cards: 'foodrush_saved_cards',
+  paypals: 'foodrush_saved_paypals',
+  preferredPayments: 'foodrush_preferred_payments',
+  orders: 'foodrush_orders',
+  clients: 'foodrush_clients',
+};
+
+export const APP_EVENTS = {
+  authChanged: 'foodrush:auth-changed',
+  cartChanged: 'foodrush:cart-changed',
+  favoritesChanged: 'foodrush:favorites-changed',
+  paymentsChanged: 'foodrush:payments-changed',
+  ordersChanged: 'foodrush:orders-changed',
+};
+
+const STATUS_LABELS = {
+  1: 'Pendiente',
+  2: 'Preparando',
+  3: 'En camino',
+  4: 'Entregado',
+  5: 'Cancelado',
+};
+
+const CARD_ICONS = {
+  Visa: 'fa-brands fa-cc-visa text-blue-800',
+  Mastercard: 'fa-brands fa-cc-mastercard text-red-600',
+  Amex: 'fa-brands fa-cc-amex text-sky-700',
+  Tarjeta: 'fa-regular fa-credit-card text-slate-600',
+};
+
+const hasWindow = () => typeof window !== 'undefined';
+
+const getStorage = () => (hasWindow() ? window.localStorage : null);
+
+const emitAppEvent = (eventName, detail) => {
+  if (!hasWindow()) return;
+  window.dispatchEvent(new CustomEvent(eventName, { detail }));
+};
+
+const safeString = (value, fallback = '') => {
+  if (value === null || value === undefined) return fallback;
+  return String(value).trim();
+};
+
+const isPlainObject = (value) => Boolean(value && typeof value === 'object' && !Array.isArray(value));
+
+const pickFirstObject = (...values) => {
+  for (const value of values) {
+    if (isPlainObject(value)) return value;
+  }
+  return null;
+};
+
+const toNumber = (value, fallback = 0) => {
+  const number = Number.parseFloat(value);
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const toInteger = (value, fallback = 0) => {
+  const number = Number.parseInt(value, 10);
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const safeJsonParse = (value, fallback) => {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+};
+
+const readJson = (key, fallback) => {
+  const storage = getStorage();
+  if (!storage) return fallback;
+  return safeJsonParse(storage.getItem(key), fallback);
+};
+
+const writeJson = (key, value) => {
+  const storage = getStorage();
+  if (!storage) return;
+  storage.setItem(key, JSON.stringify(value));
+};
+
+const removeStorageKey = (key) => {
+  const storage = getStorage();
+  if (!storage) return;
+  storage.removeItem(key);
+};
+
+const normalizeEmailKey = (email) => {
+  const normalized = safeString(email).toLowerCase();
+  return normalized || 'guest@foodrush.local';
+};
+
+const resolveAuthUser = (authResult = {}) => {
+  const data = isPlainObject(authResult.data) ? authResult.data : null;
+  const direct = pickFirstObject(authResult.user, authResult.usuario, authResult.cliente);
+  const nestedFromData = data ? pickFirstObject(data.user, data.usuario, data.cliente) : null;
+  const nestedFromDirect = direct ? pickFirstObject(direct.user, direct.usuario, direct.cliente) : null;
+
+  return nestedFromData || nestedFromDirect || direct || data || {};
+};
+
+const resolveAuthToken = (authResult = {}) => {
+  const data = isPlainObject(authResult.data) ? authResult.data : null;
+  const deepData = data && isPlainObject(data.data) ? data.data : null;
+
+  return safeString(
+    authResult.token ||
+      authResult.accessToken ||
+      authResult.authToken ||
+      data?.token ||
+      data?.accessToken ||
+      data?.authToken ||
+      deepData?.token ||
+      deepData?.accessToken,
+  );
+};
+
+const parseJwtPayload = (token = '') => {
+  const rawToken = safeString(token);
+  const payloadSegment = rawToken.split('.')[1];
+  if (!payloadSegment) return null;
+
+  const base64 = payloadSegment.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, '=');
+
+  try {
+    let decoded = '';
+    if (hasWindow() && typeof window.atob === 'function') {
+      decoded = window.atob(padded);
+    } else if (typeof atob === 'function') {
+      decoded = atob(padded);
+    }
+
+    return decoded ? safeJsonParse(decoded, null) : null;
+  } catch {
+    return null;
+  }
+};
+
+const toScopeSegment = (value, fallback = 'guest') => {
+  const normalized = safeString(value).replace(/[^a-zA-Z0-9@._-]/g, '');
+  return normalized || fallback;
+};
+
+const resolveScopeFromToken = (token = '') => {
+  const payload = parseJwtPayload(token);
+  if (!isPlainObject(payload)) return '';
+
+  const email = safeString(payload.email || payload.correo || payload.upn || payload.unique_name);
+  if (email) return `email:${normalizeEmailKey(email)}`;
+
+  const userId = safeString(
+    payload.sub || payload.user_id || payload.usuario_id || payload.cliente_id || payload.id,
+  );
+  if (userId) return `user:${toScopeSegment(userId)}`;
+
+  return '';
+};
+
+function purgeLegacySharedData() {
+  const storage = getStorage();
+  if (!storage) return;
+  storage.removeItem(STORAGE_KEYS.cart);
+  storage.removeItem(STORAGE_KEYS.favorites);
+}
+
+const inferCardBrand = (value = '') => {
+  const digits = safeString(value).replace(/\D/g, '');
+  if (digits.startsWith('4')) return 'Visa';
+  if (/^5[1-5]/.test(digits)) return 'Mastercard';
+  if (/^3[47]/.test(digits)) return 'Amex';
+  return 'Tarjeta';
+};
+
+const maskCardNumber = (value = '') => {
+  const digits = safeString(value).replace(/\D/g, '');
+  if (digits.length >= 12) {
+    return `**** **** **** ${digits.slice(-4)}`;
+  }
+
+  return safeString(value, '**** **** **** 0000');
+};
+
+const normalizeSavedCard = (card) => {
+  if (!card || typeof card !== 'object') return null;
+
+  const brand = safeString(card.brand || card.type) || inferCardBrand(card.number);
+  const normalized = {
+    brand,
+    type: brand,
+    number: maskCardNumber(card.number),
+    expiry: safeString(card.expiry, '--/--'),
+    name: safeString(card.name),
+  };
+
+  return {
+    ...normalized,
+    icon: CARD_ICONS[brand] || CARD_ICONS.Tarjeta,
+  };
+};
+
+const normalizePaymentMethod = (method, fallback = '') => {
+  const value = safeString(method).toLowerCase();
+  if (value === 'card' || value === 'paypal' || value === 'cash') return value;
+  return fallback;
+};
+
+const buildRestaurantKey = (item = {}) =>
+  [
+    safeString(item.franchiseSlug),
+    safeString(item.place),
+    safeString(item.restaurantName),
+    safeString(item.tenantId),
+  ]
+    .filter(Boolean)
+    .join('::');
+
+const buildCartLineKey = (item = {}) =>
+  [
+    safeString(item.id, 'item'),
+    safeString(item.details, 'Sin adicionales'),
+    buildRestaurantKey(item),
+  ].join('::');
+
+const normalizeCartItem = (item = {}) => {
+  const normalized = {
+    ...item,
+    id: safeString(item.id, `item-${Date.now()}`),
+    name: safeString(item.name, 'Producto'),
+    img: safeString(item.img),
+    price: Math.max(0, toNumber(item.price, 0)),
+    qty: Math.max(1, toInteger(item.qty, 1)),
+    details: safeString(item.details, 'Sin adicionales'),
+    place: safeString(item.place),
+    franchiseSlug: safeString(item.franchiseSlug),
+    tenantId: safeString(item.tenantId) || null,
+  };
+
+  normalized.lineKey = safeString(item.lineKey) || buildCartLineKey(normalized);
+  return normalized;
+};
+
+const normalizeFavoriteItem = (item = {}) => ({
+  id: safeString(item.id, `fav-${Date.now()}`),
+  name: safeString(item.name, 'Producto'),
+  img: safeString(item.img),
+  price: Math.max(0, toNumber(item.price, 0)),
+  place: safeString(item.place),
+  franchiseSlug: safeString(item.franchiseSlug),
+  tenantId: safeString(item.tenantId) || null,
+});
+
+export const getSession = () => {
+  const storage = getStorage();
+  if (!storage) {
+    return {
+      token: '',
+      userId: '',
+      userName: '',
+      userEmail: '',
+      userPhone: '',
+      userAddress: '',
+      userZone: '',
+      isAuthenticated: false,
+    };
+  }
+
+  const session = {
+    token: safeString(storage.getItem(STORAGE_KEYS.authToken)),
+    userId: safeString(storage.getItem(STORAGE_KEYS.userId)),
+    userName: safeString(storage.getItem(STORAGE_KEYS.userName)),
+    userEmail: safeString(storage.getItem(STORAGE_KEYS.userEmail)),
+    userPhone: safeString(storage.getItem(STORAGE_KEYS.userPhone)),
+    userAddress: safeString(storage.getItem(STORAGE_KEYS.userAddress)),
+    userZone: safeString(storage.getItem(STORAGE_KEYS.userZone)),
+  };
+
+  return {
+    ...session,
+    isAuthenticated: Boolean(session.token || session.userId || session.userEmail),
+  };
+};
+
+export const setSessionFromAuth = (authResult = {}) => {
+  const storage = getStorage();
+  if (!storage) return getSession();
+
+  const user = resolveAuthUser(authResult);
+  const token = resolveAuthToken(authResult);
+
+  if (token) {
+    storage.setItem(STORAGE_KEYS.authToken, token);
+  } else {
+    storage.removeItem(STORAGE_KEYS.authToken);
+  }
+
+  const profileMap = [
+    [STORAGE_KEYS.userId, user.id ?? user.user_id ?? user.usuario_id ?? user.cliente_id ?? authResult.userId],
+    [STORAGE_KEYS.userName, user.nombre ?? user.name ?? user.username ?? authResult.userName],
+    [STORAGE_KEYS.userEmail, user.correo ?? user.email ?? user.mail ?? authResult.userEmail ?? authResult.email],
+    [STORAGE_KEYS.userPhone, user.telefono ?? user.phone ?? user.celular ?? authResult.userPhone],
+    [STORAGE_KEYS.userAddress, user.direccion ?? user.address],
+    [STORAGE_KEYS.userZone, user.zona ?? user.zone],
+  ];
+
+  profileMap.forEach(([key, rawValue]) => {
+    const value = safeString(rawValue);
+    if (value) {
+      storage.setItem(key, value);
+    } else {
+      storage.removeItem(key);
+    }
+  });
+
+  purgeLegacySharedData();
+
+  const session = getSession();
+  emitAppEvent(APP_EVENTS.authChanged, session);
+  return session;
+};
+
+export const updateSessionProfile = (profile = {}) => {
+  const storage = getStorage();
+  if (!storage) return getSession();
+
+  const updates = [
+    [STORAGE_KEYS.userName, profile.nombre ?? profile.name],
+    [STORAGE_KEYS.userEmail, profile.correo ?? profile.email],
+    [STORAGE_KEYS.userPhone, profile.telefono ?? profile.phone],
+    [STORAGE_KEYS.userAddress, profile.direccion ?? profile.address],
+    [STORAGE_KEYS.userZone, profile.zona ?? profile.zone],
+  ];
+
+  updates.forEach(([key, rawValue]) => {
+    const value = safeString(rawValue);
+    if (value) {
+      storage.setItem(key, value);
+    }
+  });
+
+  const session = getSession();
+  emitAppEvent(APP_EVENTS.authChanged, session);
+  return session;
+};
+
+export const clearSession = () => {
+  Object.values({
+    authToken: STORAGE_KEYS.authToken,
+    userId: STORAGE_KEYS.userId,
+    userName: STORAGE_KEYS.userName,
+    userEmail: STORAGE_KEYS.userEmail,
+    userPhone: STORAGE_KEYS.userPhone,
+    userAddress: STORAGE_KEYS.userAddress,
+    userZone: STORAGE_KEYS.userZone,
+  }).forEach(removeStorageKey);
+
+  const session = getSession();
+  emitAppEvent(APP_EVENTS.authChanged, session);
+  return session;
+};
+
+const resolveAccountScope = (scope = null) => {
+  if (scope && typeof scope === 'string') return scope;
+  if (scope && typeof scope === 'object') {
+    if (scope.userId) return `user:${safeString(scope.userId)}`;
+    if (scope.userEmail || scope.email) return `email:${normalizeEmailKey(scope.userEmail || scope.email)}`;
+  }
+
+  const session = getSession();
+  if (session.userId) return `user:${safeString(session.userId)}`;
+  if (session.userEmail) return `email:${normalizeEmailKey(session.userEmail)}`;
+  if (session.token) {
+    const tokenScope = resolveScopeFromToken(session.token);
+    if (tokenScope) return tokenScope;
+    return `token:${toScopeSegment(session.token.slice(0, 24), 'anon')}`;
+  }
+  return 'guest';
+};
+
+const scopedStorageKey = (baseKey, scope = null) => `${baseKey}::${resolveAccountScope(scope)}`;
+
+export const getCart = (scope = null) => {
+  const key = scopedStorageKey(STORAGE_KEYS.cart, scope);
+  return readJson(key, []).map(normalizeCartItem);
+};
+
+export const getCartCount = (scope = null) =>
+  getCart(scope).reduce((total, item) => total + Math.max(1, toInteger(item.qty, 1)), 0);
+
+export const getCartRestaurantInfo = (cart = getCart()) => {
+  if (!Array.isArray(cart) || cart.length === 0) return null;
+  const item = normalizeCartItem(cart[0]);
+  const key = buildRestaurantKey(item);
+
+  return {
+    key,
+    name:
+      safeString(item.place) ||
+      safeString(item.restaurantName) ||
+      safeString(item.franchiseSlug) ||
+      safeString(item.tenantId, 'FoodRush'),
+    tenantId: item.tenantId,
+    franchiseSlug: item.franchiseSlug,
+  };
+};
+
+export const hasCartRestaurantConflict = (incomingItem, cart = getCart()) => {
+  if (!incomingItem || !Array.isArray(cart) || cart.length === 0) return false;
+
+  const currentInfo = getCartRestaurantInfo(cart);
+  const incomingInfo = getCartRestaurantInfo([incomingItem]);
+
+  if (!currentInfo?.key || !incomingInfo?.key) return false;
+  return currentInfo.key !== incomingInfo.key;
+};
+
+export const saveCart = (items = [], scope = null) => {
+  const normalized = Array.isArray(items) ? items.map(normalizeCartItem) : [];
+  const scopeKey = resolveAccountScope(scope);
+  writeJson(scopedStorageKey(STORAGE_KEYS.cart, scope), normalized);
+  emitAppEvent(APP_EVENTS.cartChanged, { scope: scopeKey, items: normalized });
+  return normalized;
+};
+
+export const addCartItem = (item, scope = null) => {
+  const normalizedItem = normalizeCartItem(item);
+  const cart = getCart(scope);
+  const existing = cart.find((entry) => entry.lineKey === normalizedItem.lineKey);
+
+  if (existing) {
+    existing.qty += normalizedItem.qty;
+  } else {
+    cart.push(normalizedItem);
+  }
+
+  saveCart(cart, scope);
+  return existing || normalizedItem;
+};
+
+export const updateCartItemQuantity = (lineKey, nextQty, scope = null) => {
+  const cart = getCart(scope);
+  const item = cart.find((entry) => entry.lineKey === lineKey);
+  if (!item) return null;
+
+  item.qty = Math.max(1, toInteger(nextQty, 1));
+  saveCart(cart, scope);
+  return item;
+};
+
+export const removeCartItem = (lineKey, scope = null) => {
+  const nextCart = getCart(scope).filter((item) => item.lineKey !== lineKey);
+  saveCart(nextCart, scope);
+  return nextCart;
+};
+
+export const clearCart = (scope = null) => {
+  const scopeKey = resolveAccountScope(scope);
+  removeStorageKey(scopedStorageKey(STORAGE_KEYS.cart, scope));
+  emitAppEvent(APP_EVENTS.cartChanged, { scope: scopeKey, items: [] });
+};
+
+export const getFavorites = (scope = null) => {
+  const key = scopedStorageKey(STORAGE_KEYS.favorites, scope);
+  return readJson(key, []).map(normalizeFavoriteItem);
+};
+
+export const saveFavorites = (items = [], scope = null) => {
+  const normalized = Array.isArray(items) ? items.map(normalizeFavoriteItem) : [];
+  const scopeKey = resolveAccountScope(scope);
+  writeJson(scopedStorageKey(STORAGE_KEYS.favorites, scope), normalized);
+  emitAppEvent(APP_EVENTS.favoritesChanged, { scope: scopeKey, items: normalized });
+  return normalized;
+};
+
+export const removeFavoriteItem = (favoriteId, scope = null) => {
+  const nextFavorites = getFavorites(scope).filter((item) => String(item.id) !== String(favoriteId));
+  saveFavorites(nextFavorites, scope);
+  return nextFavorites;
+};
+
+export const toggleFavoriteItem = (item, scope = null) => {
+  const normalizedItem = normalizeFavoriteItem(item);
+  const favorites = getFavorites(scope);
+  const exists = favorites.some((favorite) => String(favorite.id) === String(normalizedItem.id));
+
+  const nextFavorites = exists
+    ? favorites.filter((favorite) => String(favorite.id) !== String(normalizedItem.id))
+    : [...favorites, normalizedItem];
+
+  saveFavorites(nextFavorites, scope);
+  return !exists;
+};
+
+export const getSavedCard = (email) => {
+  const cards = readJson(STORAGE_KEYS.cards, {});
+  return normalizeSavedCard(cards[normalizeEmailKey(email)]);
+};
+
+export const saveSavedCard = (email, card) => {
+  const normalizedCard = normalizeSavedCard(card);
+  if (!normalizedCard) return null;
+
+  const cards = readJson(STORAGE_KEYS.cards, {});
+  cards[normalizeEmailKey(email)] = {
+    brand: normalizedCard.brand,
+    type: normalizedCard.type,
+    number: normalizedCard.number,
+    expiry: normalizedCard.expiry,
+    name: normalizedCard.name,
+  };
+
+  writeJson(STORAGE_KEYS.cards, cards);
+  emitAppEvent(APP_EVENTS.paymentsChanged, { email: normalizeEmailKey(email), card: normalizedCard });
+  return normalizedCard;
+};
+
+export const removeSavedCard = (email) => {
+  const cards = readJson(STORAGE_KEYS.cards, {});
+  delete cards[normalizeEmailKey(email)];
+  writeJson(STORAGE_KEYS.cards, cards);
+  emitAppEvent(APP_EVENTS.paymentsChanged, { email: normalizeEmailKey(email), card: null });
+};
+
+export const getSavedPayPal = (email) => {
+  const paypals = readJson(STORAGE_KEYS.paypals, {});
+  const paypal = paypals[normalizeEmailKey(email)];
+  return paypal && typeof paypal === 'object'
+    ? { email: safeString(paypal.email, normalizeEmailKey(email)) }
+    : null;
+};
+
+export const saveSavedPayPal = (email, paypalEmail) => {
+  const paypals = readJson(STORAGE_KEYS.paypals, {});
+  const payload = { email: safeString(paypalEmail, normalizeEmailKey(email)) };
+  paypals[normalizeEmailKey(email)] = payload;
+  writeJson(STORAGE_KEYS.paypals, paypals);
+  emitAppEvent(APP_EVENTS.paymentsChanged, { email: normalizeEmailKey(email), paypal: payload });
+  return payload;
+};
+
+export const removeSavedPayPal = (email) => {
+  const paypals = readJson(STORAGE_KEYS.paypals, {});
+  delete paypals[normalizeEmailKey(email)];
+  writeJson(STORAGE_KEYS.paypals, paypals);
+  emitAppEvent(APP_EVENTS.paymentsChanged, { email: normalizeEmailKey(email), paypal: null });
+};
+
+export const getPreferredPaymentMethod = (email) => {
+  const bucket = readJson(STORAGE_KEYS.preferredPayments, {});
+  const emailKey = normalizeEmailKey(email);
+  if (!(emailKey in bucket)) return '';
+  return normalizePaymentMethod(bucket[emailKey], '');
+};
+
+export const setPreferredPaymentMethod = (email, method) => {
+  const normalizedMethod = normalizePaymentMethod(method, 'cash');
+  const bucket = readJson(STORAGE_KEYS.preferredPayments, {});
+  const emailKey = normalizeEmailKey(email);
+
+  bucket[emailKey] = normalizedMethod;
+  writeJson(STORAGE_KEYS.preferredPayments, bucket);
+  emitAppEvent(APP_EVENTS.paymentsChanged, {
+    email: emailKey,
+    preferredMethod: normalizedMethod,
+  });
+
+  return normalizedMethod;
+};
+
+export const clearPreferredPaymentMethod = (email) => {
+  const bucket = readJson(STORAGE_KEYS.preferredPayments, {});
+  const emailKey = normalizeEmailKey(email);
+  delete bucket[emailKey];
+  writeJson(STORAGE_KEYS.preferredPayments, bucket);
+  emitAppEvent(APP_EVENTS.paymentsChanged, { email: emailKey, preferredMethod: 'cash' });
+};
+
+const normalizeOrder = (order = {}, fallbackEmail = '') => {
+  const statusId = Math.max(1, toInteger(order.estado_id ?? order.estado?.id, 1));
+  const statusLabel =
+    safeString(order.estado?.descripcion || order.status || order.estado) ||
+    STATUS_LABELS[statusId] ||
+    STATUS_LABELS[1];
+
+  return {
+    ...order,
+    id: safeString(order.id, `local-${Date.now()}`),
+    cliente_id: order.cliente_id ?? order.client_id ?? null,
+    total: Math.max(0, toNumber(order.total, 0)),
+    direccion_entrega: safeString(order.direccion_entrega || order.address, 'Recogida en tienda'),
+    notas: safeString(order.notas || order.notes),
+    metodo_pago: safeString(order.metodo_pago || order.paymentMethod),
+    creado_en: safeString(order.creado_en || order.createdAt, new Date().toISOString()),
+    estado_id: statusId,
+    estado: {
+      ...(typeof order.estado === 'object' ? order.estado : {}),
+      descripcion: statusLabel,
+    },
+    items: Array.isArray(order.items) ? order.items.map(normalizeCartItem) : [],
+    user_email: normalizeEmailKey(order.user_email || fallbackEmail),
+    user_name: safeString(order.user_name || order.userName || order.nombre),
+    source: safeString(order.source, 'local'),
+  };
+};
+
+const sortOrdersByDate = (orders = []) =>
+  [...orders].sort((left, right) => {
+    const leftTime = new Date(left.creado_en).getTime();
+    const rightTime = new Date(right.creado_en).getTime();
+    return rightTime - leftTime;
+  });
+
+const readOrdersBucket = () => readJson(STORAGE_KEYS.orders, {});
+
+const writeOrdersBucket = (bucket) => {
+  writeJson(STORAGE_KEYS.orders, bucket);
+  emitAppEvent(APP_EVENTS.ordersChanged, bucket);
+};
+
+export const getCachedOrders = (email) => {
+  const bucket = readOrdersBucket();
+
+  if (email) {
+    const normalizedEmail = normalizeEmailKey(email);
+    return sortOrdersByDate((bucket[normalizedEmail] || []).map((order) => normalizeOrder(order, email)));
+  }
+
+  return sortOrdersByDate(
+    Object.values(bucket)
+      .flat()
+      .map((order) => normalizeOrder(order)),
+  );
+};
+
+export const getCachedOrderById = (orderId, email) => {
+  const directBucket = email ? getCachedOrders(email) : getCachedOrders();
+  return directBucket.find((order) => String(order.id) === String(orderId)) || null;
+};
+
+export const saveCachedOrder = (order, email) => {
+  const normalizedOrder = normalizeOrder(order, email);
+  const bucket = readOrdersBucket();
+  const emailKey = normalizeEmailKey(email || normalizedOrder.user_email);
+  const currentOrders = (bucket[emailKey] || []).map((entry) => normalizeOrder(entry, emailKey));
+  const nextOrders = sortOrdersByDate([
+    normalizedOrder,
+    ...currentOrders.filter((entry) => String(entry.id) !== String(normalizedOrder.id)),
+  ]);
+
+  bucket[emailKey] = nextOrders;
+  writeOrdersBucket(bucket);
+  return normalizedOrder;
+};
+
+export const updateCachedOrderStatus = (orderId, statusId, email) => {
+  const bucket = readOrdersBucket();
+  const emailKeys = email ? [normalizeEmailKey(email)] : Object.keys(bucket);
+  let updatedOrder = null;
+
+  emailKeys.forEach((emailKey) => {
+    if (!Array.isArray(bucket[emailKey])) return;
+
+    bucket[emailKey] = bucket[emailKey].map((entry) => {
+      const normalizedEntry = normalizeOrder(entry, emailKey);
+      if (String(normalizedEntry.id) !== String(orderId)) return normalizedEntry;
+
+      updatedOrder = normalizeOrder(
+        {
+          ...normalizedEntry,
+          estado_id: statusId,
+          estado: {
+            ...(normalizedEntry.estado || {}),
+            descripcion: STATUS_LABELS[statusId] || normalizedEntry.estado?.descripcion,
+          },
+        },
+        emailKey,
+      );
+
+      return updatedOrder;
+    });
+  });
+
+  if (updatedOrder) {
+    writeOrdersBucket(bucket);
+  }
+
+  return updatedOrder;
+};
+
+export const buildLocalOrder = ({
+  orderPayload = {},
+  userEmail = '',
+  userName = '',
+  clientId = null,
+  paymentMethod = '',
+  deliveryMode = 'delivery',
+}) =>
+  normalizeOrder(
+    {
+      id: `local-${Date.now()}`,
+      cliente_id: clientId,
+      total: orderPayload.total,
+      direccion_entrega: orderPayload.direccion_entrega,
+      notas: orderPayload.notas,
+      estado_id: orderPayload.estado_id ?? 1,
+      items: orderPayload.items || [],
+      metodo_pago: paymentMethod || orderPayload.metodo_pago,
+      creado_en: new Date().toISOString(),
+      user_email: normalizeEmailKey(userEmail),
+      user_name: userName,
+      modo_entrega: deliveryMode,
+      source: 'local',
+    },
+    userEmail,
+  );
+
+export const getLastClientId = (email) => {
+  const clients = readJson(STORAGE_KEYS.clients, {});
+  return clients[normalizeEmailKey(email)] || null;
+};
+
+export const setLastClientId = (email, clientId) => {
+  const normalizedClientId = safeString(clientId);
+  if (!normalizedClientId) return null;
+
+  const clients = readJson(STORAGE_KEYS.clients, {});
+  clients[normalizeEmailKey(email)] = normalizedClientId;
+  writeJson(STORAGE_KEYS.clients, clients);
+  return normalizedClientId;
+};

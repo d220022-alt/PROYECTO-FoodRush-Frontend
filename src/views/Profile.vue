@@ -3,16 +3,18 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
+import { clearSession, getSession, updateSessionProfile } from '../services/storage';
 
 const router = useRouter();
+const session = getSession();
 
 // State
 const user = ref({
-    name: localStorage.getItem('user_name') || "Invitado",
-    email: localStorage.getItem('user_email') || "No registrado",
+    name: session.userName || "Invitado",
+    email: session.userEmail || "No registrado",
     address: "",
     avatar: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
-    phone: localStorage.getItem('user_phone') || ""
+    phone: session.userPhone || ""
 });
 
 const isLoading = ref(true);
@@ -28,7 +30,7 @@ onMounted(async () => {
                 user.value.email = userData.correo;
                 user.value.phone = userData.telefono || "";
                 user.value.address = userData.direccion || localStorage.getItem('user_address') || "Sin dirección registrada";
-                if (userData.zona) localStorage.setItem('user_zone', userData.zona);
+                updateSessionProfile(userData);
             } else {
                 if (!user.value.address) user.value.address = "Sin dirección registrada";
             }
@@ -58,8 +60,7 @@ const handleLogout = () => {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user_name');
+            clearSession();
             router.push('/login');
         }
     });
@@ -99,6 +100,8 @@ const openEditModal = () => {
 const closeEditModal = () => isEditModalOpen.value = false;
 
 const saveProfile = async () => {
+    let savedRemotely = false;
+
     try {
         const userId = localStorage.getItem('user_id');
         const updates = {
@@ -109,22 +112,23 @@ const saveProfile = async () => {
         };
 
         if (userId) {
-            await api.updateUser(userId, updates);
+            const response = await api.updateUser(userId, updates);
+            savedRemotely = response.success !== false;
         }
 
-        // Update Local State & Storage
         user.value.name = editForm.value.name;
         user.value.phone = editForm.value.phone;
         user.value.address = editForm.value.address;
-        
-        localStorage.setItem('user_name', editForm.value.name);
-        localStorage.setItem('user_phone', editForm.value.phone);
-        localStorage.setItem('user_address', editForm.value.address);
-        localStorage.setItem('user_zone', editForm.value.zone);
+        updateSessionProfile({
+            nombre: editForm.value.name,
+            telefono: editForm.value.phone,
+            direccion: editForm.value.address,
+            zona: editForm.value.zone
+        });
 
         closeEditModal();
         Swal.fire({
-            title: 'Perfil actualizado',
+            title: savedRemotely || !userId ? 'Perfil actualizado' : 'Perfil guardado localmente',
             icon: 'success',
             toast: true,
             position: 'top-end',
@@ -133,7 +137,19 @@ const saveProfile = async () => {
         });
     } catch (e) {
         console.error("Error updating profile", e);
-        Swal.fire('Error', 'No se pudo actualizar el perfil.', 'error');
+
+        user.value.name = editForm.value.name;
+        user.value.phone = editForm.value.phone;
+        user.value.address = editForm.value.address;
+        updateSessionProfile({
+            nombre: editForm.value.name,
+            telefono: editForm.value.phone,
+            direccion: editForm.value.address,
+            zona: editForm.value.zone
+        });
+        closeEditModal();
+
+        Swal.fire('Aviso', 'El perfil se guardó en este dispositivo, pero no se pudo sincronizar con el servidor.', 'warning');
     }
 };
 </script>

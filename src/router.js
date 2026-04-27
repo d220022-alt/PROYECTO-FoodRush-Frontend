@@ -7,7 +7,7 @@ const routes = [
     { path: '/login', component: Login },
     // Franchise Routes
     { path: '/franchise/starbucks', component: () => import('./views/Starbucks.vue') },
-    { path: '/franchise/mcdonalds', component: () => import('./views/FranchiseUnified.vue'), props: { slug: 'mcdonalds' } },
+    { path: '/franchise/mcdonalds', component: () => import('./views/McDonalds.vue') },
     { path: '/franchise/kfc', component: () => import('./views/KFC.vue') },
     { path: '/franchise/burger-king', component: () => import('./views/BurgerKing.vue') },
     { path: '/franchise/little-caesars', component: () => import('./views/LittleCaesars.vue') },

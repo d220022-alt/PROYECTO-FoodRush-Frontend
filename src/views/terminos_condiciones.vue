@@ -1,12 +1,97 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 
+// Importación de FontAwesome (Asegúrate de tenerlo instalado)
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
+const route = useRoute();
 const router = useRouter();
+
+// Estados originales de la página de términos
 const currentSection = ref('intro');
 const termsAccepted = ref(false);
 const isLoggedIn = ref(false);
+
+// ==========================================
+// AÑADIDO: LÓGICA UNIFICADA DEL NAVBAR
+// ==========================================
+const isScrolled = ref(false);
+const isMobileMenuOpen = ref(false);
+
+// Configuración de los ítems de navegación (puedes ajustarlos)
+const navItems = [
+    { path: '/terms', label: 'Terminos' },
+    { path: '/support', label: 'Soporte' },
+    { path: '/about', label: 'Nosotros' },
+    { path: '/affiliate', label: 'Afiliate' },
+];
+
+const handleScroll = () => {
+    // 1. Detección de scroll para el estilo del menú fixed
+    isScrolled.value = window.scrollY > 110;
+
+    // 2. Lógica original de Scroll Spy para el sidebar lateral
+    const sectionElements = document.querySelectorAll('.section-target');
+    let current = 'intro';
+    
+    sectionElements.forEach(section => {
+        const sectionTop = section.offsetTop;
+        if (window.scrollY >= sectionTop - 200) {
+            current = section.getAttribute('id');
+        }
+    });
+    currentSection.value = current;
+    updateSidebarPosition();
+};
+
+// Determina si el menú debe tener fondo sólido o transparente
+const isSolid = computed(() => isScrolled.value || isMobileMenuOpen.value);
+
+// Clases dinámicas para los enlaces de escritorio
+const desktopLinkClasses = (path) => [
+    'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out flex items-center gap-2',
+    route.path === path
+        ? isSolid.value
+            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+            : 'bg-white text-[#BD0A0A] shadow-lg shadow-black/20'
+        : isSolid.value
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            : 'text-white/85 hover:bg-white/10 hover:text-white',
+];
+
+// Clases dinámicas para los enlaces móviles
+const mobileLinkClasses = (path) => [
+    'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
+    route.path === path
+        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]',
+];
+
+// Función de navegación con View Transitions API y cierre de menú móvil
+const navigate = (path) => {
+    // Si ya estamos en la ruta, solo cerramos el menú móvil
+    if (route.path === path) {
+        isMobileMenuOpen.value = false;
+        return;
+    }
+
+    const go = () => router.push(path);
+
+    // Intentar usar View Transitions API si está disponible
+    if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
+        document.startViewTransition(go);
+    } else {
+        go();
+    }
+
+    // Cerrar el menú móvil después de navegar
+    isMobileMenuOpen.value = false;
+};
+
+const goHome = () => navigate('/');
+// ==========================================
 
 const sections = [
     { id: 'intro', title: '1. Introducción' },
@@ -23,17 +108,72 @@ const sections = [
     { id: 'contacto', title: '12. Contacto Legal' }
 ];
 
-const handleScroll = () => {
-    const sectionElements = document.querySelectorAll('.section-target');
-    let current = 'intro';
-    
-    sectionElements.forEach(section => {
-        const sectionTop = section.offsetTop;
-        if (window.scrollY >= sectionTop - 200) {
-            current = section.getAttribute('id');
-        }
-    });
-    currentSection.value = current;
+const activeSectionIndex = computed(() => {
+    const index = sections.findIndex((section) => section.id === currentSection.value);
+    return index >= 0 ? index : 0;
+});
+
+const activeSectionNumber = computed(() => String(activeSectionIndex.value + 1).padStart(2, '0'));
+
+const getSectionLabel = (section) => section.title.replace(/^\d+\.\s*/, '');
+
+const sidebarTopOffsetPx = computed(() => (isSolid.value ? 96 : 120));
+const termsContentRef = ref(null);
+const sidebarColumnRef = ref(null);
+const sidebarPanelRef = ref(null);
+const sidebarPanelStyles = ref({});
+const sidebarColumnStyles = ref({});
+
+const resetSidebarPosition = () => {
+    sidebarPanelStyles.value = {};
+    sidebarColumnStyles.value = {};
+};
+
+const updateSidebarPosition = () => {
+    if (
+        typeof window === 'undefined' ||
+        !termsContentRef.value ||
+        !sidebarColumnRef.value ||
+        !sidebarPanelRef.value
+    ) {
+        return;
+    }
+
+    if (window.innerWidth < 1024) {
+        resetSidebarPosition();
+        return;
+    }
+
+    const panelHeight = sidebarPanelRef.value.offsetHeight;
+    const contentRect = termsContentRef.value.getBoundingClientRect();
+    const columnRect = sidebarColumnRef.value.getBoundingClientRect();
+    const topOffset = sidebarTopOffsetPx.value;
+    const stopPoint = contentRect.bottom - panelHeight;
+
+    sidebarColumnStyles.value = { minHeight: `${panelHeight}px` };
+
+    if (contentRect.top > topOffset) {
+        sidebarPanelStyles.value = {};
+        return;
+    }
+
+    if (stopPoint <= topOffset) {
+        const bottomTop = Math.max(0, termsContentRef.value.offsetHeight - panelHeight);
+        sidebarPanelStyles.value = {
+            position: 'absolute',
+            top: `${bottomTop}px`,
+            left: '0',
+            width: '100%',
+        };
+        return;
+    }
+
+    sidebarPanelStyles.value = {
+        position: 'fixed',
+        top: `${topOffset}px`,
+        left: `${columnRect.left}px`,
+        width: `${columnRect.width}px`,
+    };
 };
 
 const scrollToSection = (id) => {
@@ -45,6 +185,10 @@ const scrollToSection = (id) => {
         });
         currentSection.value = id;
     }
+};
+
+const handleResize = () => {
+    updateSidebarPosition();
 };
 
 const goBackWithCancel = () => {
@@ -85,7 +229,9 @@ const acceptTerms = () => {
 };
 
 onMounted(() => {
+    handleScroll(); // Chequeo inicial
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleResize);
     window.scrollTo(0, 0);
     
     // Check if user is logged in
@@ -106,68 +252,149 @@ onMounted(() => {
             termsAccepted.value = true;
         }
     }
+
+    requestAnimationFrame(() => {
+        updateSidebarPosition();
+    });
 });
 
 onUnmounted(() => {
     window.removeEventListener('scroll', handleScroll);
+    window.removeEventListener('resize', handleResize);
 });
 </script>
 
 <template>
-<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
-    <nav class="bg-white/90 backdrop-blur-md shadow-sm py-4 sticky top-0 z-50 transition-all h-[80px]">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4">
-            <a href="#" @click.prevent="router.push('/')" class="flex items-center space-x-2 group">
-                <i class="fas fa-bolt text-3xl text-[#BD0A0A] animate-pulse group-hover:scale-110 transition-transform"></i>
-                <span class="self-center text-2xl font-extrabold tracking-tight text-gray-900">FOODRUSH</span>
-            </a>
+    <nav
+        :class="[
+            'fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ease-out',
+            isSolid
+                ? 'border-gray-200 bg-white/96 py-3 shadow-xl shadow-slate-200/50 backdrop-blur-xl'
+                : 'border-white/10 bg-[#8f0b0b]/72 py-4 shadow-2xl shadow-black/20 backdrop-blur-xl',
+        ]"
+    >
+        <div class="mx-auto flex max-w-screen-2xl items-center justify-between px-4 md:px-12 lg:px-16">
             
-            <button data-collapse-toggle="navbar-terms" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
+            <a href="#" @click.prevent="goHome" class="flex items-center space-x-2 group z-50">
+                <i :class="['fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
+                             isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]']"></i>
+                
+                <span :class="['text-xl md:text-2xl font-extrabold tracking-wide transition-colors duration-300 font-display drop-shadow-sm',
+                                isSolid ? 'text-slate-900' : 'text-white']">
+                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
+                </span>
+            </a>
 
-            <div class="hidden w-full md:block md:w-auto" id="navbar-terms">
-                <ul class="flex flex-col font-medium p-4 md:p-0 mt-4 md:flex-row md:space-x-8 md:mt-0 items-center">
-                    <li><a href="#" @click.prevent="router.push('/')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Inicio</a></li>
-                    <li><a href="#" @click.prevent="router.push('/about')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Nosotros</a></li>
-                    <li><a href="#" @click.prevent="router.push('/support')" class="block py-2 px-3 text-gray-700 hover:text-[#BD0A0A] transition-colors font-semibold">Soporte</a></li>
-                    <li><a href="#" @click.prevent="router.push('/')" class="block py-2 px-3 md:p-0 ms-4"><span class="bg-gray-900 text-white px-5 py-2 rounded-full hover:bg-[#BD0A0A] transition-all shadow-md text-sm font-semibold">Volver al Home</span></a></li>
-                </ul>
+            <div class="hidden items-center gap-3 md:flex">
+                <a
+                    v-for="item in navItems"
+                    :key="item.path"
+                    :href="item.path"
+                    :class="desktopLinkClasses(item.path)"
+                    @click.prevent="navigate(item.path)"
+                >
+                    <i v-if="item.path === '/terms' && route.path === '/terms'" class="fas fa-file-contract text-xs"></i>
+                    {{ item.label }}
+                </a>
+
+                <button
+                    type="button"
+                    class="ml-3 inline-flex items-center gap-2 rounded-full bg-[#0f172a] px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-black"
+                    @click="goHome"
+                >
+                    <i class="fa-solid fa-house text-xs"></i>
+                    Menu
+                </button>
+            </div>
+
+            <button
+                type="button"
+                class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden focus:outline-none"
+                :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
+                aria-label="Abrir menu"
+                @click="isMobileMenuOpen = !isMobileMenuOpen"
+            >
+                <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
+            </button>
+        </div>
+
+        <div
+            :class="[
+                'overflow-hidden border-t border-transparent bg-white/98 backdrop-blur-xl transition-all duration-300 ease-out md:hidden',
+                isMobileMenuOpen ? 'max-h-96 border-gray-100 shadow-xl' : 'max-h-0',
+            ]"
+        >
+            <div class="mx-auto flex max-w-screen-2xl flex-col gap-3 px-6 py-5">
+                <a
+                    v-for="item in navItems"
+                    :key="`${item.path}-mobile`"
+                    :href="item.path"
+                    :class="mobileLinkClasses(item.path)"
+                    @click.prevent="navigate(item.path)"
+                >
+                    {{ item.label }}
+                </a>
+
+                <button
+                    type="button"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700 w-full"
+                    @click="goHome"
+                >
+                    <i class="fa-solid fa-house text-xs"></i>
+                    Ir al menu principal
+                </button>
             </div>
         </div>
     </nav>
-
-    <div class="bg-gradient-to-r from-[#BD0A0A] to-red-800 text-white py-20 text-center relative overflow-hidden">
+    <div class="bg-gradient-to-br from-[#C10D0D] via-[#B10A0A] to-[#8E0808] text-white pt-[164px] md:pt-[188px] pb-24 md:pb-28 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_35%)]"></div>
         <i class="fas fa-balance-scale absolute top-10 left-10 text-9xl opacity-10 rotate-12"></i>
         <div class="container mx-auto px-4 relative z-10" data-aos="fade-up">
-            <h1 class="text-4xl md:text-5xl font-extrabold mb-4 border-none">Términos y Condiciones</h1>
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-5 border-none font-display drop-shadow-sm">Términos y Condiciones</h1>
             <p class="text-white/80 text-lg max-w-2xl mx-auto">Marco legal y políticas de uso de la plataforma FoodRush.</p>
             <p class="text-xs mt-4 text-white/60">Actualizado: Febrero 2026</p>
         </div>
     </div>
 
-    <div class="container mx-auto px-4 py-16">
-        <div class="flex flex-col lg:flex-row gap-12">
-            
-            <!-- Sidebar -->
-            <div class="w-full lg:w-1/4 hidden lg:block">
-                <div class="sticky-sidebar bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+    <div class="container mx-auto px-4 py-16 lg:py-20">
+        <div ref="termsContentRef" class="flex flex-col gap-12 lg:flex-row">
+
+            <div
+                ref="sidebarColumnRef"
+                class="hidden w-full lg:relative lg:block lg:w-[22rem] lg:flex-none"
+                :style="sidebarColumnStyles"
+            >
+                <div
+                    ref="sidebarPanelRef"
+                    class="sticky-sidebar bg-white p-6 rounded-2xl shadow-lg border border-gray-100"
+                    :style="sidebarPanelStyles"
+                >
+                    <div class="mb-5 rounded-2xl bg-[#0f172a] px-4 py-4 text-white shadow-lg">
+                        <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-white/60">Seccion actual</p>
+                        <div class="mt-3 flex items-end justify-between gap-3">
+                            <span class="text-4xl font-black leading-none text-[#fbbf24]">{{ activeSectionNumber }}</span>
+                            <span class="text-right text-sm font-medium leading-tight text-white/80">
+                                {{ getSectionLabel(sections[activeSectionIndex]) }}
+                            </span>
+                        </div>
+                    </div>
                     <h3 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</h3>
                     <ul class="space-y-1 text-sm text-gray-600">
-                        <li v-for="section in sections" :key="section.id">
+                        <li v-for="(section, index) in sections" :key="section.id">
                             <a href="#" @click.prevent="scrollToSection(section.id)" 
                                class="term-link" 
                                :class="{ 'active': currentSection === section.id }">
-                                {{ section.title }}
+                                <span class="term-link__number">{{ String(index + 1).padStart(2, '0') }}</span>
+                                <span class="term-link__text">{{ getSectionLabel(section) }}</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             </div>
 
-            <!-- Content -->
-            <div class="w-full lg:w-3/4">
+            <div class="w-full lg:flex-1 lg:min-w-0">
                 <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 space-y-16">
                     
                     <div id="intro" class="section-target" data-aos="fade-up">
@@ -311,7 +538,6 @@ onUnmounted(() => {
                         </div>
                     </div>
 
-                    <!-- Botón de aceptación y condiciones -->
                     <div class="bg-white border-t border-gray-200 pt-8 mt-8 pb-4" data-aos="fade-up">
                         <div class="flex items-center space-x-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <input id="accept-terms" type="checkbox" v-model="termsAccepted" :disabled="isLoggedIn" class="w-5 h-5 text-[#BD0A0A] bg-white border-gray-300 rounded focus:ring-[#BD0A0A] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -343,21 +569,21 @@ onUnmounted(() => {
         </div>
     </div>
 
-    <footer class="bg-[#BD0A0A] text-white mt-auto">
+    <footer class="bg-[#BD0A0A] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div class="mb-8 md:mb-0">
-                 <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg">
-                    <span class="text-orange-500 font-bold text-xl italic">Food</span>
-                    <span class="text-slate-800 font-bold text-xl italic -ml-1">Rush</span>
+            <div class="mb-8 md:mb-0 flex flex-col items-center md:items-start">
+                 <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg mx-auto md:mx-0">
+                    <span class="text-orange-500 font-bold text-xl italic font-display">Food</span>
+                    <span class="text-slate-800 font-bold text-xl italic -ml-1 font-display">Rush</span>
                 </div>
-                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
+                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs text-center md:text-left">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
                     <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
                     <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
                     <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
-            <div class="flex gap-16 text-sm text-left md:text-right">
+            <div class="flex gap-16 text-sm text-left md:text-right mx-auto md:mx-0 mt-8 md:mt-0">
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
@@ -385,40 +611,79 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Importación de fuentes necesarias para el Navbar y estilos generales */
+@import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
+
 html { scroll-behavior: smooth; }
 
+/* Ajuste para que los anchors no queden tapados por el menú fixed */
 .section-target {
     scroll-margin-top: 140px; 
 }
 
+/* Estilos originales del sidebar */
 .sticky-sidebar {
-    position: -webkit-sticky;
-    position: sticky;
-    top: 100px;
-    max-height: 80vh;
-    overflow-y: auto;
+    position: relative;
 }
-
-.sticky-sidebar::-webkit-scrollbar { width: 4px; }
-.sticky-sidebar::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
 
 .term-link.active {
     color: #BD0A0A;
-    border-left: 3px solid #BD0A0A;
-    padding-left: 12px;
     font-weight: 700;
     background: rgba(189, 10, 10, 0.05);
+    border-color: rgba(189, 10, 10, 0.18);
 }
 .term-link {
-    border-left: 3px solid transparent;
-    padding-left: 12px;
     transition: all 0.3s ease;
-    display: block;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    border-radius: 14px;
+    border: 1px solid transparent;
 }
 .term-link:hover {
     color: #BD0A0A;
-    padding-left: 15px;
+    background: rgba(189, 10, 10, 0.04);
+    border-color: rgba(189, 10, 10, 0.12);
+}
+
+.term-link__number {
+    display: inline-flex;
+    min-width: 34px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    font-size: 0.75rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: all 0.3s ease;
+}
+
+.term-link__text {
+    flex: 1;
+    line-height: 1.35;
+}
+
+.term-link.active .term-link__number {
+    background: #BD0A0A;
+    border-color: #BD0A0A;
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(189, 10, 10, 0.2);
+}
+
+/* Clase añadida para la tipografía del Logo en el Navbar fixed */
+.font-display { font-family: 'Titan One', cursive; }
+
+/* Animación de parpadeo (Pulse) definida explícitamente si Tailwind no la carga */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 </style>

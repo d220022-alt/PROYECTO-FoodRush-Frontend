@@ -3,12 +3,29 @@ import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
+import {
+  APP_EVENTS,
+  buildLocalOrder,
+  clearCart,
+  clearSession,
+  getCart,
+  getLastClientId,
+  getPreferredPaymentMethod,
+  getSavedCard,
+  getSavedPayPal,
+  getSession,
+  saveCachedOrder,
+  setPreferredPaymentMethod,
+  saveSavedCard,
+  saveSavedPayPal,
+  setLastClientId,
+} from '../services/storage';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
 const router = useRouter();
 const userName = ref('');
-const currentUserEmail = ref(localStorage.getItem('user_email') || 'usuario_invitado');
+const currentUserEmail = ref(getSession().userEmail || 'usuario_invitado');
 
 const goBack = () => {
     router.go(-1);
@@ -47,26 +64,44 @@ const cardDisplay = ref({
   number: '**** **** **** 1234',
   name: 'JUAN PEREZ',
   expiry: '12/26',
+  brand: 'Tarjeta',
 });
+const savedCard = ref(null);
+const savedPayPalAccount = ref(null);
 
 // Load saved methods for user
 const loadUserPaymentMethods = () => {
     const email = currentUserEmail.value;
-    const savedCards = JSON.parse(localStorage.getItem('foodrush_saved_cards')) || {};
-    const savedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
+    const storedCard = getSavedCard(email);
+    const storedPayPal = getSavedPayPal(email);
+    const preferredMethod = getPreferredPaymentMethod(email);
+    savedCard.value = storedCard ? { ...storedCard } : null;
+    savedPayPalAccount.value = storedPayPal ? { ...storedPayPal } : null;
 
-    if (savedCards[email]) {
-        cardDisplay.value = { ...savedCards[email] };
+    if (preferredMethod === 'card' && storedCard) {
+        cardDisplay.value = { ...storedCard };
         paymentMethod.value = 'card';
-    } else if (savedPaypals[email]) {
-        paypalEmail.value = savedPaypals[email].email;
+    } else if (preferredMethod === 'paypal' && storedPayPal) {
+        paypalEmail.value = storedPayPal.email;
         paymentMethod.value = 'paypal';
+    } else if (preferredMethod === 'cash') {
+        paymentMethod.value = 'cash';
+    } else if (storedCard) {
+        cardDisplay.value = { ...storedCard };
+        paymentMethod.value = 'card';
+        setPreferredPaymentMethod(email, 'card');
+    } else if (storedPayPal) {
+        paypalEmail.value = storedPayPal.email;
+        paymentMethod.value = 'paypal';
+        setPreferredPaymentMethod(email, 'paypal');
     } else {
         paymentMethod.value = 'cash';
     }
 };
 
 const cartItems = ref([]);
+const hasSavedCard = computed(() => Boolean(savedCard.value));
+const hasSavedPayPal = computed(() => Boolean(savedPayPalAccount.value?.email));
 
 const cartCount = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (Number(item.qty) || 0), 0)
@@ -79,11 +114,8 @@ const subtotal = computed(() =>
 const deliveryFee = computed(() => (currentMode.value === 'delivery' ? 5 : 0));
 const total = computed(() => subtotal.value + deliveryFee.value);
 
-const isCardSelected = computed(() => paymentMethod.value === 'card');
-
 const loadCart = () => {
-  const stored = localStorage.getItem('foodrush_cart');
-  cartItems.value = stored ? JSON.parse(stored) : [];
+  cartItems.value = getCart();
 };
 
 const setMode = (mode) => {
@@ -137,15 +169,19 @@ const saveCardInfo = (event) => {
   showChangeCardModal.value = false;
 
   paymentMethod.value = 'card';
+  setPreferredPaymentMethod(currentUserEmail.value, 'card');
   cardDisplay.value.number = `**** **** **** ${num.slice(-4)}`;
   cardDisplay.value.name = name.toUpperCase();
   cardDisplay.value.expiry = exp;
+  cardDisplay.value.brand = cardDisplay.value.brand || 'Tarjeta';
 
   if (cardForm.value.save) {
-      const email = currentUserEmail.value;
-      const savedCards = JSON.parse(localStorage.getItem('foodrush_saved_cards')) || {};
-      savedCards[email] = { ...cardDisplay.value };
-      localStorage.setItem('foodrush_saved_cards', JSON.stringify(savedCards));
+      const persistedCard = saveSavedCard(currentUserEmail.value, {
+        number: num,
+        expiry: exp,
+        name: name.toUpperCase(),
+      });
+      savedCard.value = persistedCard ? { ...persistedCard } : savedCard.value;
   }
 
   Swal.fire({ icon: 'success', title: 'Tarjeta Guardada', showConfirmButton: false, timer: 1000 });
@@ -153,10 +189,6 @@ const saveCardInfo = (event) => {
 
 const openPaymentModal = () => {
   showPaymentModal.value = true;
-};
-
-const openChangeCardModal = () => {
-  showChangeCardModal.value = true;
 };
 
 const openCardForm = (isChanging) => {
@@ -187,15 +219,45 @@ const selectCash = () => {
   showPaymentModal.value = false;
   showChangeCardModal.value = false;
   paymentMethod.value = 'cash';
+  setPreferredPaymentMethod(currentUserEmail.value, 'cash');
 };
 
-const selectPayPal = () => {
+const selectStoredCard = () => {
+  if (!savedCard.value) {
+    openCardForm(false);
+    return;
+  }
+
+  showChangeCardModal.value = false;
+  cardDisplay.value = { ...savedCard.value };
+  paymentMethod.value = 'card';
+  setPreferredPaymentMethod(currentUserEmail.value, 'card');
+};
+
+const selectCard = (forceNew = false) => {
+  showPaymentModal.value = false;
+  
+  if (forceNew) {
+    showChangeCardModal.value = false;
+    openCardForm(true);
+    return;
+  }
+
+  if (savedCard.value) {
+    showChangeCardModal.value = true;
+    return;
+  }
+
+  showChangeCardModal.value = false;
+  openCardForm(false);
+};
+
+const connectPayPal = () => {
   showPaymentModal.value = false;
   showChangeCardModal.value = false;
 
   const email = currentUserEmail.value;
-  const savedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
-  const prefilledEmail = savedPaypals[email]?.email || 'usuario@ejemplo.com';
+  const prefilledEmail = savedPayPalAccount.value?.email || 'usuario@ejemplo.com';
 
   Swal.fire({
     title: '<i class="fa-brands fa-paypal text-blue-600 text-4xl mb-2"></i><br>Iniciar Sesión',
@@ -239,10 +301,8 @@ const selectPayPal = () => {
       paypalEmail.value = result.value.email;
 
       if (result.value.save) {
-          const userEmail = currentUserEmail.value;
-          const storedPaypals = JSON.parse(localStorage.getItem('foodrush_saved_paypals')) || {};
-          storedPaypals[userEmail] = { email: paypalEmail.value };
-          localStorage.setItem('foodrush_saved_paypals', JSON.stringify(storedPaypals));
+          saveSavedPayPal(currentUserEmail.value, paypalEmail.value);
+          savedPayPalAccount.value = { email: paypalEmail.value };
       }
 
       Swal.fire({
@@ -254,6 +314,7 @@ const selectPayPal = () => {
         didOpen: () => Swal.showLoading()
       }).then(() => {
         paymentMethod.value = 'paypal';
+        setPreferredPaymentMethod(currentUserEmail.value, 'paypal');
         Swal.fire({
           icon: 'success',
           title: 'Cuenta vinculada',
@@ -264,6 +325,20 @@ const selectPayPal = () => {
       });
     }
   });
+};
+
+const selectPayPal = () => {
+  showPaymentModal.value = false;
+  showChangeCardModal.value = false;
+
+  if (savedPayPalAccount.value?.email) {
+    paypalEmail.value = savedPayPalAccount.value.email;
+    paymentMethod.value = 'paypal';
+    setPreferredPaymentMethod(currentUserEmail.value, 'paypal');
+    return;
+  }
+
+  connectPayPal();
 };
 
 const editAddress = async () => {
@@ -284,6 +359,54 @@ const editInstructions = async () => {
     showCancelButton: true,
   });
   if (value) instructionsText.value = value;
+};
+
+const resolveTenantId = () => {
+  const firstTenant = cartItems.value.find((item) => item.tenantId)?.tenantId;
+  return Number.parseInt(firstTenant, 10) || 1;
+};
+
+const resolveUserIdentity = () => {
+  const session = getSession();
+
+  return {
+    email: session.userEmail || currentUserEmail.value || `guest-${Date.now()}@foodrush.local`,
+    name: session.userName || userName.value || 'Invitado',
+    phone: session.userPhone || localStorage.getItem('user_phone') || '000-000-0000',
+  };
+};
+
+const resolveClientId = async (identity) => {
+  const cachedClientId = getLastClientId(identity.email);
+  if (cachedClientId) {
+    return cachedClientId;
+  }
+
+  try {
+    const clientsResponse = await api.getClients({ correo: identity.email });
+    if (clientsResponse.success && clientsResponse.data.length > 0) {
+      const foundClientId = clientsResponse.data[0].id;
+      setLastClientId(identity.email, foundClientId);
+      return foundClientId;
+    }
+
+    const newClientResponse = await api.createClient({
+      nombre: identity.name,
+      correo: identity.email,
+      telefono: identity.phone,
+      tenant_id: resolveTenantId(),
+    });
+
+    const createdClientId = newClientResponse?.data?.id || newClientResponse?.id || null;
+    if (createdClientId) {
+      setLastClientId(identity.email, createdClientId);
+      return createdClientId;
+    }
+  } catch (error) {
+    console.warn('Client resolve error', error);
+  }
+
+  return cachedClientId || null;
 };
 
 const processOrder = async () => {
@@ -347,36 +470,8 @@ const processOrder = async () => {
           }
       }
 
-      let userEmail = localStorage.getItem('user_email');
-      const userName = localStorage.getItem('user_name') || 'Invitado';
-      const userPhone = localStorage.getItem('user_phone') || '000-000-0000';
-      const tenantId = 1; 
-
-      if (!userEmail) {
-           console.warn("User email missing. Using fallback for record keeping.");
-           userEmail = "usuario_test@foodrush.com"; 
-      }
-
-      let clientId = null;
-      try {
-          const clientsResponse = await api.getClients({ correo: userEmail });
-          if (clientsResponse.success && clientsResponse.data.length > 0) {
-              clientId = clientsResponse.data[0].id; 
-          } else {
-              const newClientFn = await api.createClient({
-                  nombre: userName,
-                  correo: userEmail,
-                  telefono: userPhone,
-                  tenant_id: tenantId
-              });
-              if (newClientFn && newClientFn.id) clientId = newClientFn.id;
-              else if (newClientFn.success && newClientFn.data) clientId = newClientFn.data.id;
-          }
-      } catch (clientErr) {
-          console.warn("Client resolve error", clientErr);
-      }
-
-      if (!clientId) clientId = 1; 
+      const identity = resolveUserIdentity();
+      const clientId = (await resolveClientId(identity)) || 1;
 
       const methodMap = {
           'cash': 'Efectivo',
@@ -387,28 +482,69 @@ const processOrder = async () => {
       const orderPayload = {
           cliente_id: clientId,
           total: total.value,
-          direccion_entrega: addressDetails.value,
+          tenant_id: resolveTenantId(),
+          direccion_entrega: currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value,
           notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}. Instrucciones: ${instructionsText.value}`,
           estado_id: 1, // Pendiente
-          items: cartItems.value.map(i => ({ ...i, price: Number(i.price), qty: Number(i.qty) })),
+          items: cartItems.value.map(i => ({
+            ...i,
+            price: Number(i.price),
+            qty: Number(i.qty),
+            nombre: i.name,
+            detalles: i.details,
+            tenant_id: i.tenantId || resolveTenantId()
+          })),
           metodo_pago: paymentMethod.value
       };
 
-      const orderParams = await api.createOrder(orderPayload);
-      
-      if (orderParams.success) {
+      let finalOrder = null;
+      let usedLocalFallback = false;
+
+      try {
+          const orderParams = await api.createOrder(orderPayload);
+          if (orderParams.success && orderParams.data) {
+              finalOrder = saveCachedOrder(
+                {
+                  ...orderParams.data,
+                  items: orderParams.data.items || orderPayload.items,
+                  user_email: identity.email,
+                  user_name: identity.name,
+                  source: 'remote'
+                },
+                identity.email
+              );
+          } else {
+              throw new Error(orderParams.message || 'Error al crear la orden en el servidor');
+          }
+      } catch (serverError) {
+          console.warn('Falling back to local order storage', serverError);
+          usedLocalFallback = true;
+          finalOrder = saveCachedOrder(
+            buildLocalOrder({
+              orderPayload,
+              userEmail: identity.email,
+              userName: identity.name,
+              clientId,
+              paymentMethod: paymentMethod.value,
+              deliveryMode: currentMode.value
+            }),
+            identity.email
+          );
+      }
+
+      if (finalOrder) {
           Swal.fire({
               icon: 'success',
               title: paymentMethod.value === 'cash' ? '¡Pedido Confirmado!' : '¡Pago Procesado con Éxito!',
-              html: `Tu pedido <b>#${orderParams.data.id}</b> está siendo preparado.<br><br><span class="text-sm text-gray-500">Recibirás actualizaciones sobre el estado de tu entrega.</span>`,
+              html: `Tu pedido <b>#${finalOrder.id}</b> está siendo preparado.<br><br><span class="text-sm text-gray-500">${usedLocalFallback ? 'Quedó guardado localmente mientras el servidor termina de responder.' : 'Recibirás actualizaciones sobre el estado de tu entrega.'}</span>`,
               confirmButtonColor: '#BD0A0A',
               allowOutsideClick: false
           }).then(() => {
-              localStorage.removeItem('foodrush_cart');
-              router.push(`/tracking/${orderParams.data.id}`);
+              clearCart();
+              router.push(`/tracking/${finalOrder.id}`);
           });
       } else {
-          throw new Error(orderParams.message || 'Error al crear la orden en el servidor');
+          throw new Error('No se pudo registrar el pedido.');
       }
 
   } catch (e) {
@@ -525,21 +661,32 @@ watch(currentMode, (mode) => {
 });
 
 const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_email');
+    clearSession();
     userName.value = '';
     currentUserEmail.value = 'usuario_invitado';
     window.location.reload();
 };
 
-onMounted(async () => {
+const syncCheckoutSession = () => {
+  const session = getSession();
+  userName.value = session.userName || '';
+  currentUserEmail.value = session.userEmail || 'usuario_invitado';
+  if (session.userAddress) {
+    addressTitle.value = 'Direccion guardada';
+    addressDetails.value = session.userAddress;
+  } else {
+    addressTitle.value = 'Detectando ubicacion...';
+    addressDetails.value = 'Espere un momento';
+  }
   loadCart();
-  userName.value = localStorage.getItem('user_name');
-  currentUserEmail.value = localStorage.getItem('user_email') || 'usuario_invitado';
-  
-  // Intenta cargar métodos de pago guardados por usuario
   loadUserPaymentMethods();
+};
+
+onMounted(async () => {
+  syncCheckoutSession();
+  window.addEventListener(APP_EVENTS.cartChanged, loadCart);
+  window.addEventListener(APP_EVENTS.paymentsChanged, loadUserPaymentMethods);
+  window.addEventListener(APP_EVENTS.authChanged, syncCheckoutSession);
   
   try {
     leaflet = await ensureLeaflet();
@@ -551,6 +698,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener(APP_EVENTS.cartChanged, loadCart);
+  window.removeEventListener(APP_EVENTS.paymentsChanged, loadUserPaymentMethods);
+  window.removeEventListener(APP_EVENTS.authChanged, syncCheckoutSession);
   if (mapInstance) mapInstance.remove();
 });
 </script>
@@ -736,7 +886,9 @@ onBeforeUnmount(() => {
                   <span class="font-extrabold text-lg tracking-wide block leading-tight">
                     {{ paymentMethod === 'card' ? 'Tarjeta' : paymentMethod === 'paypal' ? 'PayPal' : 'Efectivo' }}
                   </span>
-                  <span v-if="paymentMethod === 'paypal'" class="text-xs text-blue-300 font-medium">{{ paypalEmail }}</span>
+                  <span v-if="paymentMethod === 'card' && hasSavedCard" class="text-xs text-blue-300 font-medium">{{ cardDisplay.number }}</span>
+                  <span v-else-if="paymentMethod === 'card'" class="text-xs text-blue-300 font-medium">Sin tarjeta guardada</span>
+                  <span v-else-if="paymentMethod === 'paypal'" class="text-xs text-blue-300 font-medium">{{ paypalEmail || savedPayPalAccount?.email }}</span>
                 </div>
               </div>
             </div>
@@ -792,7 +944,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="bg-white rounded-2xl p-6 shadow-sm">
-            <div v-if="!isCardSelected" class="text-center py-6">
+            <div v-if="paymentMethod === 'cash'" class="text-center py-6">
               <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-green-100">
                 <i class="fa-solid fa-hand-holding-dollar text-4xl text-green-500"></i>
               </div>
@@ -807,6 +959,29 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
+            <div v-else-if="paymentMethod === 'paypal'" class="text-center py-6">
+              <div class="w-20 h-20 bg-sky-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-sky-100">
+                <i class="fa-brands fa-paypal text-4xl text-sky-600"></i>
+              </div>
+              <h3 class="font-extrabold text-2xl text-slate-800 mb-2">PayPal Seleccionado</h3>
+              <p class="text-sm text-gray-500 mb-8 max-w-[300px] mx-auto leading-relaxed">
+                {{ savedPayPalAccount?.email || paypalEmail || 'No hay cuenta vinculada. Agrega una para continuar.' }}
+              </p>
+
+              <div class="mt-2 bg-slate-50 p-5 rounded-xl border border-gray-100">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="font-bold text-slate-500 text-sm uppercase tracking-wide">Total a cobrar</span>
+                  <span class="font-black text-2xl text-slate-800">${{ total.toFixed(2) }}</span>
+                </div>
+              </div>
+              <button
+                class="block w-full text-center text-sm text-red-600 font-bold mt-4 hover:bg-red-50 border border-transparent hover:border-red-100 py-3 rounded-xl transition-all duration-300"
+                @click="openPaymentModal"
+              >
+                Cambiar Metodo de Pago
+              </button>
+            </div>
+
             <div v-else>
               <h3 class="font-bold text-lg mb-4 text-center">Tarjeta Seleccionada</h3>
               <div class="credit-card-visual mb-4 shadow-xl border border-white/10 rounded-2xl">
@@ -815,7 +990,7 @@ onBeforeUnmount(() => {
                 <div class="relative z-10">
                   <div class="flex justify-between items-center mb-8">
                     <i class="fa-solid fa-microchip text-2xl opacity-80 text-yellow-400"></i>
-                    <i class="fa-brands fa-cc-visa text-4xl opacity-90"></i>
+                    <i :class="[cardDisplay.icon || 'fa-regular fa-credit-card text-white', 'text-4xl opacity-90']"></i>
                   </div>
                   <div class="mb-5">
                     <p class="text-[10px] opacity-60 uppercase tracking-widest font-semibold mb-1">Card Number</p>
@@ -841,7 +1016,7 @@ onBeforeUnmount(() => {
               </div>
               <button
                 class="block w-full text-center text-sm text-red-600 font-bold mt-4 hover:bg-red-50 border border-transparent hover:border-red-100 py-3 rounded-xl transition-all duration-300"
-                @click="openChangeCardModal"
+                @click="openPaymentModal"
               >
                 Cambiar Método de Pago
               </button>
@@ -898,13 +1073,16 @@ onBeforeUnmount(() => {
           </div>
           <div
             class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
-            @click="openCardForm(false)"
+            @click="selectCard(false)"
           >
             <div class="flex items-center gap-4">
               <div class="w-10 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-700">
                 <i class="fa-regular fa-credit-card"></i>
               </div>
-              <span class="font-bold text-slate-700">Tarjeta de crédito</span>
+              <div>
+                <span class="font-bold text-slate-700 block">Tarjeta</span>
+                <span class="text-xs text-slate-400">{{ hasSavedCard ? (savedCard?.number || cardDisplay.number) : 'No tienes tarjeta guardada' }}</span>
+              </div>
             </div>
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
@@ -916,7 +1094,10 @@ onBeforeUnmount(() => {
               <div class="w-10 h-8 bg-blue-50 rounded flex items-center justify-center text-blue-600">
                 <i class="fa-brands fa-paypal"></i>
               </div>
-              <span class="font-bold text-slate-700">PayPal</span>
+              <div>
+                <span class="font-bold text-slate-700 block">PayPal</span>
+                <span class="text-xs text-slate-400">{{ hasSavedPayPal ? (savedPayPalAccount?.email || paypalEmail) : 'Vincular cuenta PayPal' }}</span>
+              </div>
             </div>
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
@@ -924,7 +1105,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-if="showChangeCardModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 fade-in">
+    <div v-if="false && showChangeCardModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 fade-in">
       <div class="bg-white rounded-2xl w-full max-w-md p-6 relative">
         <button class="absolute top-4 right-4 text-gray-400 hover:text-black" @click="closeModal('change')">
           <i class="fa-solid fa-xmark text-xl"></i>
@@ -947,13 +1128,16 @@ onBeforeUnmount(() => {
           </div>
           <div
             class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
-            @click="openCardForm(true)"
+            @click="selectCard(false)"
           >
             <div class="flex items-center gap-4">
               <div class="w-10 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-700">
                 <i class="fa-regular fa-credit-card"></i>
               </div>
-              <span class="font-bold text-slate-700">Nueva Tarjeta</span>
+              <div>
+                <span class="font-bold text-slate-700 block">{{ hasSavedCard ? 'Tarjeta guardada' : 'Agregar tarjeta' }}</span>
+                <span class="text-xs text-slate-400">{{ hasSavedCard ? cardDisplay.number : 'No tienes tarjeta guardada' }}</span>
+              </div>
             </div>
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
@@ -965,9 +1149,56 @@ onBeforeUnmount(() => {
               <div class="w-10 h-8 bg-blue-50 rounded flex items-center justify-center text-blue-600">
                 <i class="fa-brands fa-paypal"></i>
               </div>
-              <span class="font-bold text-slate-700">PayPal</span>
+              <div>
+                <span class="font-bold text-slate-700 block">PayPal</span>
+                <span class="text-xs text-slate-400">{{ hasSavedPayPal ? (savedPayPalAccount?.email || paypalEmail) : 'Vincular cuenta PayPal' }}</span>
+              </div>
             </div>
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showChangeCardModal" class="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4 fade-in">
+      <div class="bg-white rounded-2xl w-full max-w-md p-6 relative">
+        <button class="absolute top-4 right-4 text-gray-400 hover:text-black" @click="closeModal('change')">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <div class="mb-6">
+          <h3 class="text-xl font-bold">Tarjetas</h3>
+        </div>
+        <div class="space-y-2">
+          <div
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectCard(true)"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-slate-100 rounded flex items-center justify-center text-slate-700">
+                <i class="fa-regular fa-credit-card"></i>
+              </div>
+              <span class="font-bold text-slate-700">{{ hasSavedCard ? 'Agregar otra tarjeta' : 'Agregar tarjeta' }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div
+            v-if="hasSavedCard"
+            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            @click="selectStoredCard"
+          >
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-8 bg-emerald-50 rounded flex items-center justify-center text-emerald-600">
+                <i :class="savedCard?.icon || 'fa-regular fa-credit-card'"></i>
+              </div>
+              <div>
+                <span class="font-bold text-slate-700 block">{{ savedCard?.type || 'Tarjeta guardada' }}</span>
+                <span class="text-xs text-slate-400">{{ savedCard?.number || cardDisplay.number }}</span>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+          </div>
+          <div v-else class="p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50 text-center text-sm text-gray-500">
+            Todavia no tienes una tarjeta guardada.
           </div>
         </div>
       </div>

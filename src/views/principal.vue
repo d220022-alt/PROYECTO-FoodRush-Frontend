@@ -1,34 +1,159 @@
+<script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+const route = useRoute();
+const router = useRouter();
+const isScrolled = ref(false);
+const isMobileMenuOpen = ref(false);
+
+const navItems = [
+    { path: '/terms', label: 'Terminos' },
+    { path: '/support', label: 'Soporte' },
+    { path: '/about', label: 'Nosotros' },
+    { path: '/affiliate', label: 'Afiliate' }
+];
+
+const handleScroll = () => {
+    isScrolled.value = window.scrollY > 36;
+};
+
+const isSolid = computed(() => isScrolled.value || isMobileMenuOpen.value);
+
+const desktopLinkClasses = (path) => [
+    'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out',
+    route.path === path
+        ? isSolid.value
+            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+            : 'bg-white/14 text-white ring-1 ring-white/20 backdrop-blur-md'
+        : isSolid.value
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            : 'text-white/85 hover:bg-white/10 hover:text-white'
+];
+
+const mobileLinkClasses = (path) => [
+    'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
+    route.path === path
+        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+];
+
+const navigate = (path) => {
+    if (route.path === path) {
+        isMobileMenuOpen.value = false;
+        return;
+    }
+
+    const go = () => router.push(path);
+
+    if (typeof document !== 'undefined' && typeof document.startViewTransition === 'function') {
+        document.startViewTransition(go);
+    } else {
+        go();
+    }
+
+    isMobileMenuOpen.value = false;
+};
+
+const goHome = () => navigate('/');
+
+onMounted(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    handleScroll();
+    window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
+});
+</script>
+
 <template>
 <div class="font-sans antialiased bg-gray-50 overflow-x-hidden flex flex-col min-h-screen">
 
-
-    <div class="bg-accent text-center py-2 text-sm font-bold tracking-widest uppercase relative z-50">
-        ¡Tu Gusto Nuestra Felicidad!
-    </div>
-
-    <nav id="navbar" class="fixed w-full z-50 transition-all duration-300 py-4 bg-transparent text-white top-8">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4">
-            <a href="#" class="flex items-center space-x-3 rtl:space-x-reverse group">
-                <i class="fas fa-bolt text-3xl text-primary animate-pulse"></i>
-                <span id="brand-text" class="self-center text-2xl font-extrabold whitespace-nowrap transition-colors">FOODRUSH</span>
+    <nav
+        :class="[
+            'fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ease-out',
+            isSolid
+                ? 'border-gray-200 bg-white/92 py-3 shadow-xl shadow-slate-200/50 backdrop-blur-xl'
+                : 'border-transparent bg-transparent py-5 md:py-6',
+        ]"
+    >
+        <div class="mx-auto flex max-w-screen-2xl items-center justify-between px-4 md:px-12 lg:px-16">
+            <a href="/" class="group z-50 flex items-center gap-3" @click.prevent="goHome">
+                <i
+                    :class="[
+                        'fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
+                        isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]',
+                    ]"
+                ></i>
+                <span
+                    :class="[
+                        'text-xl font-extrabold tracking-wide transition-colors duration-300 md:text-2xl',
+                        isSolid ? 'text-slate-900' : 'text-white',
+                    ]"
+                >
+                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
+                </span>
             </a>
-            
-            <div class="flex md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
-                <button data-modal-target="login-modal" data-modal-toggle="login-modal" class="text-white bg-primary hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm px-6 py-2 text-center shadow-lg transform hover:scale-105 transition-transform">
-                    Iniciar Sesión
-                </button>
-                <button data-collapse-toggle="navbar-sticky" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm rounded-lg md:hidden hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-gray-200 text-current" aria-controls="navbar-sticky" aria-expanded="false">
-                    <span class="sr-only">Abrir menú</span>
-                    <i class="fas fa-bars text-xl"></i>
+
+            <div class="hidden items-center gap-3 md:flex">
+                <a
+                    v-for="item in navItems"
+                    :key="item.path"
+                    :href="item.path"
+                    :class="desktopLinkClasses(item.path)"
+                    @click.prevent="navigate(item.path)"
+                >
+                    {{ item.label }}
+                </a>
+
+                <button
+                    type="button"
+                    class="ml-3 inline-flex items-center gap-2 rounded-full bg-[#0f172a] px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-black"
+                    @click="goHome"
+                >
+                    <i class="fa-solid fa-house text-xs"></i>
+                    Menu
                 </button>
             </div>
 
-            <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-sticky">
-                <ul class="flex flex-col p-4 md:p-0 mt-4 font-medium border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-transparent">
-                    <li><a href="#" class="block py-2 px-3 text-current hover:text-primary md:p-0 font-bold border-b-2 border-transparent hover:border-primary transition-all">Inicio</a></li>
-                    <li><a href="#marcas" class="block py-2 px-3 text-current hover:text-primary md:p-0 transition-all">Marcas</a></li>
-                    <li><a href="/about" class="block py-2 px-3 text-current hover:text-primary md:p-0 transition-all">Nosotros</a></li>
-                </ul>
+            <button
+                type="button"
+                class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
+                :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
+                aria-label="Abrir menu"
+                @click="isMobileMenuOpen = !isMobileMenuOpen"
+            >
+                <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
+            </button>
+        </div>
+
+        <div
+            :class="[
+                'overflow-hidden border-t border-transparent bg-white/98 backdrop-blur-xl transition-all duration-300 ease-out md:hidden',
+                isMobileMenuOpen ? 'max-h-96 border-gray-100 shadow-xl' : 'max-h-0',
+            ]"
+        >
+            <div class="mx-auto flex max-w-screen-2xl flex-col gap-3 px-4 py-4">
+                <a
+                    v-for="item in navItems"
+                    :key="`${item.path}-mobile`"
+                    :href="item.path"
+                    :class="mobileLinkClasses(item.path)"
+                    @click.prevent="navigate(item.path)"
+                >
+                    {{ item.label }}
+                </a>
+
+                <button
+                    type="button"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700"
+                    @click="goHome"
+                >
+                    <i class="fa-solid fa-house text-xs"></i>
+                    Ir al menu principal
+                </button>
             </div>
         </div>
     </nav>
@@ -152,17 +277,17 @@
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="#faq" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
-                        <li><a href="soporte.html" class="hover:text-white hover:underline">Soporte</a></li>
-                        <li><a @click.prevent="$router.push('/terms')" class="hover:text-white hover:underline cursor-pointer">Términos</a></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline">Preguntas Frecuentes</router-link></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline">Soporte</router-link></li>
+                        <li><router-link to="/terms" class="hover:text-white hover:underline">Términos</router-link></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Empresa</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="#" class="hover:text-white hover:underline">Sobre Nosotros</a></li>
+                        <li><router-link to="/about" class="hover:text-white hover:underline">Sobre Nosotros</router-link></li>
                         <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline">Afíliate</a></li>
+                        <li><router-link to="/affiliate" class="hover:text-white hover:underline">Afíliate</router-link></li>
                     </ul>
                 </div>
             </div>
@@ -202,29 +327,6 @@
             </div>
         </div>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.0/flowbite.min.js"></script>
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        // Iniciar Animaciones
-        AOS.init({ duration: 800, once: true });
-
-        // Corrección del Menú en Scroll
-        window.addEventListener('scroll', function() {
-            const nav = document.getElementById('navbar');
-            
-            // Si baja más de 50px
-            if (window.scrollY > 50) {
-                // Quitar transparencia y poner blanco con sombra
-                nav.classList.remove('bg-transparent', 'text-white', 'top-8');
-                nav.classList.add('bg-white', 'text-gray-800', 'shadow-md', 'top-0');
-            } else {
-                // Volver a estado transparente original
-                nav.classList.add('bg-transparent', 'text-white', 'top-8');
-                nav.classList.remove('bg-white', 'text-gray-800', 'shadow-md', 'top-0');
-            }
-        });
-    </script>
 
 </div>
 </template>

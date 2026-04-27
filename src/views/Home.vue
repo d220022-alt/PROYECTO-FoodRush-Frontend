@@ -2,6 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
+import { APP_EVENTS, clearSession, getCartCount, getSession } from '../services/storage';
 
 // Image Imports
 import heroBg from '@/assets/images/hero-bg.png';
@@ -29,17 +30,16 @@ const searchTerm = ref('');
 const currentCategory = ref('all');
 
 const router = useRouter();
-const userName = ref(localStorage.getItem('user_name') || '');
+const userName = ref(getSession().userName || '');
 
 // Cart State
 const cartCount = ref(0);
 const updateCartCount = () => {
-    try {
-        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-        cartCount.value = cart.reduce((acc, item) => acc + item.quantity, 0);
-    } catch {
-        cartCount.value = 0;
-    }
+    cartCount.value = getCartCount();
+};
+const syncSessionState = () => {
+    userName.value = getSession().userName || '';
+    updateCartCount();
 };
 
 // Carousel
@@ -61,8 +61,7 @@ const showFilters = ref(false);
 const sortType = ref('sugeridos');
 const activeFilters = ref([]);
 const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_name');
+    clearSession();
     userName.value = '';
     window.location.reload();
 };
@@ -85,13 +84,24 @@ const franchiseMetadata = {
     "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
 };
 
+const buildFallbackFranchises = () =>
+    Object.entries(franchiseMetadata).map(([name, meta], index) => ({
+        id: index + 1,
+        name,
+        category: meta.category || 'General',
+        rating: meta.rating || 4,
+        img: meta.img || "https://via.placeholder.com/150",
+        pickup: meta.pickup !== undefined ? meta.pickup : true,
+        promo: meta.promo !== undefined ? meta.promo : false
+    }));
+
 const fetchFranchises = async () => {
     loading.value = true;
     error.value = null;
     try {
         const response = await api.getFranchises();
         const rawData = response.data || [];
-        franchises.value = rawData
+        const mappedFranchises = rawData
             .filter(tenant => franchiseMetadata[tenant.nombre])
             .map(tenant => {
                 const meta = franchiseMetadata[tenant.nombre];
@@ -105,41 +115,32 @@ const fetchFranchises = async () => {
                     promo: meta.promo !== undefined ? meta.promo : false
                 };
             });
+
+        franchises.value = mappedFranchises.length > 0 ? mappedFranchises : buildFallbackFranchises();
     } catch (err) {
-        console.error(err);
-        error.value = err.message || 'Error al cargar restaurantes';
+        console.warn('Falling back to local franchises list', err);
+        franchises.value = buildFallbackFranchises();
     } finally {
         loading.value = false;
     }
 };
 
-const checkBackend = async () => {
-    try {
-        await api.request('/api/health');
-        return true;
-    } catch (e) {
-        console.warn('Backend check failed:', e);
-        return false;
-    }
-};
-
 onMounted(async () => {
+    syncSessionState();
     updateCartCount();
     window.addEventListener('storage', updateCartCount);
-    
-    const isOnline = await checkBackend();
-    if (!isOnline) {
-        error.value = 'No se puede conectar con el servidor.';
-        loading.value = false;
-        return;
-    }
-    fetchFranchises();
+    window.addEventListener(APP_EVENTS.cartChanged, updateCartCount);
+    window.addEventListener(APP_EVENTS.authChanged, syncSessionState);
+
+    await fetchFranchises();
     startCarousel();
 });
 
 onBeforeUnmount(() => {
     clearInterval(carouselInterval);
     window.removeEventListener('storage', updateCartCount);
+    window.removeEventListener(APP_EVENTS.cartChanged, updateCartCount);
+    window.removeEventListener(APP_EVENTS.authChanged, syncSessionState);
 });
 
 const setCategory = (category) => {
@@ -345,8 +346,9 @@ const scrollToSection = (id) => {
         </div>
 
         <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            <div v-for="item in filteredFranchises" :key="item.id"
+            <div v-for="(item, idx) in filteredFranchises" :key="item.id"
                  class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in"
+                 :style="{ animationDelay: `${Math.min(idx, 10) * 55}ms` }"
                  @click="goToFranchise(item.id, item.name)">
                 
                 <span v-if="item.promo" class="absolute top-3 right-3 bg-accent text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-bold shadow-sm z-10">Promo</span>
