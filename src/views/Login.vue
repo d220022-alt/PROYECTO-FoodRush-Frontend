@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 import { setSessionFromAuth } from '../services/storage';
+import { getPortalRouteByEmail } from '../utils/portalRouting';
 
 const router = useRouter();
 
@@ -17,6 +18,30 @@ const termsAccepted = ref(false);
 const loginError = ref('');
 const registerError = ref('');
 const isSubmitting = ref(false);
+
+const redirectToPortal = (email) => {
+    router.replace(getPortalRouteByEmail(email));
+};
+
+const registerWebSession = async (session) => {
+    if (!session?.userId) return;
+
+    try {
+        await api.createResource(
+            'sesionesusuarios',
+            {
+                usuario_id: session.userId,
+                token: session.token || null,
+                expiracion: new Date(Date.now() + (4 * 60 * 60 * 1000)).toISOString()
+            },
+            {
+                'X-Tenant-ID': String(session.tenantId || 1)
+            }
+        );
+    } catch (error) {
+        console.warn('No se pudo registrar la sesion web', error);
+    }
+};
 
 const goToTerms = () => {
     localStorage.setItem('register_draft', JSON.stringify({
@@ -84,8 +109,9 @@ const handleLogin = async () => {
     try {
         const response = await api.login(email, password);
         if (response.success) {
-            setSessionFromAuth({ ...response, email, userEmail: email });
-            router.push('/');
+            const session = setSessionFromAuth({ ...response, email, userEmail: email });
+            await registerWebSession(session);
+            redirectToPortal(session.userEmail || email);
         } else {
             loginError.value = response.message || 'Error al iniciar sesión';
         }
@@ -129,16 +155,18 @@ const handleRegister = async () => {
 
         if (registerRes?.success && registerRes?.user && registerRes?.token) {
             localStorage.removeItem('register_draft');
-            setSessionFromAuth({ ...registerRes, email, userEmail: email });
-            router.push('/');
+            const session = setSessionFromAuth({ ...registerRes, email, userEmail: email });
+            await registerWebSession(session);
+            redirectToPortal(session.userEmail || email);
             return;
         }
 
         const loginRes = await api.login(email, password);
         if (loginRes.success) {
             localStorage.removeItem('register_draft');
-            setSessionFromAuth({ ...loginRes, email, userEmail: email });
-            router.push('/');
+            const session = setSessionFromAuth({ ...loginRes, email, userEmail: email });
+            await registerWebSession(session);
+            redirectToPortal(session.userEmail || email);
         } else {
             alert('Registro exitoso. Por favor inicia sesión.');
             togglePanel(false);

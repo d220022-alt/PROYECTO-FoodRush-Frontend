@@ -366,6 +366,10 @@ const resolveTenantId = () => {
   return Number.parseInt(firstTenant, 10) || 1;
 };
 
+const resolveTenantHeaders = () => ({
+  'X-Tenant-ID': String(resolveTenantId()),
+});
+
 const resolveUserIdentity = () => {
   const session = getSession();
 
@@ -383,7 +387,8 @@ const resolveClientId = async (identity) => {
   }
 
   try {
-    const clientsResponse = await api.getClients({ correo: identity.email });
+    const tenantHeaders = resolveTenantHeaders();
+    const clientsResponse = await api.getClients({ correo: identity.email }, tenantHeaders);
     if (clientsResponse.success && clientsResponse.data.length > 0) {
       const foundClientId = clientsResponse.data[0].id;
       setLastClientId(identity.email, foundClientId);
@@ -395,7 +400,7 @@ const resolveClientId = async (identity) => {
       correo: identity.email,
       telefono: identity.phone,
       tenant_id: resolveTenantId(),
-    });
+    }, tenantHeaders);
 
     const createdClientId = newClientResponse?.data?.id || newClientResponse?.id || null;
     if (createdClientId) {
@@ -407,6 +412,40 @@ const resolveClientId = async (identity) => {
   }
 
   return cachedClientId || null;
+};
+
+const resolveRemoteOrderItems = async () => {
+  const tenantHeaders = resolveTenantHeaders();
+  const productsResponse = await api.getProducts({ limit: 300 }, tenantHeaders);
+
+  if (productsResponse?.success === false) {
+    throw new Error(productsResponse.message || 'No se pudo validar el catalogo del restaurante.');
+  }
+
+  const remoteProducts = Array.isArray(productsResponse?.data) ? productsResponse.data : [];
+  const productsById = new Map(remoteProducts.map((product) => [String(product.id), product]));
+
+  const missingItems = cartItems.value.filter((item) => !productsById.has(String(item.id)));
+  if (missingItems.length > 0) {
+    throw new Error(
+      `Hay productos que no existen en el backend: ${missingItems.map((item) => item.name).join(', ')}.`,
+    );
+  }
+
+  return cartItems.value.map((item) => {
+    const remoteProduct = productsById.get(String(item.id));
+    const remotePrice = Number.parseFloat(remoteProduct?.precio ?? remoteProduct?.price ?? item.price);
+
+    return {
+      ...item,
+      id: remoteProduct?.id ?? item.id,
+      price: Number.isFinite(remotePrice) ? remotePrice : Number(item.price),
+      qty: Number(item.qty),
+      nombre: remoteProduct?.nombre || remoteProduct?.name || item.name,
+      detalles: item.details,
+      tenant_id: item.tenantId || resolveTenantId(),
+    };
+  });
 };
 
 const processOrder = async () => {
@@ -472,6 +511,12 @@ const processOrder = async () => {
 
       const identity = resolveUserIdentity();
       const clientId = (await resolveClientId(identity)) || 1;
+      const syncedItems = await resolveRemoteOrderItems();
+      const syncedSubtotal = syncedItems.reduce(
+        (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+        0,
+      );
+      const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
 
       const methodMap = {
           'cash': 'Efectivo',
@@ -481,19 +526,12 @@ const processOrder = async () => {
 
       const orderPayload = {
           cliente_id: clientId,
-          total: total.value,
+          total: syncedTotal,
           tenant_id: resolveTenantId(),
           direccion_entrega: currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value,
           notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}. Instrucciones: ${instructionsText.value}`,
           estado_id: 1, // Pendiente
-          items: cartItems.value.map(i => ({
-            ...i,
-            price: Number(i.price),
-            qty: Number(i.qty),
-            nombre: i.name,
-            detalles: i.details,
-            tenant_id: i.tenantId || resolveTenantId()
-          })),
+          items: syncedItems,
           metodo_pago: paymentMethod.value
       };
 
@@ -501,7 +539,7 @@ const processOrder = async () => {
       let usedLocalFallback = false;
 
       try {
-          const orderParams = await api.createOrder(orderPayload);
+          const orderParams = await api.createOrder(orderPayload, resolveTenantHeaders());
           if (orderParams.success && orderParams.data) {
               finalOrder = saveCachedOrder(
                 {

@@ -879,24 +879,14 @@ const fetchProducts = async () => {
   try {
     isLoading.value = true;
     fetchError.value = false;
-
-    // Load mock products explicitly for the current franchise
-    const franchiseMockData = mockProducts.filter(p => p.tenantId === franchise.value.tenantId || p.franchiseSlug === franchise.value.slug);
-    
-    // Attempt real API fetch but merge with mock data to guarantee 20 diverse items
-    let rawData = [];
-    try {
-        const response = await api.getProducts(
-          { limit: 200 },
-          { 'X-Tenant-ID': franchise.value.tenantId },
-        );
-        if (response?.success !== false) {
-           rawData = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
-        }
-    } catch(e) { /* ignore api error, use fake data entirely */ }
-
-    // Always merge mock data to ensure we hit the 20 minimum
-    rawData = [...rawData, ...franchiseMockData];
+    const response = await api.getProducts(
+      { limit: 200 },
+      { 'X-Tenant-ID': franchise.value.tenantId },
+    );
+    const rawData =
+      response?.success !== false
+        ? (Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []))
+        : [];
 
     const parsed = rawData.map((product, index) => parseProduct(product, index)).filter(Boolean);
     const deduped = [];
@@ -908,11 +898,11 @@ const fetchProducts = async () => {
       deduped.push(item);
     });
 
-    products.value = deduped.length > 0 ? deduped : getDefaultProducts();
+    products.value = deduped;
     syncCategory();
   } catch (error) {
     console.error(`Error loading ${franchise.value.name} products`, error);
-    products.value = getDefaultProducts();
+    products.value = [];
     fetchError.value = true;
     syncCategory();
   } finally {

@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   authToken: 'auth_token',
   userId: 'user_id',
+  userTenantId: 'user_tenant_id',
   userName: 'user_name',
   userEmail: 'user_email',
   userPhone: 'user_phone',
@@ -269,6 +270,7 @@ export const getSession = () => {
     return {
       token: '',
       userId: '',
+      tenantId: '',
       userName: '',
       userEmail: '',
       userPhone: '',
@@ -281,6 +283,7 @@ export const getSession = () => {
   const session = {
     token: safeString(storage.getItem(STORAGE_KEYS.authToken)),
     userId: safeString(storage.getItem(STORAGE_KEYS.userId)),
+    tenantId: safeString(storage.getItem(STORAGE_KEYS.userTenantId)),
     userName: safeString(storage.getItem(STORAGE_KEYS.userName)),
     userEmail: safeString(storage.getItem(STORAGE_KEYS.userEmail)),
     userPhone: safeString(storage.getItem(STORAGE_KEYS.userPhone)),
@@ -309,6 +312,7 @@ export const setSessionFromAuth = (authResult = {}) => {
 
   const profileMap = [
     [STORAGE_KEYS.userId, user.id ?? user.user_id ?? user.usuario_id ?? user.cliente_id ?? authResult.userId],
+    [STORAGE_KEYS.userTenantId, user.tenant_id ?? user.tenantId ?? authResult.tenantId],
     [STORAGE_KEYS.userName, user.nombre ?? user.name ?? user.username ?? authResult.userName],
     [STORAGE_KEYS.userEmail, user.correo ?? user.email ?? user.mail ?? authResult.userEmail ?? authResult.email],
     [STORAGE_KEYS.userPhone, user.telefono ?? user.phone ?? user.celular ?? authResult.userPhone],
@@ -338,6 +342,7 @@ export const updateSessionProfile = (profile = {}) => {
 
   const updates = [
     [STORAGE_KEYS.userName, profile.nombre ?? profile.name],
+    [STORAGE_KEYS.userTenantId, profile.tenant_id ?? profile.tenantId],
     [STORAGE_KEYS.userEmail, profile.correo ?? profile.email],
     [STORAGE_KEYS.userPhone, profile.telefono ?? profile.phone],
     [STORAGE_KEYS.userAddress, profile.direccion ?? profile.address],
@@ -360,6 +365,7 @@ export const clearSession = () => {
   Object.values({
     authToken: STORAGE_KEYS.authToken,
     userId: STORAGE_KEYS.userId,
+    tenantId: STORAGE_KEYS.userTenantId,
     userName: STORAGE_KEYS.userName,
     userEmail: STORAGE_KEYS.userEmail,
     userPhone: STORAGE_KEYS.userPhone,

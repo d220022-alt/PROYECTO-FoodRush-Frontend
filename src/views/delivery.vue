@@ -1,100 +1,31 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import { api } from '../services/api';
+import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset } from '../services/operations';
+import { clearSession, getSession } from '../services/storage';
 
-const STORAGE_KEY = 'FoodRush_V8_Final';
+const STORAGE_KEY = 'FoodRush_Delivery_Real_V2';
 const TUTORIAL_KEY = 'FoodRush_Tutorial_Final';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+const coordsSantiago = [19.4517, -70.697];
 
 const onboardingSteps = [
-    {
-        number: 1,
-        badgeClass: 'bg-[#ffedd5] text-[#ea580c]',
-        title: 'Eres tu propio jefe',
-        description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.'
-    },
-    {
-        number: 2,
-        badgeClass: 'bg-blue-100 text-blue-600',
-        title: 'Iniciar Turno',
-        description: 'Para empezar a recibir viajes, ve a la pestaña <b>Perfil</b> y presiona el botón verde de "INICIAR TURNO".'
-    },
-    {
-        number: 3,
-        badgeClass: 'bg-slate-200 text-slate-600',
-        title: 'Días libres y ausencias',
-        description: 'Si pasas un día entero sin trabajar, la app te enviará una notificación preguntando por qué. Es solo para saber que estás bien, <b>no hay penalizaciones</b>.'
-    },
-    {
-        number: 4,
-        badgeClass: 'bg-[#eab308] text-white',
-        title: 'Pantalla de Viajes',
-        description: 'Ve a la pestaña de <b>Viajes</b>. Aquí irán apareciendo los pedidos de comida cercanos a ti.'
-    },
-    {
-        number: 5,
-        badgeClass: 'bg-[#f97316] text-white',
-        title: 'Aceptar un Pedido',
-        description: 'Revisa cuánto te pagarán y a dónde va el pedido. Si te conviene, presiona <b>"ACEPTAR VIAJE"</b> rápido antes que otro repartidor.'
-    },
-    {
-        number: 6,
-        badgeClass: 'bg-slate-800 text-white',
-        title: 'Mapa hacia el Local',
-        description: 'Al aceptar, aparecerá un mapa inteligente. Sigue la ruta naranja hasta el restaurante y al llegar presiona <b>"LLEGUÉ AL LOCAL"</b>.'
-    },
-    {
-        number: 7,
-        badgeClass: 'bg-orange-400 text-white',
-        title: 'Recoger Comida',
-        description: 'Dale tu número de orden al cajero. Cuando te entreguen la mochila, presiona <b>"¡RECIBÍ COMIDA!"</b>.'
-    },
-    {
-        number: 8,
-        badgeClass: 'bg-green-400 text-white',
-        title: 'Ruta al Cliente',
-        description: 'El mapa cambiará para guiarte a la casa del cliente. Conduce con cuidado siguiendo la ruta verde.'
-    },
-    {
-        number: 9,
-        badgeClass: 'bg-purple-500 text-white',
-        title: 'Evidencia Fotográfica',
-        description: 'Al entregar, la app te exigirá abrir tu cámara. <b>Debes tomar una foto</b> del paquete en la puerta del cliente para comprobar la entrega.'
-    },
-    {
-        number: 10,
-        badgeClass: 'bg-[#22c55e] text-white',
-        title: 'Recibe tu Pago',
-        description: 'Tan pronto envíes la foto, el costo del viaje y las propinas se sumarán automáticamente a tu cuenta.'
-    },
-    {
-        number: 11,
-        badgeClass: 'bg-blue-400 text-white',
-        title: 'Wallet y Retiros',
-        description: 'En la pestaña <b>Wallet</b> verás tu dinero acumulado. Usa el botón "Retirar Dinero" para enviarlo a tu banco cuando quieras.'
-    },
-    {
-        number: 12,
-        badgeClass: 'bg-[#ef4444] text-white',
-        title: 'Emergencias (SOS)',
-        description: 'Si tienes un accidente, asalto o duda, ve a tu Perfil y abre el <b>Centro de Ayuda</b> o usa el botón rojo de <b>Emergencia SOS</b>.'
-    }
+    { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
+    { number: 2, badgeClass: 'bg-blue-100 text-blue-600', title: 'Iniciar Turno', description: 'Para empezar a recibir viajes, ve a la pestaña <b>Perfil</b> y presiona el botón verde de "INICIAR TURNO".' },
+    { number: 3, badgeClass: 'bg-slate-200 text-slate-600', title: 'Días libres y ausencias', description: 'Si pasas un día entero sin trabajar, la app te enviará una notificación preguntando por qué. Es solo para saber que estás bien, <b>no hay penalizaciones</b>.' },
+    { number: 4, badgeClass: 'bg-[#eab308] text-white', title: 'Pantalla de Viajes', description: 'Ve a la pestaña de <b>Viajes</b>. Aquí irán apareciendo los pedidos de comida cercanos a ti.' },
+    { number: 5, badgeClass: 'bg-[#f97316] text-white', title: 'Aceptar un Pedido', description: 'Revisa cuánto te pagarán y a dónde va el pedido. Si te conviene, presiona <b>"ACEPTAR VIAJE"</b> rápido antes que otro repartidor.' },
+    { number: 6, badgeClass: 'bg-slate-800 text-white', title: 'Mapa hacia el Local', description: 'Al aceptar, aparecerá un mapa inteligente. Sigue la ruta naranja hasta el restaurante y al llegar presiona <b>"LLEGUÉ AL LOCAL"</b>.' },
+    { number: 7, badgeClass: 'bg-orange-400 text-white', title: 'Recoger Comida', description: 'Dale tu número de orden al cajero. Cuando te entreguen la mochila, presiona <b>"¡RECIBÍ COMIDA!"</b>.' },
+    { number: 8, badgeClass: 'bg-green-400 text-white', title: 'Ruta al Cliente', description: 'El mapa cambiará para guiarte a la casa del cliente. Conduce con cuidado siguiendo la ruta verde.' },
+    { number: 9, badgeClass: 'bg-purple-500 text-white', title: 'Evidencia Fotográfica', description: 'Al entregar, la app te exigirá abrir tu cámara. <b>Debes tomar una foto</b> del paquete en la puerta del cliente para comprobar la entrega.' },
+    { number: 10, badgeClass: 'bg-[#22c55e] text-white', title: 'Recibe tu Pago', description: 'Tan pronto envíes la foto, el costo del viaje y las propinas se sumarán automáticamente a tu cuenta.' },
+    { number: 11, badgeClass: 'bg-blue-400 text-white', title: 'Wallet y Retiros', description: 'En la pestaña <b>Wallet</b> verás tu dinero acumulado. Usa el botón "Retirar Dinero" para enviarlo a tu banco cuando quieras.' },
+    { number: 12, badgeClass: 'bg-[#ef4444] text-white', title: 'Emergencias (SOS)', description: 'Si tienes un accidente, asalto o duda, ve a tu Perfil y abre el <b>Centro de Ayuda</b> o usa el botón rojo de <b>Emergencia SOS</b>.' },
 ];
-
-const tenantOptions = [
-    { value: 'Global', label: '🍔 Simular Servidor: Todas las Tiendas' },
-    { value: 'BurgerKing', label: '🍔 Simular Servidor: Burger King' },
-    { value: 'PizzaHut', label: '🍕 Simular Servidor: Pizza Hut' }
-];
-
-const franchises = [
-    { id: 'BurgerKing', name: 'Burger King', emoji: '🍔', items: '2x Whopper', color: 'bg-orange-100 text-orange-600' },
-    { id: 'PizzaHut', name: 'Pizza Hut', emoji: '🍕', items: '1x Familiar', color: 'bg-red-100 text-red-600' }
-];
-
-const streets = ['Villa Olga', 'Los Jardines', 'Cerros de Gurabo', 'Centro Histórico'];
-const coordsSantiago = [19.4517, -70.697];
 
 const defaultState = () => ({
     status: 'offline',
@@ -106,12 +37,18 @@ const defaultState = () => ({
     tips: 0,
     trips: 0,
     tenant: 'Global',
-    availableOrders: [],
+    dismissedOrderIds: [],
+    activeOrderId: '',
+    activeStage: '',
     activeOrder: null,
-    history: []
+    availableOrders: [],
+    history: [],
 });
 
+const session = getSession();
+const router = useRouter();
 const state = reactive(defaultState());
+const data = ref({ tenants: [], orders: [], warnings: [], connectedUsers: [], sessions: [] });
 const currentView = ref('orders');
 const currentTab = ref('available');
 const activePage = ref('');
@@ -126,12 +63,18 @@ const reportFileName = ref('Toca para subir captura de pantalla');
 const reportFileLoaded = ref(false);
 const isWithdrawing = ref(false);
 const isSubmittingReport = ref(false);
+const isLoading = ref(true);
+const isRefreshing = ref(false);
+const isAdvancing = ref(false);
+const errorMessage = ref('');
+const lastUpdatedAt = ref('');
 const mapEl = ref(null);
 const cameraInput = ref(null);
 const reportEvidenceInput = ref(null);
 
 let toastId = 0;
 let timerInterval = null;
+let refreshTimer = null;
 let leaflet = null;
 let mapInstance = null;
 let riderMarker = null;
@@ -139,6 +82,8 @@ let routeLayers = [];
 let currentRoute = null;
 const scheduledTimeouts = [];
 
+const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
+const normalize = (value = '') => String(value || '').trim().toLowerCase();
 const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
 
 const queueTimeout = (callback, delay) => {
@@ -156,12 +101,71 @@ const clearScheduledTimeouts = () => {
     scheduledTimeouts.splice(0).forEach((timeoutId) => window.clearTimeout(timeoutId));
 };
 
-const tenantDisplay = computed(() => {
-    if (state.tenant === 'Global') return 'Servidor: Global';
-    const match = tenantOptions.find((option) => option.value === state.tenant);
-    return match ? `Servidor: ${match.label.split(':')[1].trim()}` : 'Servidor: Global';
-});
+const resolveFranchisePresentation = (tenantName = '') => {
+    const name = normalize(tenantName);
+    if (name.includes('burger')) return { emoji: '🍔', color: 'bg-orange-100 text-orange-600' };
+    if (name.includes('pizza') || name.includes('domino') || name.includes('caesar') || name.includes('pizzarelli')) return { emoji: '🍕', color: 'bg-red-100 text-red-600' };
+    if (name.includes('starbucks') || name.includes('cafe')) return { emoji: '☕', color: 'bg-emerald-100 text-emerald-700' };
+    if (name.includes('kfc') || name.includes('pollo')) return { emoji: '🍗', color: 'bg-rose-100 text-rose-600' };
+    if (name.includes('taco')) return { emoji: '🌮', color: 'bg-yellow-100 text-yellow-700' };
+    if (name.includes('krispy')) return { emoji: '🍩', color: 'bg-green-100 text-green-600' };
+    if (name.includes('helados') || name.includes('bon')) return { emoji: '🍨', color: 'bg-pink-100 text-pink-600' };
+    if (name.includes('hot dog')) return { emoji: '🌭', color: 'bg-amber-100 text-amber-700' };
+    if (name.includes('chili')) return { emoji: '🌶️', color: 'bg-red-100 text-red-500' };
+    if (name.includes('panda')) return { emoji: '🥡', color: 'bg-slate-100 text-slate-700' };
+    return { emoji: '🛍️', color: 'bg-slate-100 text-slate-600' };
+};
 
+const resolveSecurityCode = (order = {}) => {
+    const provided = String(order.securityCode || '').trim().toUpperCase();
+    if (provided) return provided;
+    return String(order.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+};
+
+const deriveActiveStage = (order = {}) => {
+    if (state.activeStage) return state.activeStage;
+    return Number(order.statusId) >= ORDER_STATUS_IDS.inTransit ? 'picked' : 'accepted';
+};
+
+const buildOrderDescription = (order = {}) => {
+    const itemLines = Array.isArray(order.itemsDetailed) && order.itemsDetailed.length > 0
+        ? order.itemsDetailed.map((item) => `• ${item.quantity}x ${item.name}`).join('\n')
+        : `• ${order.itemSummary || 'Sin detalle del pedido'}`;
+
+    return [`Pedido #${order.id}`, `Local: ${order.tenantName}`, `Cliente: ${order.customerName}`, `Telefono: ${order.customerPhone || 'Sin telefono'}`, 'Artículos:', itemLines].join('\n');
+};
+
+const buildOrderView = (order = {}, status = 'pending') => {
+    const presentation = resolveFranchisePresentation(order.tenantName);
+    const compactItems = Array.isArray(order.itemsDetailed) && order.itemsDetailed.length > 0
+        ? order.itemsDetailed.slice(0, 2).map((item) => `${item.quantity}x ${item.name}`).join(' • ')
+        : order.itemSummary || 'Sin detalle';
+
+    return {
+        ...order,
+        franchise: { id: order.tenantId, name: order.tenantName, emoji: presentation.emoji, color: presentation.color, items: compactItems },
+        pickup: `${order.tenantName} • recoger en local`,
+        dropoff: order.address || 'Recogida en tienda',
+        price: Number(order.totalValue || 0),
+        status,
+        codigoDelivery: resolveSecurityCode(order),
+        descripcionDetallada: buildOrderDescription(order),
+    };
+};
+
+const tenantOptions = computed(() => [
+    { value: 'Global', label: '🍽️ Ver todas las tiendas' },
+    ...(data.value.tenants || []).map((tenant) => {
+        const presentation = resolveFranchisePresentation(tenant.name);
+        return { value: tenant.id, label: `${presentation.emoji} ${tenant.name}` };
+    }),
+]);
+
+const tenantDisplay = computed(() => {
+    if (state.tenant === 'Global') return 'Servidor: Todas las tiendas';
+    const match = tenantOptions.value.find((option) => String(option.value) === String(state.tenant));
+    return match ? `Servidor: ${match.label.replace(/^[^\s]+\s/, '')}` : 'Servidor: Todas las tiendas';
+});
 const badgeAvail = computed(() => state.availableOrders.length);
 const badgeActive = computed(() => (state.activeOrder ? 1 : 0));
 const financeBalance = computed(() => formatCurrency(state.earnings));
@@ -183,41 +187,31 @@ const showMapWrapper = computed(() => Boolean(state.activeOrder));
 const isReportModalOpen = computed(() => activeModal.value === 'modal-report');
 const isWithdrawModalOpen = computed(() => activeModal.value === 'modal-withdraw');
 const isAbsenceModalOpen = computed(() => activeModal.value === 'modal-absence');
+const supportWarnings = computed(() => dedupeMessages([errorMessage.value, ...(data.value.warnings || [])]));
 const activeOrderMeta = computed(() => {
     if (!state.activeOrder) return null;
-
-    if (state.activeOrder.status === 'accepted') {
-        return {
-            title: 'HACIA EL LOCAL',
-            emoji: '🏪',
-            buttonClass: 'bg-[#f97316] text-white',
-            buttonLabel: 'LLEGUÉ AL LOCAL'
-        };
-    }
-
-    if (state.activeOrder.status === 'arrived') {
-        return {
-            title: 'ESPERANDO PEDIDO',
-            emoji: '⏳',
-            buttonClass: 'bg-[#eab308] text-slate-900',
-            buttonLabel: '¡RECIBÍ COMIDA!'
-        };
-    }
-
-    return {
-        title: 'ENTREGANDO AL CLIENTE',
-        emoji: '🏠',
-        buttonClass: 'bg-[#22c55e] text-white',
-        buttonLabel: 'TOMAR FOTO DE ENTREGA'
-    };
+    if (state.activeOrder.status === 'accepted') return { title: 'HACIA EL LOCAL', emoji: '🏪', buttonClass: 'bg-[#f97316] text-white', buttonLabel: 'LLEGUÉ AL LOCAL' };
+    if (state.activeOrder.status === 'arrived') return { title: 'ESPERANDO PEDIDO', emoji: '⏳', buttonClass: 'bg-[#eab308] text-slate-900', buttonLabel: '¡RECIBÍ COMIDA!' };
+    return { title: 'ENTREGANDO AL CLIENTE', emoji: '🏠', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'TOMAR FOTO DE ENTREGA' };
 });
-const activeOrderAddress = computed(() => {
-    if (!state.activeOrder) return '';
-    return state.activeOrder.status === 'picked' ? state.activeOrder.dropoff : state.activeOrder.pickup;
-});
+const activeOrderAddress = computed(() => (state.activeOrder ? (state.activeOrder.status === 'picked' ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
 
 const saveState = () => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        status: state.status,
+        currentShiftStart: state.currentShiftStart,
+        shiftHistory: state.shiftHistory,
+        lastWorkDate: state.lastWorkDate,
+        absenceReported: state.absenceReported,
+        earnings: state.earnings,
+        tips: state.tips,
+        trips: state.trips,
+        tenant: state.tenant,
+        dismissedOrderIds: state.dismissedOrderIds,
+        activeOrderId: state.activeOrderId,
+        activeStage: state.activeStage,
+        history: state.history,
+    }));
 };
 
 const loadState = () => {
@@ -228,9 +222,8 @@ const loadState = () => {
         const parsed = JSON.parse(saved);
         const merged = { ...defaultState(), ...parsed };
         merged.shiftHistory = Array.isArray(merged.shiftHistory) ? merged.shiftHistory : [];
-        merged.availableOrders = Array.isArray(merged.availableOrders) ? merged.availableOrders : [];
         merged.history = Array.isArray(merged.history) ? merged.history : [];
-
+        merged.dismissedOrderIds = Array.isArray(merged.dismissedOrderIds) ? merged.dismissedOrderIds : [];
         Object.assign(state, merged);
     } catch (error) {
         console.error('No se pudo cargar el estado de delivery', error);
@@ -260,9 +253,7 @@ const stopShiftTimer = () => {
 
 const startTimerIfOnline = () => {
     stopShiftTimer();
-
     if (state.status !== 'online' || !state.currentShiftStart) return;
-
     updateShiftTimer();
     timerInterval = window.setInterval(updateShiftTimer, 1000);
 };
@@ -279,7 +270,6 @@ const showToast = (message, type = 'success') => {
 
 const navigate = (view) => {
     currentView.value = view;
-
     if (view === 'orders' && state.activeOrder) {
         nextTick(() => {
             queueTimeout(() => {
@@ -291,7 +281,6 @@ const navigate = (view) => {
 
 const switchTab = (tab) => {
     currentTab.value = tab;
-
     if (tab === 'active' && state.activeOrder) {
         nextTick(() => {
             queueTimeout(() => {
@@ -301,30 +290,15 @@ const switchTab = (tab) => {
     }
 };
 
-const openPage = (pageId) => {
-    activePage.value = pageId;
-};
-
-const closePage = (pageId) => {
-    if (activePage.value === pageId) activePage.value = '';
-};
-
-const openModal = (modalId) => {
-    activeModal.value = modalId;
-};
-
-const closeModal = (modalId) => {
-    if (activeModal.value === modalId) activeModal.value = '';
-};
-
-const showTutorial = () => {
-    onboardingVisible.value = true;
-};
+const openPage = (pageId) => { activePage.value = pageId; };
+const closePage = (pageId) => { if (activePage.value === pageId) activePage.value = ''; };
+const openModal = (modalId) => { activeModal.value = modalId; };
+const closeModal = (modalId) => { if (activeModal.value === modalId) activeModal.value = ''; };
+const showTutorial = () => { onboardingVisible.value = true; };
 
 const finishOnboarding = () => {
     localStorage.setItem(TUTORIAL_KEY, 'true');
     onboardingVisible.value = false;
-
     if (state.status === 'offline') {
         showToast("¡Estás listo! Ve a tu Perfil y toca 'Iniciar Turno'.");
         navigate('profile');
@@ -332,23 +306,12 @@ const finishOnboarding = () => {
 };
 
 const checkOnboarding = () => {
-    const tutorialDone = localStorage.getItem(TUTORIAL_KEY);
-
-    if (!tutorialDone) {
-        showTutorial();
-        return;
-    }
-
-    if (state.status === 'online' && state.availableOrders.length === 0 && !state.activeOrder) {
-        queueTimeout(() => generateMockOrder(), 800);
-    }
+    if (!localStorage.getItem(TUTORIAL_KEY)) showTutorial();
 };
 
 const checkAbsence = () => {
     if (!state.lastWorkDate || state.status === 'online' || state.absenceReported) return;
-
-    const now = Date.now();
-    if (now - state.lastWorkDate > 86400000) {
+    if (Date.now() - state.lastWorkDate > 86400000) {
         queueTimeout(() => openModal('modal-absence'), 1500);
     }
 };
@@ -361,7 +324,155 @@ const reportAbsence = () => {
     showToast('Gracias por avisar. ¡Disfruta tu tiempo!');
 };
 
-const toggleShift = () => {
+const buildScopedOrders = () => {
+    const allOrders = Array.isArray(data.value.orders) ? data.value.orders : [];
+    return state.tenant === 'Global'
+        ? allOrders
+        : allOrders.filter((order) => String(order.tenantId) === String(state.tenant));
+};
+
+const clearRouteLayers = () => {
+    if (!mapInstance) return;
+    routeLayers.forEach((layer) => {
+        if (mapInstance.hasLayer(layer)) mapInstance.removeLayer(layer);
+    });
+    routeLayers = [];
+};
+
+const clearRoute = () => {
+    clearRouteLayers();
+    currentRoute = null;
+    if (mapInstance) mapInstance.setView(coordsSantiago, 14);
+};
+
+const buildLeafletIcon = (emoji) => {
+    if (!leaflet) return null;
+    return leaflet.divIcon({ className: '', html: `<div style="font-size:20px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">${emoji}</div>`, iconSize: [20, 20] });
+};
+
+const renderCurrentRoute = () => {
+    if (!mapInstance || !leaflet || !currentRoute) return;
+    clearRouteLayers();
+    const marker = leaflet.marker(currentRoute.target, { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
+    const line = leaflet.polyline([coordsSantiago, currentRoute.target], { color: currentRoute.color, weight: 4, dashArray: '6,6' }).addTo(mapInstance);
+    routeLayers = [marker, line];
+    queueTimeout(() => {
+        if (!mapInstance) return;
+        mapInstance.invalidateSize();
+        mapInstance.fitBounds(line.getBounds(), { padding: [30, 30] });
+    }, 100);
+};
+
+const setRoute = (targetType) => {
+    if (!leaflet || !mapInstance) return;
+    if (!currentRoute || currentRoute.type !== targetType) {
+        currentRoute = {
+            type: targetType,
+            target: [coordsSantiago[0] + ((Math.random() - 0.5) * 0.02), coordsSantiago[1] + ((Math.random() - 0.5) * 0.02)],
+            color: targetType === 'restaurant' ? '#f97316' : '#22c55e',
+            emoji: targetType === 'restaurant' ? '🏪' : '🏠',
+        };
+    }
+    renderCurrentRoute();
+};
+
+const syncRouteFromState = () => {
+    if (!state.activeOrder) {
+        clearRoute();
+        return;
+    }
+    setRoute(state.activeOrder.status === 'picked' ? 'customer' : 'restaurant');
+};
+
+const ensureLeaflet = () => new Promise((resolve, reject) => {
+    if (window.L) {
+        resolve(window.L);
+        return;
+    }
+    if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = LEAFLET_CSS;
+        document.head.appendChild(link);
+    }
+    const existingScript = document.querySelector(`script[src="${LEAFLET_JS}"]`);
+    if (existingScript) {
+        existingScript.addEventListener('load', () => resolve(window.L), { once: true });
+        existingScript.addEventListener('error', reject, { once: true });
+        return;
+    }
+    const script = document.createElement('script');
+    script.src = LEAFLET_JS;
+    script.async = true;
+    script.onload = () => resolve(window.L);
+    script.onerror = reject;
+    document.body.appendChild(script);
+});
+
+const initMap = () => {
+    if (!mapEl.value || !leaflet || mapInstance) return;
+    mapInstance = leaflet.map(mapEl.value, { zoomControl: false, attributionControl: false }).setView(coordsSantiago, 14);
+    leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapInstance);
+    riderMarker = leaflet.marker(coordsSantiago, { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
+    void riderMarker;
+    if (state.activeOrder) syncRouteFromState();
+};
+
+const syncOrdersFromBackend = () => {
+    const scopedOrders = buildScopedOrders();
+    const knownPendingIds = new Set(scopedOrders.filter((order) => normalize(order.statusKey) === 'pendiente').map((order) => String(order.id)));
+    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => knownPendingIds.has(String(id)));
+
+    const activeSource = state.activeOrderId ? (data.value.orders || []).find((order) => String(order.id) === String(state.activeOrderId)) : null;
+    if (activeSource && !['entregado', 'cancelado'].includes(normalize(activeSource.statusKey))) {
+        const activeStage = deriveActiveStage(activeSource);
+        state.activeStage = activeStage;
+        state.activeOrder = buildOrderView(activeSource, activeStage);
+    } else {
+        state.activeOrderId = '';
+        state.activeStage = '';
+        state.activeOrder = null;
+    }
+
+    state.availableOrders = scopedOrders
+        .filter((order) => normalize(order.statusKey) === 'pendiente')
+        .filter((order) => String(order.id) !== String(state.activeOrderId))
+        .filter((order) => !state.dismissedOrderIds.includes(String(order.id)))
+        .map((order) => buildOrderView(order, 'pending'));
+
+    if (state.activeOrder) currentTab.value = 'active';
+    else if (currentTab.value === 'active') currentTab.value = 'available';
+
+    nextTick(() => {
+        if (mapInstance) syncRouteFromState();
+    });
+};
+
+const refreshData = async ({ silent = false } = {}) => {
+    if (silent) isRefreshing.value = true;
+    else {
+        isLoading.value = true;
+        errorMessage.value = '';
+    }
+
+    try {
+        data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
+        if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
+            state.tenant = 'Global';
+        }
+        lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+        syncOrdersFromBackend();
+    } catch (error) {
+        console.error('No se pudo cargar delivery', error);
+        errorMessage.value = error.message || 'No se pudo cargar la vista de delivery.';
+        if (!silent) showToast(errorMessage.value, 'error');
+    } finally {
+        isLoading.value = false;
+        isRefreshing.value = false;
+    }
+};
+
+const toggleShift = async () => {
     if (state.status === 'offline') {
         state.status = 'online';
         state.currentShiftStart = Date.now();
@@ -370,12 +481,8 @@ const toggleShift = () => {
         saveState();
         startTimerIfOnline();
         showToast('¡Turno Iniciado! Atento a los pedidos.');
-
-        queueTimeout(() => {
-            navigate('orders');
-            generateMockOrder();
-        }, 1500);
-
+        navigate('orders');
+        await refreshData({ silent: true });
         return;
     }
 
@@ -391,16 +498,12 @@ const toggleShift = () => {
     const minutes = Math.floor((diffMs % 3600000) / 60000);
     const formatTime = (timestamp) => new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    state.shiftHistory.push({
-        date: new Date().toLocaleDateString(),
-        start: formatTime(start),
-        end: formatTime(end),
-        duration: `${hours}h ${minutes}m`
-    });
-
+    state.shiftHistory.push({ date: new Date().toLocaleDateString(), start: formatTime(start), end: formatTime(end), duration: `${hours}h ${minutes}m` });
     state.status = 'offline';
     state.currentShiftStart = null;
-    state.availableOrders = [];
+    state.activeOrder = null;
+    state.activeOrderId = '';
+    state.activeStage = '';
     currentTab.value = 'available';
     clearRoute();
     stopShiftTimer();
@@ -408,244 +511,133 @@ const toggleShift = () => {
     showToast('Turno finalizado. ¡Buen trabajo!');
 };
 
-const pickFranchiseList = () => {
-    if (state.tenant === 'Global') return franchises;
-    const filtered = franchises.filter((franchise) => franchise.id === state.tenant);
-    return filtered.length ? filtered : franchises;
-};
-
-const generateMockOrder = () => {
-    if (state.status === 'offline') return;
-
-    const list = pickFranchiseList();
-    const franchise = list[Math.floor(Math.random() * list.length)];
-
-    state.availableOrders.push({
-        id: Math.random().toString(36).slice(2, 7).toUpperCase(),
-        franchise,
-        pickup: `${franchise.name} Central`,
-        dropoff: streets[Math.floor(Math.random() * streets.length)],
-        price: (Math.random() * 5) + 3,
-        status: 'pending'
-    });
-
-    currentTab.value = 'available';
-    saveState();
-    showToast(`¡Pedido de ${franchise.name}! ${franchise.emoji}`);
-};
-
-const buildLeafletIcon = (emoji) => {
-    if (!leaflet) return null;
-
-    return leaflet.divIcon({
-        className: '',
-        html: `<div style="font-size:20px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">${emoji}</div>`,
-        iconSize: [20, 20]
-    });
-};
-
-const clearRouteLayers = () => {
-    if (!mapInstance) return;
-
-    routeLayers.forEach((layer) => {
-        if (mapInstance.hasLayer(layer)) mapInstance.removeLayer(layer);
-    });
-    routeLayers = [];
-};
-
-const clearRoute = () => {
-    clearRouteLayers();
-    currentRoute = null;
-
-    if (mapInstance) mapInstance.setView(coordsSantiago, 14);
-};
-
-const renderCurrentRoute = () => {
-    if (!mapInstance || !leaflet || !currentRoute) return;
-
-    clearRouteLayers();
-
-    const marker = leaflet.marker(currentRoute.target, { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
-    const line = leaflet.polyline([coordsSantiago, currentRoute.target], {
-        color: currentRoute.color,
-        weight: 4,
-        dashArray: '6,6'
-    }).addTo(mapInstance);
-
-    routeLayers = [marker, line];
-
-    queueTimeout(() => {
-        if (!mapInstance) return;
-        mapInstance.invalidateSize();
-        mapInstance.fitBounds(line.getBounds(), { padding: [30, 30] });
-    }, 100);
-};
-
-const setRoute = (targetType) => {
-    if (!leaflet || !mapInstance) return;
-
-    if (!currentRoute || currentRoute.type !== targetType) {
-        currentRoute = {
-            type: targetType,
-            target: [
-                coordsSantiago[0] + ((Math.random() - 0.5) * 0.02),
-                coordsSantiago[1] + ((Math.random() - 0.5) * 0.02)
-            ],
-            color: targetType === 'restaurant' ? '#f97316' : '#22c55e',
-            emoji: targetType === 'restaurant' ? '🏪' : '🏠'
-        };
-    }
-
-    renderCurrentRoute();
-};
-
-const syncRouteFromState = () => {
-    if (!state.activeOrder) {
-        clearRoute();
+const acceptOrder = async (id) => {
+    if (!isShiftOnline.value) {
+        showToast('Inicia tu turno antes de aceptar un viaje.', 'error');
         return;
     }
-
-    setRoute(state.activeOrder.status === 'picked' ? 'customer' : 'restaurant');
-};
-
-const ensureLeaflet = () => new Promise((resolve, reject) => {
-    if (window.L) {
-        resolve(window.L);
-        return;
-    }
-
-    if (!document.querySelector(`link[href="${LEAFLET_CSS}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = LEAFLET_CSS;
-        document.head.appendChild(link);
-    }
-
-    const existingScript = document.querySelector(`script[src="${LEAFLET_JS}"]`);
-    if (existingScript) {
-        existingScript.addEventListener('load', () => resolve(window.L), { once: true });
-        existingScript.addEventListener('error', reject, { once: true });
-        return;
-    }
-
-    const script = document.createElement('script');
-    script.src = LEAFLET_JS;
-    script.async = true;
-    script.onload = () => resolve(window.L);
-    script.onerror = reject;
-    document.body.appendChild(script);
-});
-
-const initMap = () => {
-    if (!mapEl.value || !leaflet || mapInstance) return;
-
-    mapInstance = leaflet.map(mapEl.value, { zoomControl: false, attributionControl: false }).setView(coordsSantiago, 14);
-    leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapInstance);
-    riderMarker = leaflet.marker(coordsSantiago, { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
-    void riderMarker;
-
-    if (state.activeOrder) syncRouteFromState();
-};
-
-const acceptOrder = (id) => {
     if (state.activeOrder) {
-        showToast('Solo puedes llevar un pedido a la vez', 'error');
+        showToast('Solo puedes llevar un pedido a la vez.', 'error');
         return;
     }
 
-    const index = state.availableOrders.findIndex((order) => order.id === id);
-    if (index < 0) return;
+    const order = state.availableOrders.find((candidate) => String(candidate.id) === String(id));
+    if (!order) {
+        showToast('El pedido ya no está disponible.', 'error');
+        await refreshData({ silent: true });
+        return;
+    }
 
-    const order = state.availableOrders[index];
-    
-    // Generar código de seguridad de 6 caracteres
-    const codigoDelivery = Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    // Construir la descripción detallada
-    const descripcionDetallada = `Pedido #${order.id}\nLocal: ${order.pickup}\nArtículos: ${order.franchise.items}`;
-
-    // Asignar los nuevos valores al estado del pedido activo
-    state.activeOrder = { 
-        ...order, 
-        status: 'accepted',
-        codigoDelivery,
-        descripcionDetallada
-    };
-    
-    state.availableOrders.splice(index, 1);
-    currentTab.value = 'active';
-    saveState();
-
-    showToast(`Pedido aceptado. Código de seguridad: ${codigoDelivery}`);
-
-    nextTick(() => {
-        if (mapInstance) setRoute('restaurant');
-    });
+    isAdvancing.value = true;
+    try {
+        await api.updateOrder(order.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(order.tenantId));
+        state.activeOrderId = String(order.id);
+        state.activeStage = 'accepted';
+        state.lastWorkDate = Date.now();
+        state.dismissedOrderIds = state.dismissedOrderIds.filter((candidate) => String(candidate) !== String(order.id));
+        currentTab.value = 'active';
+        saveState();
+        await refreshData({ silent: true });
+        showToast(`Pedido aceptado. Código de seguridad: ${resolveSecurityCode(order)}`);
+    } catch (error) {
+        console.error('No se pudo aceptar el pedido', error);
+        showToast(error.message || 'No se pudo aceptar el pedido.', 'error');
+    } finally {
+        isAdvancing.value = false;
+    }
 };
 
 const rejectOrder = (id) => {
-    state.availableOrders = state.availableOrders.filter((order) => order.id !== id);
+    state.dismissedOrderIds.push(String(id));
+    state.dismissedOrderIds = [...new Set(state.dismissedOrderIds)];
+    state.availableOrders = state.availableOrders.filter((order) => String(order.id) !== String(id));
     saveState();
 };
 
-const updateOrderStatus = (status) => {
+const updateOrderStatus = async (status) => {
     if (!state.activeOrder) return;
+    if (status === 'arrived') {
+        state.activeStage = 'arrived';
+        state.activeOrder = buildOrderView(state.activeOrder, 'arrived');
+        saveState();
+        syncRouteFromState();
+        showToast('Llegaste al local. Espera la comida.');
+        return;
+    }
 
-    state.activeOrder.status = status;
-    saveState();
-
-    nextTick(() => {
-        if (status === 'picked') {
-            currentRoute = null;
-            setRoute('customer');
-        } else if (mapInstance) {
-            mapInstance.invalidateSize();
+    if (status === 'picked') {
+        isAdvancing.value = true;
+        try {
+            await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
+            state.activeStage = 'picked';
+            state.activeOrder = buildOrderView(state.activeOrder, 'picked');
+            saveState();
+            await refreshData({ silent: true });
+            showToast('Comida recibida. Ruta activada hacia el cliente.');
+        } catch (error) {
+            console.error('No se pudo actualizar el pedido', error);
+            showToast(error.message || 'No se pudo marcar en camino.', 'error');
+        } finally {
+            isAdvancing.value = false;
         }
-    });
+    }
 };
 
-const cancelOrder = () => {
+const cancelOrder = async () => {
+    if (!state.activeOrder) return;
+    if (state.activeStage === 'picked') {
+        showToast('No puedes cancelar después de recoger la comida.', 'error');
+        return;
+    }
+
+    try {
+        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.pending }, buildTenantHeaders(state.activeOrder.tenantId));
+    } catch (error) {
+        console.warn('No se pudo devolver el pedido a pendiente', error);
+    }
+
     state.activeOrder = null;
+    state.activeOrderId = '';
+    state.activeStage = '';
     currentTab.value = 'available';
     clearRoute();
     saveState();
+    await refreshData({ silent: true });
+    showToast('Pedido liberado.');
 };
 
 const triggerCamera = () => {
     cameraInput.value?.click();
 };
 
-const handleDeliveryPhoto = (event) => {
+const handleDeliveryPhoto = async (event) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !state.activeOrder) return;
 
-    showToast('Subiendo evidencia...', 'info');
+    isAdvancing.value = true;
+    showToast('Registrando entrega...', 'info');
 
-    queueTimeout(() => {
-        if (state.activeOrder) {
-            const payment = state.activeOrder.price;
-            const tip = Math.random() > 0.5 ? 1.5 : 0;
-
-            state.earnings += payment + tip;
-            state.tips += tip;
-            state.trips += 1;
-            state.history.push({
-                emoji: state.activeOrder.franchise.emoji,
-                desc: `Pago ${state.activeOrder.franchise.name}`,
-                amount: payment + tip,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            });
-
-            state.activeOrder = null;
-            currentTab.value = 'available';
-            clearRoute();
-            saveState();
-            showToast(`+${formatCurrency(payment + tip)} depositados`);
-            queueTimeout(() => generateMockOrder(), 2000);
-        }
-
+    try {
+        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
+        const payment = Number(state.activeOrder.price || 0);
+        state.earnings += payment;
+        state.trips += 1;
+        state.history.push({ emoji: state.activeOrder.franchise.emoji, desc: `Entrega ${state.activeOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        state.activeOrder = null;
+        state.activeOrderId = '';
+        state.activeStage = '';
+        currentTab.value = 'available';
+        clearRoute();
+        saveState();
+        await refreshData({ silent: true });
+        showToast('Entrega completada correctamente.');
+    } catch (error) {
+        console.error('No se pudo completar la entrega', error);
+        showToast(error.message || 'No se pudo marcar la entrega.', 'error');
+    } finally {
         if (cameraInput.value) cameraInput.value.value = '';
-    }, 1000);
+        isAdvancing.value = false;
+    }
 };
 
 const processWithdraw = () => {
@@ -656,16 +648,9 @@ const processWithdraw = () => {
     }
 
     isWithdrawing.value = true;
-
     queueTimeout(() => {
         state.earnings -= amount;
-        state.history.push({
-            emoji: '🏦',
-            desc: 'Retiro',
-            amount: -amount,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
-
+        state.history.push({ emoji: '🏦', desc: 'Retiro', amount: -amount, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         withdrawInput.value = '';
         isWithdrawing.value = false;
         closeModal('modal-withdraw');
@@ -690,14 +675,12 @@ const submitReport = () => {
         showToast('Ingresa el ID del viaje', 'error');
         return;
     }
-
     if (!reportEvidence.value) {
         showToast('Sube una captura', 'error');
         return;
     }
 
     isSubmittingReport.value = true;
-
     queueTimeout(() => {
         closeModal('modal-report');
         reportId.value = '';
@@ -705,36 +688,40 @@ const submitReport = () => {
         reportFileLoaded.value = false;
         reportFileName.value = 'Toca para subir captura de pantalla';
         isSubmittingReport.value = false;
-
         if (reportEvidenceInput.value) reportEvidenceInput.value.value = '';
-
         showToast('Reporte enviado al Soporte.');
     }, 1500);
 };
 
 const triggerSOS = () => {
-    if (window.confirm('🚨 ALERTA SOS: ¿Estás en peligro? Esto avisará a la policía y soporte central.')) {
+    if (window.confirm('🚨 ALERTA SOS: ¿Estás en peligro? Esto avisará a soporte central.')) {
         showToast('Alerta enviada. Te llamaremos en segundos.', 'error');
     }
 };
 
 const changeTenant = () => {
+    syncOrdersFromBackend();
     saveState();
 };
 
-const resetSystem = () => {
-    if (window.confirm('¿Cerrar sesión y reiniciar app? El tutorial volverá a salir.')) {
-        localStorage.clear();
-        window.location.reload();
+const logout = () => {
+    if (window.confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión para entrar al panel de delivery.')) {
+        clearSession();
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(TUTORIAL_KEY);
+        router.replace('/login');
     }
 };
 
+watch(() => state.tenant, changeTenant);
+
 onMounted(async () => {
     loadState();
-    if (state.activeOrder) currentTab.value = 'active';
+    if (state.activeOrderId) currentTab.value = 'active';
     startTimerIfOnline();
     checkOnboarding();
     checkAbsence();
+    await refreshData();
 
     try {
         leaflet = await ensureLeaflet();
@@ -743,12 +730,16 @@ onMounted(async () => {
     } catch (error) {
         console.error('Leaflet no pudo cargar en delivery', error);
     }
+
+    refreshTimer = window.setInterval(() => {
+        void refreshData({ silent: true });
+    }, 15000);
 });
 
 onBeforeUnmount(() => {
     stopShiftTimer();
     clearScheduledTimeouts();
-
+    if (refreshTimer) window.clearInterval(refreshTimer);
     if (mapInstance) {
         mapInstance.remove();
         mapInstance = null;
@@ -770,14 +761,8 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="hide-scrollbar flex-1 space-y-6 overflow-y-auto bg-slate-50 px-6 py-6 pb-32">
-                <div
-                    v-for="step in onboardingSteps"
-                    :key="step.number"
-                    class="flex gap-4"
-                >
-                    <div
-                        :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-black', step.badgeClass]"
-                    >
+                <div v-for="step in onboardingSteps" :key="step.number" class="flex gap-4">
+                    <div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-black', step.badgeClass]">
                         {{ step.number }}
                     </div>
                     <div>
@@ -830,6 +815,7 @@ onBeforeUnmount(() => {
                     </h1>
                     <p class="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-slate-500">
                         <span>{{ tenantDisplay }}</span>
+                        <span v-if="lastUpdatedAt">• {{ lastUpdatedAt }}</span>
                     </p>
                 </div>
             </div>
@@ -837,9 +823,9 @@ onBeforeUnmount(() => {
             <button
                 type="button"
                 class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-[#f97316] shadow-sm transition active:bg-orange-100"
-                @click="generateMockOrder"
+                @click="refreshData({ silent: true })"
             >
-                <i class="fa-solid fa-burger"></i>
+                <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': isRefreshing }"></i>
             </button>
         </header>
 
@@ -869,34 +855,28 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div :class="['space-y-3 pb-4', currentTab === 'available' ? '' : 'hidden']">
-                    <div
-                        v-if="state.status === 'offline'"
-                        class="rounded-2xl border border-slate-100 bg-white p-6 text-center"
-                    >
+                    <div v-if="state.status === 'offline'" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
                         <div class="mb-2 text-4xl">&#x1F634;</div>
                         <h3 class="text-sm font-black text-slate-800">Estas desconectado</h3>
                         <p class="text-xs text-slate-500">Inicia turno en tu perfil.</p>
                     </div>
 
-                    <div
-                        v-else-if="state.availableOrders.length === 0"
-                        class="rounded-2xl border border-slate-100 bg-white p-6 text-center"
-                    >
-                        <div class="mb-2 text-4xl">&#x1F37D;</div>
-                        <h3 class="text-sm font-black text-slate-800">Buscando viajes</h3>
-                        <p class="text-xs text-slate-500">Manten la app abierta.</p>
+                    <div v-else-if="isLoading" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
+                        <div class="mb-2 text-4xl"><i class="fa-solid fa-circle-notch fa-spin text-[#f97316]"></i></div>
+                        <h3 class="text-sm font-black text-slate-800">Sincronizando pedidos</h3>
+                        <p class="text-xs text-slate-500">Consultando el backend real.</p>
                     </div>
 
-                    <div
-                        v-for="order in state.availableOrders"
-                        :key="order.id"
-                        class="card-shadow rounded-2xl border border-slate-50 bg-white p-4"
-                    >
+                    <div v-else-if="state.availableOrders.length === 0" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
+                        <div class="mb-2 text-4xl">&#x1F37D;</div>
+                        <h3 class="text-sm font-black text-slate-800">Buscando viajes</h3>
+                        <p class="text-xs text-slate-500">No hay pedidos pendientes por ahora.</p>
+                    </div>
+
+                    <div v-for="order in state.availableOrders" :key="order.id" class="card-shadow rounded-2xl border border-slate-50 bg-white p-4">
                         <div class="mb-3 flex items-start justify-between">
                             <div class="flex items-center gap-2">
-                                <div
-                                    :class="['flex h-10 w-10 items-center justify-center rounded-full text-xl', order.franchise.color]"
-                                >
+                                <div :class="['flex h-10 w-10 items-center justify-center rounded-full text-xl', order.franchise.color]">
                                     {{ order.franchise.emoji }}
                                 </div>
                                 <div>
@@ -926,6 +906,7 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 class="h-10 flex-1 rounded-lg bg-[#f97316] text-xs font-black text-white shadow-md active:bg-[#ea580c]"
+                                :disabled="isAdvancing"
                                 @click="acceptOrder(order.id)"
                             >
                                 ACEPTAR VIAJE
@@ -936,26 +917,17 @@ onBeforeUnmount(() => {
 
                 <div :class="['flex-1 flex-col pb-4', currentTab === 'active' ? 'flex' : 'hidden']">
                     <div class="mb-3 shrink-0">
-                        <div
-                            v-if="!state.activeOrder && state.status === 'offline'"
-                            class="rounded-2xl border border-slate-100 bg-white p-6 text-center"
-                        >
+                        <div v-if="!state.activeOrder && state.status === 'offline'" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
                             <div class="mb-2 text-4xl">&#x1F6CC;</div>
                             <h3 class="text-sm font-black text-slate-800">Turno finalizado</h3>
                         </div>
 
-                        <div
-                            v-else-if="!state.activeOrder"
-                            class="rounded-2xl border border-slate-100 bg-white p-6 text-center"
-                        >
+                        <div v-else-if="!state.activeOrder" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
                             <div class="mb-2 text-4xl">&#x1F6F5;</div>
                             <h3 class="text-sm font-black text-slate-800">No hay viaje en curso</h3>
                         </div>
 
-                        <div
-                            v-else
-                            class="card-shadow overflow-hidden rounded-2xl border-2 border-orange-200 bg-white"
-                        >
+                        <div v-else class="card-shadow overflow-hidden rounded-2xl border-2 border-orange-200 bg-white">
                             <div class="flex items-center justify-center gap-1 bg-orange-50 p-2 text-center">
                                 <span class="text-sm">{{ activeOrderMeta?.emoji }}</span>
                                 <span class="text-[10px] font-black uppercase text-[#f97316]">{{ activeOrderMeta?.title }}</span>
@@ -992,6 +964,7 @@ onBeforeUnmount(() => {
                                     v-if="state.activeOrder.status !== 'picked'"
                                     type="button"
                                     :class="['w-full rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
+                                    :disabled="isAdvancing"
                                     @click="updateOrderStatus(state.activeOrder.status === 'accepted' ? 'arrived' : 'picked')"
                                 >
                                     {{ activeOrderMeta?.buttonLabel }}
@@ -1001,6 +974,7 @@ onBeforeUnmount(() => {
                                     v-else
                                     type="button"
                                     :class="['flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
+                                    :disabled="isAdvancing"
                                     @click="triggerCamera"
                                 >
                                     <i class="fa-solid fa-camera"></i>
@@ -1027,12 +1001,7 @@ onBeforeUnmount(() => {
                         </div>
                     </div>
 
-                    <div
-                        :class="[
-                            'relative min-h-[250px] flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-inner',
-                            showMapWrapper ? '' : 'hidden'
-                        ]"
-                    >
+                    <div :class="['relative min-h-[250px] flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-inner', showMapWrapper ? '' : 'hidden']">
                         <div ref="mapEl" class="delivery-map absolute inset-0"></div>
                     </div>
                 </div>
@@ -1074,12 +1043,7 @@ onBeforeUnmount(() => {
                 <h3 class="mb-3 px-1 text-sm font-black text-slate-800">Historial Financiero</h3>
 
                 <div class="space-y-2 pb-4">
-                    <p
-                        v-if="financeHistory.length === 0"
-                        class="py-2 text-center text-[10px] font-bold text-slate-400"
-                    >
-                        Sin movimientos
-                    </p>
+                    <p v-if="financeHistory.length === 0" class="py-2 text-center text-[10px] font-bold text-slate-400">Sin movimientos</p>
 
                     <div
                         v-for="item in financeHistory"
@@ -1106,7 +1070,7 @@ onBeforeUnmount(() => {
                         <div class="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-orange-50 text-3xl shadow-sm">
                             <i class="fa-solid fa-user-astronaut"></i>
                         </div>
-                        <h2 class="text-lg font-black leading-tight text-slate-800">Juan Delivery</h2>
+                        <h2 class="text-lg font-black leading-tight text-slate-800">{{ session.userName || 'Juan Delivery' }}</h2>
                         <p class="mt-0.5 text-xs font-bold text-[#f97316]">&#9733; 4.9 Puntuacion</p>
                     </div>
                 </div>
@@ -1119,21 +1083,14 @@ onBeforeUnmount(() => {
                         <span class="text-[10px] font-bold text-slate-400">{{ shiftStatusText }}</span>
                     </div>
 
-                    <button
-                        type="button"
-                        :class="shiftButtonClasses"
-                        @click="toggleShift"
-                    >
+                    <button type="button" :class="shiftButtonClasses" @click="toggleShift">
                         <span class="flex items-center justify-center gap-2">
                             <i :class="shiftButtonIcon"></i>
                             {{ shiftButtonLabel }}
                         </span>
                     </button>
 
-                    <div
-                        v-if="showShiftTimer"
-                        class="mt-4 border-t border-slate-100 pt-3 text-center"
-                    >
+                    <div v-if="showShiftTimer" class="mt-4 border-t border-slate-100 pt-3 text-center">
                         <p class="mb-1 text-[10px] font-bold uppercase text-slate-400">Tiempo Trabajado</p>
                         <p class="tracking-widest text-3xl font-black text-slate-800">{{ shiftTimerText }}</p>
                     </div>
@@ -1167,19 +1124,9 @@ onBeforeUnmount(() => {
                     <hr class="mx-4 border-slate-100">
 
                     <div class="px-4 py-3">
-                        <label class="mb-2 block text-[10px] font-bold uppercase text-slate-400">
-                            Simulador de Backend (Multitenant)
-                        </label>
-                        <select
-                            v-model="state.tenant"
-                            class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700 outline-none"
-                            @change="changeTenant"
-                        >
-                            <option
-                                v-for="option in tenantOptions"
-                                :key="option.value"
-                                :value="option.value"
-                            >
+                        <label class="mb-2 block text-[10px] font-bold uppercase text-slate-400">Filtro de Franquicia (Multitenant)</label>
+                        <select v-model="state.tenant" class="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm font-bold text-slate-700 outline-none">
+                            <option v-for="option in tenantOptions" :key="option.value" :value="option.value">
                                 {{ option.label }}
                             </option>
                         </select>
@@ -1189,36 +1136,24 @@ onBeforeUnmount(() => {
                 <button
                     type="button"
                     class="mb-4 w-full rounded-xl bg-slate-200 py-4 text-sm font-black text-slate-600 active:bg-slate-300"
-                    @click="resetSystem"
+                    @click="logout"
                 >
-                    BORRAR DATOS DE LA APP
+                    Cerrar sesión
                 </button>
             </section>
         </main>
 
         <nav class="relative z-40 flex-none border-t border-slate-100 bg-white px-4 py-2 pb-safe">
             <div class="mx-auto flex w-full max-w-sm items-center justify-between">
-                <button
-                    type="button"
-                    :class="['flex flex-1 flex-col items-center gap-1', currentView === 'orders' ? 'text-[#f97316]' : 'text-slate-300']"
-                    @click="navigate('orders')"
-                >
+                <button type="button" :class="['flex flex-1 flex-col items-center gap-1', currentView === 'orders' ? 'text-[#f97316]' : 'text-slate-300']" @click="navigate('orders')">
                     <i class="fa-solid fa-motorcycle text-xl"></i>
                     <span class="text-[9px] font-black uppercase">Viajes</span>
                 </button>
-                <button
-                    type="button"
-                    :class="['flex flex-1 flex-col items-center gap-1', currentView === 'finance' ? 'text-[#f97316]' : 'text-slate-300']"
-                    @click="navigate('finance')"
-                >
+                <button type="button" :class="['flex flex-1 flex-col items-center gap-1', currentView === 'finance' ? 'text-[#f97316]' : 'text-slate-300']" @click="navigate('finance')">
                     <i class="fa-solid fa-wallet text-xl"></i>
                     <span class="text-[9px] font-black uppercase">Wallet</span>
                 </button>
-                <button
-                    type="button"
-                    :class="['flex flex-1 flex-col items-center gap-1', currentView === 'profile' ? 'text-[#f97316]' : 'text-slate-300']"
-                    @click="navigate('profile')"
-                >
+                <button type="button" :class="['flex flex-1 flex-col items-center gap-1', currentView === 'profile' ? 'text-[#f97316]' : 'text-slate-300']" @click="navigate('profile')">
                     <i class="fa-solid fa-user-astronaut text-xl"></i>
                     <span class="text-[9px] font-black uppercase">Perfil</span>
                 </button>
@@ -1232,11 +1167,7 @@ onBeforeUnmount(() => {
             ]"
         >
             <header class="z-10 flex items-center gap-4 bg-white px-4 py-4 shadow-sm">
-                <button
-                    type="button"
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-600 active:bg-slate-200"
-                    @click="closePage('page-shift-history')"
-                >
+                <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-600 active:bg-slate-200" @click="closePage('page-shift-history')">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <h2 class="text-lg font-black text-slate-800">Historial de Horarios</h2>
@@ -1244,10 +1175,7 @@ onBeforeUnmount(() => {
 
             <div class="hide-scrollbar flex-1 overflow-y-auto p-4 pb-safe">
                 <div class="space-y-3">
-                    <div
-                        v-if="shiftHistory.length === 0"
-                        class="py-20 text-center"
-                    >
+                    <div v-if="shiftHistory.length === 0" class="py-20 text-center">
                         <i class="fa-regular fa-clock mb-3 text-4xl text-slate-300"></i>
                         <p class="text-sm font-bold text-slate-500">No hay turnos registrados</p>
                     </div>
@@ -1277,11 +1205,7 @@ onBeforeUnmount(() => {
             ]"
         >
             <header class="z-10 flex items-center gap-4 bg-white px-4 py-4 shadow-sm">
-                <button
-                    type="button"
-                    class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-600 active:bg-slate-200"
-                    @click="closePage('page-help-center')"
-                >
+                <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 font-bold text-slate-600 active:bg-slate-200" @click="closePage('page-help-center')">
                     <i class="fa-solid fa-arrow-left"></i>
                 </button>
                 <h2 class="text-lg font-black text-slate-800">Centro de Soporte</h2>
@@ -1296,13 +1220,18 @@ onBeforeUnmount(() => {
                     <p class="mb-4 text-xs text-slate-500">
                         Usa este boton solo en caso de accidentes, asaltos o emergencias de salud en tu ruta.
                     </p>
-                    <button
-                        type="button"
-                        class="w-full rounded-xl bg-red-500 py-4 font-black text-white shadow-md active:bg-red-600"
-                        @click="triggerSOS"
-                    >
+                    <button type="button" class="w-full rounded-xl bg-red-500 py-4 font-black text-white shadow-md active:bg-red-600" @click="triggerSOS">
                         BOTON DE PANICO (SOS)
                     </button>
+                </div>
+
+                <div v-if="supportWarnings.length > 0" class="rounded-2xl border border-amber-100 bg-amber-50 p-4 shadow-sm">
+                    <h3 class="text-xs font-black uppercase tracking-wide text-amber-700">Alertas del Sistema</h3>
+                    <div class="mt-3 space-y-2">
+                        <p v-for="warning in supportWarnings" :key="warning" class="text-xs font-bold text-amber-700">
+                            {{ warning }}
+                        </p>
+                    </div>
                 </div>
 
                 <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
@@ -1348,12 +1277,7 @@ onBeforeUnmount(() => {
                 isAbsenceModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
             ]"
         >
-            <div
-                :class="[
-                    'w-full max-w-sm rounded-[2rem] bg-white p-6 text-center shadow-2xl transition-transform duration-300',
-                    isAbsenceModalOpen ? 'scale-100' : 'scale-95'
-                ]"
-            >
+            <div :class="['w-full max-w-sm rounded-[2rem] bg-white p-6 text-center shadow-2xl transition-transform duration-300', isAbsenceModalOpen ? 'scale-100' : 'scale-95']">
                 <div class="mb-4 text-5xl">&#x1F97A;</div>
                 <h3 class="mb-2 text-xl font-black text-slate-800">Te extranamos</h3>
                 <p class="mb-6 text-sm font-bold text-slate-500">
@@ -1361,27 +1285,9 @@ onBeforeUnmount(() => {
                 </p>
 
                 <div class="space-y-3">
-                    <button
-                        type="button"
-                        class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200"
-                        @click="reportAbsence"
-                    >
-                        Solo queria descansar unos dias
-                    </button>
-                    <button
-                        type="button"
-                        class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200"
-                        @click="reportAbsence"
-                    >
-                        Problemas con mi vehiculo
-                    </button>
-                    <button
-                        type="button"
-                        class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200"
-                        @click="reportAbsence"
-                    >
-                        Tuve problemas con la App
-                    </button>
+                    <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Solo queria descansar unos dias</button>
+                    <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Problemas con mi vehiculo</button>
+                    <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Tuve problemas con la App</button>
                 </div>
             </div>
         </div>
@@ -1392,21 +1298,10 @@ onBeforeUnmount(() => {
                 isWithdrawModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
             ]"
         >
-            <div
-                :class="[
-                    'mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300',
-                    isWithdrawModalOpen ? 'translate-y-0' : 'translate-y-full'
-                ]"
-            >
+            <div :class="['mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300', isWithdrawModalOpen ? 'translate-y-0' : 'translate-y-full']">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-black text-slate-800">Retirar Dinero</h3>
-                    <button
-                        type="button"
-                        class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500"
-                        @click="closeModal('modal-withdraw')"
-                    >
-                        X
-                    </button>
+                    <button type="button" class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500" @click="closeModal('modal-withdraw')">X</button>
                 </div>
 
                 <div class="space-y-3">
@@ -1416,19 +1311,10 @@ onBeforeUnmount(() => {
                     </div>
 
                     <div>
-                        <input
-                            v-model="withdrawInput"
-                            type="number"
-                            placeholder="0.00"
-                            class="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-center text-xl font-black text-slate-800 outline-none"
-                        >
+                        <input v-model="withdrawInput" type="number" placeholder="0.00" class="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-center text-xl font-black text-slate-800 outline-none">
                     </div>
 
-                    <button
-                        type="button"
-                        class="w-full rounded-xl bg-[#22c55e] py-3.5 text-sm font-black text-white active:bg-green-600"
-                        @click="processWithdraw"
-                    >
+                    <button type="button" class="w-full rounded-xl bg-[#22c55e] py-3.5 text-sm font-black text-white active:bg-green-600" @click="processWithdraw">
                         {{ isWithdrawing ? 'PROCESANDO...' : 'CONFIRMAR' }}
                     </button>
                 </div>
@@ -1441,21 +1327,10 @@ onBeforeUnmount(() => {
                 isReportModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
             ]"
         >
-            <div
-                :class="[
-                    'mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300',
-                    isReportModalOpen ? 'translate-y-0' : 'translate-y-full'
-                ]"
-            >
+            <div :class="['mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300', isReportModalOpen ? 'translate-y-0' : 'translate-y-full']">
                 <div class="mb-4 flex items-center justify-between">
                     <h3 class="text-lg font-black text-slate-800">Reportar Pago</h3>
-                    <button
-                        type="button"
-                        class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500"
-                        @click="closeModal('modal-report')"
-                    >
-                        X
-                    </button>
+                    <button type="button" class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500" @click="closeModal('modal-report')">X</button>
                 </div>
 
                 <div class="space-y-3">
@@ -1463,36 +1338,18 @@ onBeforeUnmount(() => {
                         Necesitamos el ID del pedido y una captura de pantalla como evidencia.
                     </p>
 
-                    <input
-                        v-model="reportId"
-                        type="text"
-                        placeholder="ID del Viaje (ej. 4A2B)"
-                        class="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800 outline-none"
-                    >
+                    <input v-model="reportId" type="text" placeholder="ID del Viaje (ej. 4A2B)" class="w-full rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800 outline-none">
 
-                    <div
-                        class="w-full cursor-pointer rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center transition active:bg-slate-100"
-                        @click="triggerReportUpload"
-                    >
+                    <div class="w-full cursor-pointer rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center transition active:bg-slate-100" @click="triggerReportUpload">
                         <i class="fa-solid fa-image mb-2 text-2xl text-slate-400"></i>
                         <p :class="['text-xs font-bold', reportFileLoaded ? 'text-[#22c55e]' : 'text-slate-500']">
                             {{ reportFileName }}
                         </p>
                     </div>
 
-                    <input
-                        ref="reportEvidenceInput"
-                        type="file"
-                        class="hidden"
-                        accept="image/*"
-                        @change="handleReportEvidenceChange"
-                    >
+                    <input ref="reportEvidenceInput" type="file" class="hidden" accept="image/*" @change="handleReportEvidenceChange">
 
-                    <button
-                        type="button"
-                        class="mt-2 w-full rounded-xl bg-[#ef4444] py-3.5 text-sm font-black text-white active:bg-red-600"
-                        @click="submitReport"
-                    >
+                    <button type="button" class="mt-2 w-full rounded-xl bg-[#ef4444] py-3.5 text-sm font-black text-white active:bg-red-600" @click="submitReport">
                         <span v-if="isSubmittingReport"><i class="fa-solid fa-spinner fa-spin"></i> ENVIANDO...</span>
                         <span v-else>ENVIAR EVIDENCIA</span>
                     </button>
@@ -1500,14 +1357,7 @@ onBeforeUnmount(() => {
             </div>
         </div>
 
-        <input
-            ref="cameraInput"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            class="hidden"
-            @change="handleDeliveryPhoto"
-        >
+        <input ref="cameraInput" type="file" accept="image/*" capture="environment" class="hidden" @change="handleDeliveryPhoto">
     </div>
 </template>
 

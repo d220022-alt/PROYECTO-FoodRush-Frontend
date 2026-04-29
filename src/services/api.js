@@ -1,5 +1,7 @@
 const API_URL = (import.meta.env.VITE_API_URL || 'https://proyecto-foodrush.onrender.com').trim();
+const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').trim();
 const REQUEST_TIMEOUT_MS = 60000;
+const TENANT_HEADER_KEYS = ['X-Tenant-ID', 'x-tenant-id', 'tenant-id'];
 let cachedOrderStatusesPromise = null;
 
 const inferPayloadData = (payload, preferredKeys = []) => {
@@ -217,6 +219,29 @@ const buildUrl = (endpoint) => {
   return `${API_URL}${endpoint}`;
 };
 
+const normalizeResourcePath = (resource = '') => {
+  const normalized = String(resource || '').trim().replace(/^\/+/, '');
+  if (!normalized) {
+    throw new Error('Se requiere un recurso de API valido.');
+  }
+
+  return normalized.startsWith('api/') ? `/${normalized}` : `/api/${normalized}`;
+};
+
+const hasTenantHeader = (headers = {}) =>
+  TENANT_HEADER_KEYS.some((key) => hasMeaningfulValue(headers?.[key]));
+
+const resolveTenantHeaderValue = () => {
+  if (typeof window === 'undefined') return DEFAULT_TENANT_ID;
+
+  const storedTenantId = window.localStorage.getItem('user_tenant_id');
+  if (hasMeaningfulValue(storedTenantId)) {
+    return String(storedTenantId).trim();
+  }
+
+  return DEFAULT_TENANT_ID;
+};
+
 const createHeaders = (extraHeaders = {}) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -226,6 +251,11 @@ const createHeaders = (extraHeaders = {}) => {
   const token = typeof window !== 'undefined' ? window.localStorage.getItem('auth_token') : '';
   if (token && !headers.Authorization) {
     headers.Authorization = `Bearer ${token}`;
+  }
+
+  const tenantId = resolveTenantHeaderValue();
+  if (tenantId && !hasTenantHeader(headers)) {
+    headers['X-Tenant-ID'] = tenantId;
   }
 
   return headers;
@@ -245,9 +275,9 @@ const parseResponseBody = async (response) => {
 };
 
 export const api = {
-  async resolveOrderStatusId(preferredId = null) {
+  async resolveOrderStatusId(preferredId = null, headers = {}) {
     if (!cachedOrderStatusesPromise) {
-      cachedOrderStatusesPromise = this.request('/api/estadospedidos')
+      cachedOrderStatusesPromise = this.request('/api/estadospedidos', { headers })
         .then((payload) => normalizeCollectionResult(payload, ['data']).data)
         .catch((error) => {
           cachedOrderStatusesPromise = null;
@@ -322,10 +352,11 @@ export const api = {
     return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'productos']);
   },
 
-  async login(email, password) {
+  async login(email, password, headers = {}) {
     return normalizeAuthResult(
       await this.request('/api/usuarios/login', {
         method: 'POST',
+        headers,
         body: JSON.stringify({
           email,
           password,
@@ -336,9 +367,9 @@ export const api = {
     );
   },
 
-  async ensureTenantId(preferredId = null) {
+  async ensureTenantId(preferredId = null, headers = {}) {
     const preferredTenantId = Number.parseInt(preferredId, 10);
-    const tenants = normalizeCollectionResult(await this.request('/api/tenants'), ['data', 'tenants']).data;
+    const tenants = normalizeCollectionResult(await this.request('/api/tenants', { headers }), ['data', 'tenants']).data;
 
     if (Number.isFinite(preferredTenantId)) {
       const preferredTenant = tenants.find((tenant) => Number.parseInt(tenant.id, 10) === preferredTenantId);
@@ -353,6 +384,7 @@ export const api = {
     const createdTenant = normalizeEntityResult(
       await this.request('/api/tenants', {
         method: 'POST',
+        headers,
         body: JSON.stringify({ nombre: 'FoodRush' }),
       }),
       ['data', 'tenant'],
@@ -366,8 +398,8 @@ export const api = {
     throw new Error('No se pudo resolver un tenant válido para registrar el usuario.');
   },
 
-  async register(userData) {
-    const tenantId = await this.ensureTenantId(userData.tenantId || 1);
+  async register(userData, headers = {}) {
+    const tenantId = await this.ensureTenantId(userData.tenantId || 1, headers);
 
     const payload = {
       nombre: userData.name,
@@ -386,30 +418,33 @@ export const api = {
     return normalizeEntityResult(
       await this.request('/api/usuarios', {
         method: 'POST',
+        headers,
         body: JSON.stringify(payload),
       }),
       ['data', 'user', 'usuario'],
     );
   },
 
-  async getUser(id) {
-    return normalizeEntityResult(await this.request(`/api/usuarios/${id}`), ['data', 'user', 'usuario']);
+  async getUser(id, headers = {}) {
+    return normalizeEntityResult(await this.request(`/api/usuarios/${id}`, { headers }), ['data', 'user', 'usuario']);
   },
 
-  async updateUser(id, data) {
+  async updateUser(id, data, headers = {}) {
     return normalizeEntityResult(
       await this.request(`/api/usuarios/${id}`, {
         method: 'PUT',
+        headers,
         body: JSON.stringify(data),
       }),
       ['data', 'user', 'usuario'],
     );
   },
 
-  async changePassword(userId, currentPassword, newPassword) {
+  async changePassword(userId, currentPassword, newPassword, headers = {}) {
     return normalizeEntityResult(
       await this.request(`/api/usuarios/${userId}/password`, {
         method: 'PUT',
+        headers,
         body: JSON.stringify({
           currentPassword,
           newPassword,
@@ -423,11 +458,11 @@ export const api = {
     );
   },
 
-  async getClients(params = {}) {
+  async getClients(params = {}, headers = {}) {
     const queryParams = sanitizeParams(params);
     const query = new URLSearchParams(queryParams).toString();
     const endpoint = query ? `/api/clientes?${query}` : '/api/clientes';
-    const normalized = normalizeCollectionResult(await this.request(endpoint), ['data', 'clientes']);
+    const normalized = normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'clientes']);
 
     return {
       ...normalized,
@@ -442,18 +477,19 @@ export const api = {
     };
   },
 
-  async createClient(clientData) {
+  async createClient(clientData, headers = {}) {
     return normalizeEntityResult(
       await this.request('/api/clientes', {
         method: 'POST',
+        headers,
         body: JSON.stringify(clientData),
       }),
       ['data', 'cliente'],
     );
   },
 
-  async createOrder(orderData) {
-    const resolvedStatusId = await this.resolveOrderStatusId(orderData?.estado_id);
+  async createOrder(orderData, headers = {}) {
+    const resolvedStatusId = await this.resolveOrderStatusId(orderData?.estado_id, headers);
     if (!resolvedStatusId) {
       return {
         success: false,
@@ -466,6 +502,7 @@ export const api = {
     return normalizeEntityResult(
       await this.request('/api/pedidos', {
         method: 'POST',
+        headers,
         body: JSON.stringify({
           ...orderData,
           estado_id: resolvedStatusId,
@@ -475,11 +512,11 @@ export const api = {
     );
   },
 
-  async getOrders(params = {}) {
+  async getOrders(params = {}, headers = {}) {
     const queryParams = sanitizeParams(params);
     const query = new URLSearchParams(queryParams).toString();
     const endpoint = query ? `/api/pedidos?${query}` : '/api/pedidos';
-    const normalized = normalizeCollectionResult(await this.request(endpoint), ['data', 'pedidos']);
+    const normalized = normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'pedidos']);
 
     return {
       ...normalized,
@@ -490,7 +527,7 @@ export const api = {
     };
   },
 
-  async getOrder(id) {
+  async getOrder(id, headers = {}) {
     if (isLocalOnlyOrderId(id)) {
       return {
         success: false,
@@ -500,10 +537,10 @@ export const api = {
       };
     }
 
-    return normalizeEntityResult(await this.request(`/api/pedidos/${id}`), ['data', 'pedido']);
+    return normalizeEntityResult(await this.request(`/api/pedidos/${id}`, { headers }), ['data', 'pedido']);
   },
 
-  async updateOrder(id, data) {
+  async updateOrder(id, data, headers = {}) {
     if (isLocalOnlyOrderId(id)) {
       return {
         success: false,
@@ -515,7 +552,7 @@ export const api = {
 
     let payload = data;
     if (Object.prototype.hasOwnProperty.call(data || {}, 'estado_id')) {
-      const resolvedStatusId = await this.resolveOrderStatusId(data?.estado_id);
+      const resolvedStatusId = await this.resolveOrderStatusId(data?.estado_id, headers);
       if (!resolvedStatusId) {
         return {
           success: false,
@@ -534,9 +571,80 @@ export const api = {
     return normalizeEntityResult(
       await this.request(`/api/pedidos/${id}`, {
         method: 'PUT',
+        headers,
         body: JSON.stringify(payload),
       }),
       ['data', 'pedido'],
+    );
+  },
+
+  async getUsers(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/usuarios?${query}` : '/api/usuarios';
+    const normalized = normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'users', 'usuarios']);
+
+    return {
+      ...normalized,
+      data: filterCollectionByParams(normalized.data, queryParams, {
+        tenant_id: ['tenantId'],
+        correo: ['email'],
+        email: ['correo'],
+        telefono: ['phone'],
+        phone: ['telefono'],
+        nombre: ['name'],
+      }),
+    };
+  },
+
+  async getOrderItems(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/pedidoitems?${query}` : '/api/pedidoitems';
+    const normalized = normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'items', 'pedidoitems']);
+
+    return {
+      ...normalized,
+      data: filterCollectionByParams(normalized.data, queryParams, {
+        pedido_id: ['pedidoId'],
+        producto_id: ['productoId'],
+      }),
+    };
+  },
+
+  async getSessions(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/sesionesusuarios?${query}` : '/api/sesionesusuarios';
+    const normalized = normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'sessions', 'sesionesusuarios']);
+
+    return {
+      ...normalized,
+      data: filterCollectionByParams(normalized.data, queryParams, {
+        usuario_id: ['user_id'],
+      }),
+    };
+  },
+
+  async createResource(resource, data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request(normalizeResourcePath(resource), {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data'],
+    );
+  },
+
+  async updateResource(resource, id, data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request(`${normalizeResourcePath(resource)}/${id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data'],
     );
   },
 

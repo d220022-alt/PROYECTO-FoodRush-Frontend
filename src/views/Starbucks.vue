@@ -603,14 +603,13 @@ const fetchProducts = async () => {
                 deduped.push(item);
             });
 
-            products.value = deduped.length > 0 ? deduped : getDefaultProducts();
+            products.value = deduped;
         } else {
             throw new Error(response.message || 'No se pudieron cargar los productos de Starbucks');
         }
     } catch (e) {
         console.error("Error fetching products", e);
-        // Fallback to hardcoded products
-        products.value = getDefaultProducts();
+        products.value = [];
     } finally {
         isLoading.value = false;
     }
@@ -746,9 +745,8 @@ const fallbackProducts = computed(() => {
 });
 
 const popularProducts = computed(() => {
-    const all = getDefaultProducts();
+    return products.value.slice(0, 4);
     // Aquí sacamos unos cuantos productos top pa' antojarlos
-    return [all[0], all[2], all[4], all[7]]; 
 });
 
 const isUsingFallbackProducts = computed(() =>

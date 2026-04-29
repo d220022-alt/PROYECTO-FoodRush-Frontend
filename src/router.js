@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'
+import { getSession } from './services/storage'
+import { getPortalRouteByEmail } from './utils/portalRouting'
 
 const routes = [
     { path: '/', component: Home },
@@ -43,6 +45,32 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+})
+
+router.beforeEach((to) => {
+    const session = getSession()
+    if (!session.isAuthenticated) {
+        if (to.path === '/') return '/login'
+
+        const protectedRoutes = ['/administracion', '/delivery', '/checkout', '/orders', '/profile', '/favorites', '/payment-methods', '/tracking']
+        if (protectedRoutes.some((route) => to.path === route || to.path.startsWith(`${route}/`))) {
+            return '/login'
+        }
+
+        return true
+    }
+
+    const portalRoute = getPortalRouteByEmail(session.userEmail)
+
+    if (to.path === '/login') {
+        return portalRoute
+    }
+
+    if (portalRoute !== '/' && to.path === '/') {
+        return portalRoute
+    }
+
+    return true
 })
 
 export default router

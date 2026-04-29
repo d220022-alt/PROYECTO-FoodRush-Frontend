@@ -1,191 +1,213 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { api } from '../services/api';
-import { getCachedOrderById, getSession, saveCachedOrder, updateCachedOrderStatus } from '../services/storage';
+import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
+import { getCachedOrderById, getSession } from '../services/storage';
 
 const route = useRoute();
 const router = useRouter();
-const orderId = route.params.id;
-const currentUserEmail = getSession().userEmail || '';
+const session = getSession();
 
 const order = ref(null);
+const warnings = ref([]);
+const errorMessage = ref('');
 const isLoading = ref(true);
-const currentStep = ref(0); // 0: Pendiente, 1: Preparando, 2: En Camino, 3: Entregado
+
 const steps = [
-    { label: 'Confirmado', icon: 'fa-solid fa-clipboard-check', statusId: 1 },
-    { label: 'Preparando', icon: 'fa-solid fa-fire-burner', statusId: 2 },
-    { label: 'En Camino', icon: 'fa-solid fa-motorcycle', statusId: 3 },
-    { label: 'Entregado', icon: 'fa-solid fa-flag-checkered', statusId: 4 }
+    { label: 'Confirmado', icon: 'fa-solid fa-clipboard-check' },
+    { label: 'Preparando', icon: 'fa-solid fa-fire-burner' },
+    { label: 'En Camino', icon: 'fa-solid fa-motorcycle' },
+    { label: 'Entregado', icon: 'fa-solid fa-flag-checkered' },
 ];
 
-// Simulation logic
-let simulationInterval = null;
+let refreshTimer = null;
+
+const orderId = computed(() => route.params.id);
+const tenantId = computed(() => String(route.query.tenant || 'Global'));
+const currentUserEmail = computed(() => session.userEmail || '');
+
+const currentStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
+const currentProgress = computed(() => getOrderProgressStep(currentStatusLabel.value));
+const currentStep = computed(() => Math.max(0, currentProgress.value - 1));
+const isCancelled = computed(() => String(currentStatusLabel.value || '').toLowerCase().includes('cancelado'));
+const overlayIcon = computed(() => (isCancelled.value ? 'fa-solid fa-ban' : steps[currentStep.value]?.icon || steps[0].icon));
+
+const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
+const formatDate = (value) => {
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return 'Sin fecha';
+    return parsedDate.toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' });
+};
+
+const normalizeCachedOrder = (cachedOrder) => {
+    if (!cachedOrder) return null;
+
+    return {
+        ...cachedOrder,
+        statusLabel: cachedOrder.estado?.descripcion || 'Pendiente',
+        totalValue: cachedOrder.total,
+        address: cachedOrder.direccion_entrega,
+        createdAt: cachedOrder.creado_en,
+        customerName: cachedOrder.user_name || 'Cliente FoodRush',
+        customerPhone: cachedOrder.telefono || '',
+        itemSummary: Array.isArray(cachedOrder.items)
+            ? cachedOrder.items.map((item) => `${item.qty || item.cantidad || 1}x ${item.name || item.nombre || 'Producto'}`).join(', ')
+            : '',
+        itemsDetailed: Array.isArray(cachedOrder.items)
+            ? cachedOrder.items.map((item, index) => ({
+                id: item.id || `cached-item-${index + 1}`,
+                name: item.name || item.nombre || 'Producto',
+                quantity: Number(item.qty || item.cantidad || 1),
+                unitPrice: Number(item.price || item.precio || 0),
+                subtotal: Number(item.subtotal || (Number(item.qty || item.cantidad || 1) * Number(item.price || item.precio || 0))),
+            }))
+            : [],
+        tenantName: cachedOrder.tenantName || 'FoodRush',
+        driverName: cachedOrder.repartidor_nombre || '',
+    };
+};
 
 const fetchOrder = async () => {
-    try {
-        const response = await api.getOrder(orderId);
-        if (response.success && response.data) {
-            order.value = saveCachedOrder(
-                {
-                    ...response.data,
-                    user_email: currentUserEmail || response.data.user_email,
-                    source: 'remote'
-                },
-                currentUserEmail || response.data.user_email
-            );
-            updateStepFromStatus(parseInt(order.value.estado_id));
-            return;
-        }
-    } catch (e) {
-        console.error("Error fetching order", e);
-    }
-
-    const cachedOrder = getCachedOrderById(orderId, currentUserEmail);
-    if (cachedOrder) {
-        order.value = cachedOrder;
-        updateStepFromStatus(parseInt(order.value.estado_id));
-    }
-};
-
-const updateStepFromStatus = (statusId) => {
-    // Basic mapping: 1->0, 2->1, 3->2, 4->3
-    if (statusId >= 4) currentStep.value = 3;
-    else currentStep.value = Math.max(0, statusId - 1);
-};
-
-// SIMULATION: Auto-advance status for functionality demo
-const advanceSimulation = async () => {
-    if (!order.value) return;
-    
-    // If it's 4, stop
-    if (order.value.estado_id >= 4) {
-        clearInterval(simulationInterval);
-        return;
-    }
-
-    let nextStatus = parseInt(order.value.estado_id) + 1;
+    warnings.value = [];
+    errorMessage.value = '';
 
     try {
-        const response = await api.updateOrder(orderId, { estado_id: nextStatus });
-        if (response.success && response.data) {
-            order.value = saveCachedOrder(
-                {
-                    ...response.data,
-                    user_email: currentUserEmail || response.data.user_email,
-                    source: 'remote'
-                },
-                currentUserEmail || response.data.user_email
-            );
-        } else {
-            throw new Error(response.message || 'No se pudo actualizar el pedido');
-        }
-    } catch (e) {
-        console.error("Simulation error", e);
-        const localOrder = updateCachedOrderStatus(orderId, nextStatus, currentUserEmail);
-        if (localOrder) {
-            order.value = localOrder;
-        }
-    }
+        isLoading.value = true;
 
-    if (order.value) {
-        updateStepFromStatus(nextStatus);
+        const dataset = await fetchOperationalDataset({
+            selectedTenantId: tenantId.value || 'Global',
+            includeSessions: false,
+        });
+
+        warnings.value = dataset.warnings || [];
+        order.value = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
+    } catch (error) {
+        console.error('Error fetching order', error);
+        errorMessage.value = error.message || 'No se pudo cargar el pedido.';
+    } finally {
+        if (!order.value) {
+            order.value = normalizeCachedOrder(getCachedOrderById(orderId.value, currentUserEmail.value));
+        }
+
+        isLoading.value = false;
     }
 };
 
 onMounted(async () => {
     await fetchOrder();
-    isLoading.value = false;
-    
-    // Start simulation: Update every 5 seconds for demo speed
-    if (order.value && order.value.estado_id < 4) {
-        simulationInterval = setInterval(advanceSimulation, 5000); 
-    }
+    refreshTimer = window.setInterval(() => {
+        void fetchOrder();
+    }, 15000);
 });
 
 onUnmounted(() => {
-    if (simulationInterval) clearInterval(simulationInterval);
+    if (refreshTimer) clearInterval(refreshTimer);
 });
 
-const goHome = () => router.push('/');
+const goBack = () => router.push('/orders');
 </script>
 
 <template>
-<div class="min-h-screen bg-white font-sans">
-    <header class="p-6 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-         <h1 class="text-xl font-bold text-slate-800">Seguimiento #{{ orderId }}</h1>
-         <button @click="goHome" class="text-orange-500 font-bold text-sm">Volver al Inicio</button>
-    </header>
+    <div class="min-h-screen bg-white font-sans">
+        <header class="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-6">
+            <h1 class="text-xl font-bold text-slate-800">Seguimiento #{{ orderId }}</h1>
+            <button @click="goBack" class="text-sm font-bold text-orange-500">Volver a Pedidos</button>
+        </header>
 
-    <div class="p-8 max-w-lg mx-auto" v-if="order">
-        
-        <!-- MAPA (Simulado) -->
-        <div class="w-full h-64 bg-gray-100 rounded-3xl mb-8 relative overflow-hidden flex items-center justify-center shadow-inner" role="region" aria-label="Mapa de seguimiento en tiempo real">
-            <div class="absolute inset-0 opacity-30 bg-[url('https://img.freepik.com/free-vector/city-map-navigation-interface_23-2148496660.jpg')] bg-cover bg-center" aria-hidden="true"></div>
-            
-            <!-- Status Overlay -->
-            <div class="z-10 text-center bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg" role="status" aria-live="polite">
-                <i :class="steps[currentStep].icon" class="text-4xl text-orange-500 mb-2" aria-hidden="true"></i>
-                <p class="font-bold text-slate-800 text-lg">{{ steps[currentStep].label }}</p>
-                <p class="text-xs text-gray-500">Actualizado hace un momento</p>
-            </div>
-            
-            <!-- Driver Animation if 'En Camino' -->
-            <div v-if="currentStep === 2" class="absolute bottom-4 left-4 animate-bounce" aria-label="El repartidor está en camino">
-                <i class="fa-solid fa-motorcycle text-3xl text-slate-800" aria-hidden="true"></i>
-            </div>
+        <div v-if="errorMessage" class="mx-auto mt-6 max-w-lg rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
+            {{ errorMessage }}
         </div>
 
-        <!-- TIMELINE -->
-        <div class="relative pl-8 border-l-2 border-gray-100 space-y-10" role="list" aria-label="Progreso del pedido">
-            <div v-for="(step, index) in steps" :key="index" class="relative" role="listitem">
-                <!-- Dot -->
-                <div class="absolute -left-[41px] w-5 h-5 rounded-full border-4 border-white shadow-sm transition-all duration-500 z-10"
-                     :aria-hidden="true"
-                     :class="index <= currentStep ? 'bg-green-500 scale-125' : 'bg-gray-200'">
+        <div v-if="warnings.length > 0" class="mx-auto mt-4 max-w-lg rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700">
+            {{ warnings[0] }}
+        </div>
+
+        <div v-if="order" class="mx-auto max-w-lg p-8">
+            <div class="relative mb-8 flex h-64 items-center justify-center overflow-hidden rounded-3xl bg-gray-100 shadow-inner" role="region" aria-label="Mapa de seguimiento">
+                <div class="absolute inset-0 bg-[url('https://img.freepik.com/free-vector/city-map-navigation-interface_23-2148496660.jpg')] bg-cover bg-center opacity-30" aria-hidden="true"></div>
+
+                <div class="z-10 rounded-2xl bg-white/90 p-4 text-center shadow-lg backdrop-blur-sm" role="status" aria-live="polite">
+                    <i :class="overlayIcon" class="mb-2 text-4xl text-orange-500" aria-hidden="true"></i>
+                    <p class="text-lg font-bold text-slate-800">{{ currentStatusLabel }}</p>
+                    <p class="text-xs text-gray-500">Ultima actualizacion: {{ formatDate(order.createdAt) }}</p>
                 </div>
-                
-                <!-- Content -->
-                <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep ? 'opacity-100' : 'opacity-40'">
-                    <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl transition-colors duration-500 shadow-sm"
-                         :aria-hidden="true"
-                         :class="index <= currentStep ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'">
-                        <i :class="step.icon"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-slate-800">{{ step.label }}</h3>
-                        
-                        <!-- Logic for text status -->
-                        <div v-if="index === currentStep">
-                            <p v-if="index === steps.length - 1" class="text-xs text-green-600 font-bold">¡Disfruta tu comida!</p>
-                            <p v-else class="text-xs text-gray-400">En progreso...</p>
+
+                <div v-if="currentStep === 2 && !isCancelled" class="absolute bottom-4 left-4 animate-bounce" aria-label="El repartidor esta en camino">
+                    <i class="fa-solid fa-motorcycle text-3xl text-slate-800" aria-hidden="true"></i>
+                </div>
+            </div>
+
+            <div class="relative space-y-10 border-l-2 border-gray-100 pl-8" role="list" aria-label="Progreso del pedido">
+                <div v-for="(step, index) in steps" :key="step.label" class="relative" role="listitem">
+                    <div
+                        class="absolute -left-[41px] z-10 h-5 w-5 rounded-full border-4 border-white shadow-sm transition-all duration-500"
+                        :class="index <= currentStep && !isCancelled ? 'bg-green-500 scale-125' : 'bg-gray-200'"
+                        :aria-hidden="true"
+                    ></div>
+
+                    <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep && !isCancelled ? 'opacity-100' : 'opacity-40'">
+                        <div
+                            class="flex h-12 w-12 items-center justify-center rounded-full text-xl shadow-sm transition-colors duration-500"
+                            :class="index <= currentStep && !isCancelled ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'"
+                            :aria-hidden="true"
+                        >
+                            <i :class="step.icon"></i>
                         </div>
-                        
-                        <p class="text-xs text-green-500 font-bold" v-if="index < currentStep">Completado</p>
+                        <div>
+                            <h3 class="font-bold text-slate-800">{{ step.label }}</h3>
+                            <p v-if="isCancelled && index === 0" class="text-xs font-bold text-red-500">Pedido cancelado</p>
+                            <p v-else-if="index === currentStep && !isCancelled" class="text-xs text-gray-400">{{ index === steps.length - 1 ? 'Pedido completado' : 'En progreso...' }}</p>
+                            <p v-else-if="index < currentStep && !isCancelled" class="text-xs font-bold text-green-500">Completado</p>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="mt-10 space-y-4 rounded-2xl border border-gray-100 bg-gray-50 p-6">
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Local</span>
+                    <span class="text-right font-bold text-slate-800">{{ order.tenantName || 'FoodRush' }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Cliente</span>
+                    <span class="text-right font-bold text-slate-800">{{ order.customerName || 'Cliente FoodRush' }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Direccion</span>
+                    <span class="w-1/2 text-right text-sm font-medium text-slate-800">{{ order.address || 'Recogida en tienda' }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Total</span>
+                    <span class="text-lg font-bold text-slate-800">{{ formatCurrency(order.totalValue || order.total) }}</span>
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <span class="text-gray-500">Repartidor</span>
+                    <span class="text-right font-bold text-slate-800">{{ order.driverName || 'Pendiente de asignacion' }}</span>
+                </div>
+            </div>
+
+            <div class="mt-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500">Lo que pediste</h2>
+                <div class="mt-4 space-y-3">
+                    <div v-for="item in order.itemsDetailed" :key="item.id" class="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                        <div>
+                            <p class="font-bold text-slate-800">{{ item.quantity }}x {{ item.name }}</p>
+                            <p class="text-xs text-gray-500">Unidad {{ formatCurrency(item.unitPrice) }}</p>
+                        </div>
+                        <span class="font-bold text-slate-800">{{ formatCurrency(item.subtotal) }}</span>
+                    </div>
+                    <p v-if="order.itemsDetailed?.length === 0" class="text-sm font-bold text-gray-500">{{ order.itemSummary || 'Sin detalle del pedido.' }}</p>
                 </div>
             </div>
         </div>
 
-        <!-- INFO -->
-        <div class="mt-10 bg-gray-50 p-6 rounded-2xl border border-gray-100">
-            <div class="flex justify-between items-center mb-4">
-                <span class="text-gray-500">Tiempo estimado</span>
-                <span class="font-bold text-slate-800 text-lg">15-20 min</span>
-            </div>
-            <div class="flex justify-between items-center">
-                <span class="text-gray-500">Repartidor</span>
-                <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold text-xs">JP</div>
-                    <span class="font-bold text-slate-800">Juan Pérez</span>
-                </div>
-            </div>
+        <div v-else class="flex min-h-[50vh] flex-col items-center justify-center p-10 text-center text-gray-500">
+            <i :class="isLoading ? 'fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-orange-500' : 'fa-solid fa-receipt text-4xl mb-4 text-gray-300'"></i>
+            <p class="text-lg">{{ isLoading ? 'Cargando pedido...' : 'No se encontro la informacion del pedido.' }}</p>
         </div>
-        
     </div>
-    <div v-else class="p-10 text-center text-gray-500 flex flex-col items-center justify-center min-h-[50vh]">
-        <i :class="isLoading ? 'fa-solid fa-circle-notch fa-spin text-4xl mb-4 text-orange-500' : 'fa-solid fa-receipt text-4xl mb-4 text-gray-300'"></i>
-        <p class="text-lg">{{ isLoading ? 'Cargando pedido...' : 'No se encontró la información del pedido.' }}</p>
-    </div>
-</div>
 </template>
