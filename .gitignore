@@ -37,3 +37,10 @@ __screenshots__/
 
 # Vite
 *.timestamp-*-*.mjs
+
+# Archivos locales (no compartidos con el equipo)
+.claude/
+.playwright-mcp/
+AGENTS.md
+CLAUDE.md
+docs/
