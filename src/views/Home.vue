@@ -410,7 +410,7 @@ const showPromoResults = () => {
             <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Franquicias disponibles</h2>
         </div>
 
-        <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div v-if="loading" class="franchise-grid">
             <div v-for="i in 8" :key="i" class="bg-white rounded-2xl p-5 shadow-sm space-y-4 animate-pulse border border-gray-100 flex flex-col items-center justify-center h-[230px]">
                 <div class="w-24 h-24 bg-gray-200 rounded-full mb-2"></div>
                 <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -435,24 +435,26 @@ const showPromoResults = () => {
             </button>
         </div>
 
-        <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div v-else class="franchise-grid">
             <div v-for="(item, idx) in filteredFranchises" :key="item.id"
-                 class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in"
+                 class="card-franchise flex flex-col items-center text-center cursor-pointer group fade-in"
                  :style="{ animationDelay: `${Math.min(idx, 10) * 55}ms` }"
                  @click="goToFranchise(item.id, item.name)">
-                
-                <span v-if="item.promo" class="absolute top-3 right-3 bg-accent text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-bold shadow-sm z-10">Promo</span>
 
-                <div class="w-28 h-28 mb-4 flex items-center justify-center relative z-10 transition-transform duration-300 group-hover:scale-110">
-                    <img :src="item.img" :alt="item.name" class="max-w-full max-h-full object-contain drop-shadow-sm" loading="lazy">
+                <div class="mb-2 flex h-6 w-full justify-end">
+                    <span v-if="item.promo" class="promo-chip">Promo</span>
                 </div>
 
-                <h3 class="font-bold text-lg text-dark mb-1 group-hover:text-primary transition line-clamp-1">{{ item.name }}</h3>
+                <div class="franchise-logo-frame relative z-10 transition-transform duration-300 group-hover:scale-[1.03]">
+                    <img :src="item.img" :alt="item.name" class="franchise-logo-img" loading="lazy">
+                </div>
 
-                <div class="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                    <div class="flex items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>{{ item.rating }}</div>
-                    <span class="text-gray-300">|</span>
-                    <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{{ item.category }}</span>
+                <h3 class="franchise-title group-hover:text-primary">{{ item.name }}</h3>
+
+                <div class="franchise-meta">
+                    <div class="flex shrink-0 items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>{{ item.rating }}</div>
+                    <span class="text-gray-300" aria-hidden="true">|</span>
+                    <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
                 <div v-if="item.pickup" class="w-full mt-2 pt-2 border-t border-gray-50 text-[11px] text-green-600 font-bold flex items-center justify-center gap-1">
@@ -587,16 +589,103 @@ const showPromoResults = () => {
 .search-icon { padding-left: 20px; color: #9CA3AF; font-size: 18px; }
 
 /* ── Franchise Cards ── */
+.franchise-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .card-franchise {
-    background: white; border-radius: 16px;
+    background: white;
+    border-radius: 16px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid #f3f4f6; position: relative; overflow: hidden;
+    border: 1px solid #f3f4f6;
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    padding: 18px;
 }
 .card-franchise:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border-color: #F48C06;
+}
+.promo-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    border-radius: 9999px;
+    background: #F48C06;
+    color: #fff;
+    padding: 4px 9px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 12px rgba(244, 140, 6, 0.22);
+    white-space: nowrap;
+}
+.franchise-logo-frame {
+    width: 100%;
+    max-width: 128px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+}
+.franchise-logo-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.08));
+}
+.franchise-title {
+    width: 100%;
+    min-height: 2.5em;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    transition: color 0.2s ease;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.franchise-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.franchise-category {
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 7px;
+    background: #f3f4f6;
+    color: #4b5563;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ── Filter Buttons ── */
@@ -625,6 +714,10 @@ const showPromoResults = () => {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 @media (max-width: 640px) {
+    .franchise-grid {
+        gap: 0.75rem;
+    }
+
     .clean-search {
         height: 50px;
         border-radius: 14px;
@@ -648,12 +741,66 @@ const showPromoResults = () => {
     }
 
     .card-franchise {
-        min-height: 210px;
-        padding: 16px;
+        min-height: 220px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .promo-chip {
+        padding: 4px 7px;
+        font-size: 9px;
+    }
+
+    .franchise-logo-frame {
+        max-width: 96px;
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .franchise-title {
+        min-height: 2.45em;
+        margin-bottom: 6px;
+        font-size: 0.98rem;
+    }
+
+    .franchise-meta {
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 6px;
+        font-size: 0.8rem;
+    }
+
+    .franchise-meta > .text-gray-300 {
+        display: none;
+    }
+
+    .franchise-category {
+        max-width: 100%;
+        font-size: 11px;
     }
 
     .offer-card {
         border-radius: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .franchise-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 768px) {
+    .franchise-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .franchise-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
 </style>
