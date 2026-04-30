@@ -29,16 +29,6 @@ const error = ref(null);
 const searchTerm = ref('');
 const currentCategory = ref('all');
 
-const CATEGORY_OPTIONS = [
-    { key: 'Hamburguesa', label: 'Hamburguesas', icon: 'fa-solid fa-burger', tone: 'bg-red-50 text-red-600' },
-    { key: 'Pizza', label: 'Pizza', icon: 'fa-solid fa-pizza-slice', tone: 'bg-orange-50 text-orange-600' },
-    { key: 'Pollo', label: 'Pollo', icon: 'fa-solid fa-drumstick-bite', tone: 'bg-amber-50 text-amber-600' },
-    { key: 'Bebidas', label: 'Bebidas', icon: 'fa-solid fa-mug-hot', tone: 'bg-emerald-50 text-emerald-600' },
-    { key: 'Postres', label: 'Postres', icon: 'fa-solid fa-ice-cream', tone: 'bg-pink-50 text-pink-600' },
-    { key: 'Tacos', label: 'Tacos', icon: 'fa-solid fa-pepper-hot', tone: 'bg-purple-50 text-purple-600' },
-    { key: 'Criolla', label: 'Criolla', icon: 'fa-solid fa-utensils', tone: 'bg-slate-100 text-slate-700' },
-];
-
 const OFFER_MESSAGES = [
     { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rapido sin revisar todo el menu.' },
     { title: 'Favorito FoodRush', badge: 'Popular', copy: 'Franquicias con ofertas y productos ideales para compartir.' },
@@ -173,10 +163,6 @@ onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
-const setCategory = (category) => {
-    currentCategory.value = category;
-};
-
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
 
@@ -203,13 +189,6 @@ const filteredFranchises = computed(() => {
     }
     return result;
 });
-
-const categoryCards = computed(() =>
-    CATEGORY_OPTIONS.map((category) => ({
-        ...category,
-        count: franchises.value.filter((item) => item.category === category.key).length,
-    })).filter((category) => category.count > 0),
-);
 
 const offerCards = computed(() =>
     franchises.value
@@ -360,30 +339,25 @@ const showPromoResults = () => {
         </div>
     </div>
 
-    <section id="categories" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
-        <div class="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-            <div>
-                <p class="text-xs font-black uppercase tracking-[0.25em] text-primary">Categorías</p>
-                <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Elige por antojo</h2>
-            </div>
-            <button @click="selectCategorySection('all')" class="w-fit rounded-full border border-red-100 bg-white px-4 py-2 text-sm font-bold text-primary shadow-sm transition hover:bg-red-50">
-                Ver todo
+    <section id="categories" class="container mx-auto px-4 md:px-12 py-8 md:py-10">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center">
+            <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
+                <i class="fa-solid fa-sliders"></i>
+                <span>Filtros</span>
             </button>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
-            <button
-                v-for="category in categoryCards"
-                :key="category.key"
-                @click="selectCategorySection(category.key)"
-                class="category-card group rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-red-100 hover:shadow-lg"
-            >
-                <span :class="['mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-xl transition group-hover:scale-105', category.tone]">
-                    <i :class="category.icon"></i>
-                </span>
-                <span class="block text-sm font-black text-dark md:text-base">{{ category.label }}</span>
-                <span class="mt-1 block text-xs font-bold text-gray-400">{{ category.count }} opciones</span>
-            </button>
+            <div class="w-full overflow-x-auto no-scrollbar pb-2">
+                <div class="flex flex-wrap md:flex-nowrap gap-3 min-w-max">
+                    <button @click="selectCategorySection('all')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'all' ? 'active' : '']">Todos</button>
+                    <button @click="selectCategorySection('Hamburguesa')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Hamburguesa' ? 'active' : '']"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
+                    <button @click="selectCategorySection('Pizza')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pizza' ? 'active' : '']"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
+                    <button @click="selectCategorySection('Pollo')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pollo' ? 'active' : '']"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
+                    <button @click="selectCategorySection('Bebidas')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Bebidas' ? 'active' : '']"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
+                    <button @click="selectCategorySection('Tacos')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Tacos' ? 'active' : '']"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
+                    <button @click="selectCategorySection('Postres')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Postres' ? 'active' : '']"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
+                    <button @click="selectCategorySection('Criolla')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Criolla' ? 'active' : '']"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -434,25 +408,6 @@ const showPromoResults = () => {
         <div class="mb-6">
             <p class="text-xs font-black uppercase tracking-[0.25em] text-primary">Restaurantes</p>
             <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Franquicias disponibles</h2>
-        </div>
-        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
-            <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
-                <i class="fa-solid fa-sliders"></i>
-                <span>Filtros</span>
-            </button>
-
-            <div class="w-full overflow-x-auto no-scrollbar pb-2">
-                <div class="flex flex-wrap md:flex-nowrap gap-3 min-w-max">
-                    <button @click="setCategory('all')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'all' ? 'active' : '']">Todos</button>
-                    <button @click="setCategory('Hamburguesa')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Hamburguesa' ? 'active' : '']"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
-                    <button @click="setCategory('Pizza')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pizza' ? 'active' : '']"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
-                    <button @click="setCategory('Pollo')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pollo' ? 'active' : '']"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
-                    <button @click="setCategory('Bebidas')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Bebidas' ? 'active' : '']"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
-                    <button @click="setCategory('Tacos')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Tacos' ? 'active' : '']"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
-                    <button @click="setCategory('Postres')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Postres' ? 'active' : '']"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
-                    <button @click="setCategory('Criolla')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Criolla' ? 'active' : '']"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
-                </div>
-            </div>
         </div>
 
         <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -697,7 +652,6 @@ const showPromoResults = () => {
         padding: 16px;
     }
 
-    .category-card,
     .offer-card {
         border-radius: 18px;
     }
