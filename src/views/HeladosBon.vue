@@ -875,12 +875,22 @@ const getDefaultProducts = () => {
   });
 };
 
+const getFallbackProducts = () => {
+  const tenantId = Number(franchise.value.tenantId);
+  const fallbackSource = mockProducts.filter((product) => (
+    normalize(product.franchiseSlug) === normalize(franchise.value.slug) ||
+    Number(product.tenantId) === tenantId
+  ));
+  const source = fallbackSource.length > 0 ? fallbackSource : getDefaultProducts();
+  return source.map((product, index) => parseProduct(product, index)).filter(Boolean);
+};
+
 const fetchProducts = async () => {
   try {
     isLoading.value = true;
     fetchError.value = false;
     const response = await api.getProducts(
-      { limit: 200 },
+      { limit: 200, tenant_id: franchise.value.tenantId },
       { 'X-Tenant-ID': franchise.value.tenantId },
     );
     const rawData =
@@ -898,12 +908,13 @@ const fetchProducts = async () => {
       deduped.push(item);
     });
 
-    products.value = deduped;
+    products.value = deduped.length > 0 ? deduped : getFallbackProducts();
+    fetchError.value = products.value.length === 0;
     syncCategory();
   } catch (error) {
     console.error(`Error loading ${franchise.value.name} products`, error);
-    products.value = [];
-    fetchError.value = true;
+    products.value = getFallbackProducts();
+    fetchError.value = products.value.length === 0;
     syncCategory();
   } finally {
     isLoading.value = false;
