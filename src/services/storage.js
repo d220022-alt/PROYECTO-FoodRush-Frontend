@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   paypals: 'foodrush_saved_paypals',
   preferredPayments: 'foodrush_preferred_payments',
   orders: 'foodrush_orders',
+  deliveryAssignments: 'foodrush_delivery_assignments',
   clients: 'foodrush_clients',
   notifications: 'foodrush_notifications',
 };
@@ -643,6 +644,8 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
     items: Array.isArray(order.items) ? order.items.map(normalizeCartItem) : [],
     user_email: normalizeEmailKey(order.user_email || fallbackEmail),
     user_name: safeString(order.user_name || order.userName || order.nombre),
+    repartidor_nombre: safeString(order.repartidor_nombre || order.driverName || order.repartidor?.nombre),
+    repartidor_email: normalizeEmailKey(order.repartidor_email || order.driverEmail),
     source: safeString(order.source, 'local'),
   };
 };
@@ -757,6 +760,59 @@ const writeOrdersBucket = (bucket) => {
   emitAppEvent(APP_EVENTS.ordersChanged, bucket);
 };
 
+const normalizeDeliveryAssignment = (assignment = {}) => ({
+  orderId: safeString(assignment.orderId || assignment.pedido_id || assignment.id),
+  tenantId: safeString(assignment.tenantId || assignment.tenant_id),
+  driverName: safeString(assignment.driverName || assignment.repartidor_nombre, 'Repartidor FoodRush'),
+  driverEmail: normalizeEmailKey(assignment.driverEmail || assignment.repartidor_email),
+  status: safeString(assignment.status, 'accepted'),
+  stage: safeString(assignment.stage, 'accepted'),
+  assignedAt: safeString(assignment.assignedAt || assignment.creado_en, new Date().toISOString()),
+  updatedAt: safeString(assignment.updatedAt, new Date().toISOString()),
+});
+
+const readDeliveryAssignments = () => readJson(STORAGE_KEYS.deliveryAssignments, {});
+
+const writeDeliveryAssignments = (bucket) => {
+  writeJson(STORAGE_KEYS.deliveryAssignments, bucket);
+  emitAppEvent(APP_EVENTS.ordersChanged, readOrdersBucket());
+};
+
+export const getDeliveryAssignment = (orderId) => {
+  const normalizedOrderId = safeString(orderId);
+  if (!normalizedOrderId) return null;
+
+  const assignment = readDeliveryAssignments()[normalizedOrderId];
+  return assignment ? normalizeDeliveryAssignment(assignment) : null;
+};
+
+export const setDeliveryAssignment = (orderId, assignment = {}) => {
+  const normalizedOrderId = safeString(orderId || assignment.orderId);
+  if (!normalizedOrderId) return null;
+
+  const bucket = readDeliveryAssignments();
+  const previous = bucket[normalizedOrderId] || {};
+  const normalized = normalizeDeliveryAssignment({
+    ...previous,
+    ...assignment,
+    orderId: normalizedOrderId,
+    updatedAt: new Date().toISOString(),
+  });
+
+  bucket[normalizedOrderId] = normalized;
+  writeDeliveryAssignments(bucket);
+  return normalized;
+};
+
+export const clearDeliveryAssignment = (orderId) => {
+  const normalizedOrderId = safeString(orderId);
+  if (!normalizedOrderId) return;
+
+  const bucket = readDeliveryAssignments();
+  delete bucket[normalizedOrderId];
+  writeDeliveryAssignments(bucket);
+};
+
 export const getCachedOrders = (email) => {
   const bucket = readOrdersBucket();
 
@@ -792,7 +848,7 @@ export const saveCachedOrder = (order, email) => {
   return normalizedOrder;
 };
 
-export const updateCachedOrderStatus = (orderId, statusId, email) => {
+export const updateCachedOrderStatus = (orderId, statusId, email, patch = {}) => {
   const bucket = readOrdersBucket();
   const emailKeys = email ? [normalizeEmailKey(email)] : Object.keys(bucket);
   let updatedOrder = null;
@@ -807,6 +863,7 @@ export const updateCachedOrderStatus = (orderId, statusId, email) => {
       updatedOrder = normalizeOrder(
         {
           ...normalizedEntry,
+          ...patch,
           estado_id: statusId,
           estado: {
             ...(normalizedEntry.estado || {}),

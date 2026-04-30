@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
 import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset, isSessionActive } from '../services/operations';
-import { clearSession, getSession } from '../services/storage';
+import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
 
 const router = useRouter();
 const session = getSession();
@@ -226,6 +226,10 @@ const updateOrderStatus = async (order, nextStatusId) => {
   savingOrderId.value = String(order.id);
   try {
     await api.updateOrder(order.id, { estado_id: statusId }, buildTenantHeaders(order.tenantId));
+    updateCachedOrderStatus(order.id, statusId);
+    if ([ORDER_STATUS_IDS.pending, ORDER_STATUS_IDS.cancelled].includes(statusId)) {
+      clearDeliveryAssignment(order.id);
+    }
     await refreshData({ silent: true });
   } catch (error) {
     console.error('No se pudo actualizar pedido', error);
@@ -234,6 +238,8 @@ const updateOrderStatus = async (order, nextStatusId) => {
     savingOrderId.value = '';
   }
 };
+
+const confirmOrder = (order) => updateOrderStatus(order, ORDER_STATUS_IDS.preparing);
 
 const logout = () => {
   clearSession();
@@ -255,7 +261,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="admin-enterprise flex h-screen w-full bg-slate-50 text-slate-800 antialiased">
+  <div class="admin-enterprise flex min-h-screen w-full bg-slate-50 text-slate-800 antialiased">
     <aside class="hide-scrollbar hidden w-72 shrink-0 flex-col overflow-y-auto bg-slate-900 text-white lg:flex">
       <div class="sticky top-0 z-10 flex h-16 items-center border-b border-slate-800 bg-slate-900 px-6">
         <div class="flex items-center gap-3 text-xl text-brand-500">
@@ -290,12 +296,12 @@ onBeforeUnmount(() => {
     </aside>
 
     <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <header class="flex h-16 items-center justify-between border-b border-slate-200 bg-white px-6">
+      <header class="flex min-h-16 flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <h2 class="text-xl font-black text-slate-800">{{ currentViewTitle }}</h2>
-        <div class="flex items-center gap-6">
-          <div class="flex items-center gap-2">
+        <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-6">
+          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
             <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Filtro de Datos</label>
-            <select v-model="selectedTenant" class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500">
+            <select v-model="selectedTenant" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500 sm:w-auto">
               <option value="Global">Vista Global (Todo)</option>
               <option v-for="franchise in franchises" :key="franchise.id" :value="franchise.id">{{ franchise.name }}</option>
             </select>
@@ -306,7 +312,18 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <main class="hide-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-6">
+      <div class="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+        <div class="hide-scrollbar flex gap-2 overflow-x-auto">
+          <template v-for="group in menuGroups" :key="group.name">
+            <button v-for="menu in group.items" :key="menu.id" type="button" class="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-black transition" :class="currentView === menu.id ? 'border-brand-500 bg-brand-500 text-white shadow-md shadow-orange-500/20' : 'border-slate-200 bg-white text-slate-500'" @click="currentView = menu.id">
+              <i :class="menu.icon"></i>
+              {{ menu.name }}
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <main class="hide-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
         <div v-if="errorMessage" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{{ errorMessage }}</div>
 
         <div v-if="isLoading" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -342,13 +359,13 @@ onBeforeUnmount(() => {
           </section>
 
           <section v-show="currentView === 'orders'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-slate-100 p-6">
-              <input v-model="search.orders" type="text" placeholder="Buscar ID de pedido o Cliente..." class="w-72 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+            <div class="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+              <input v-model="search.orders" type="text" placeholder="Buscar ID de pedido o Cliente..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500 sm:w-72">
               <button type="button" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-black text-white" @click="refreshData({ silent: true })">RECARGAR</button>
             </div>
             <div class="overflow-x-auto">
-              <table class="min-w-[980px] w-full text-left border-collapse">
-                <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">ID / Local</th><th class="p-4">Cliente</th><th class="p-4">Pedido</th><th class="p-4">Total</th><th class="p-4">Estado</th><th class="p-4 pr-6 text-right">Acciones</th></tr></thead>
+              <table class="min-w-[1100px] w-full text-left border-collapse">
+                <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">ID / Local</th><th class="p-4">Cliente</th><th class="p-4">Pedido</th><th class="p-4">Total</th><th class="p-4">Estado</th><th class="p-4">Delivery</th><th class="p-4 pr-6 text-right">Acciones</th></tr></thead>
                 <tbody class="text-sm">
                   <tr v-for="order in filteredOrders" :key="`${order.tenantId}-${order.id}`" class="border-b border-slate-50 hover:bg-slate-50/50">
                     <td class="p-4 pl-6"><p class="font-black text-slate-800">{{ order.id }}</p><p class="text-[10px] font-bold text-slate-400">{{ order.tenantName }}</p></td>
@@ -356,9 +373,20 @@ onBeforeUnmount(() => {
                     <td class="p-4"><p class="max-w-[260px] text-xs font-bold text-slate-500">{{ order.itemSummary }}</p></td>
                     <td class="p-4 font-black text-slate-800">{{ formatCurrency(order.totalValue) }}</td>
                     <td class="p-4"><select class="rounded-full px-3 py-1.5 text-xs font-black outline-none" :class="getStatusBadgeClass(order.statusId)" :disabled="savingOrderId === String(order.id)" :value="order.statusId" @change="updateOrderStatus(order, $event.target.value)"><option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option></select></td>
-                    <td class="p-4 pr-6 text-right"><button type="button" class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-black text-slate-600 hover:bg-brand-50 hover:text-brand-600" @click="router.push({ path: `/tracking/${order.id}`, query: { tenant: order.tenantId } })">VER TRACKING</button></td>
+                    <td class="p-4">
+                      <p class="text-xs font-black text-slate-700">{{ order.driverName || order.deliveryAssignment?.driverName || 'Sin asignar' }}</p>
+                      <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">
+                        {{ order.statusId === ORDER_STATUS_IDS.preparing ? 'Listo para delivery' : order.statusId === ORDER_STATUS_IDS.inTransit ? 'En ruta' : 'Esperando local' }}
+                      </p>
+                    </td>
+                    <td class="p-4 pr-6">
+                      <div class="flex flex-wrap justify-end gap-2">
+                        <button v-if="order.statusId === ORDER_STATUS_IDS.pending" type="button" class="rounded-lg bg-orange-50 px-3 py-2 text-xs font-black text-orange-600 hover:bg-orange-100" :disabled="savingOrderId === String(order.id)" @click="confirmOrder(order)">CONFIRMAR</button>
+                        <button type="button" class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-black text-slate-600 hover:bg-brand-50 hover:text-brand-600" @click="router.push({ path: `/tracking/${order.id}`, query: { tenant: order.tenantId } })">VER TRACKING</button>
+                      </div>
+                    </td>
                   </tr>
-                  <tr v-if="filteredOrders.length === 0"><td colspan="6" class="p-12 text-center"><p class="text-sm font-bold text-slate-400">No hay pedidos registrados en este local.</p></td></tr>
+                  <tr v-if="filteredOrders.length === 0"><td colspan="7" class="p-12 text-center"><p class="text-sm font-bold text-slate-400">No hay pedidos registrados en este local.</p></td></tr>
                 </tbody>
               </table>
             </div>

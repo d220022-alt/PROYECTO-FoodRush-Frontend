@@ -1,6 +1,6 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { buildDeliveryRoute, ensureLeaflet, getTrackingCopy } from '../utils/deliveryMap';
+import { buildDeliveryRoute, ensureLeaflet, fetchStreetRoute, getPointAlongRoute, getTrackingCopy } from '../utils/deliveryMap';
 
 const props = defineProps({
   order: {
@@ -16,11 +16,14 @@ const props = defineProps({
 const mapEl = ref(null);
 const isMapReady = ref(false);
 const mapError = ref('');
+const routeSource = ref('estimated');
 
 let leaflet = null;
 let map = null;
 let routeLayer = null;
 let markerLayer = null;
+let routeRequestId = 0;
+let routeAbortController = null;
 
 const routeModel = computed(() => (props.order ? buildDeliveryRoute(props.order, props.statusLabel) : null));
 const trackingCopy = computed(() => getTrackingCopy(routeModel.value?.stage, props.order || {}));
@@ -46,10 +49,32 @@ const clearLayers = () => {
   }
 };
 
+const resolveRoutePoints = async (model, requestId) => {
+  routeSource.value = 'estimated';
+
+  try {
+    routeAbortController?.abort();
+    routeAbortController = new AbortController();
+    const streetRoute = await fetchStreetRoute(model.store, model.customer, { signal: routeAbortController.signal });
+    if (requestId !== routeRequestId) return null;
+    if (streetRoute?.points?.length >= 2) {
+      routeSource.value = 'street';
+      return streetRoute.points;
+    }
+  } catch (error) {
+    if (error?.name !== 'AbortError') {
+      console.warn('No se pudo calcular la ruta real, usando estimacion local', error);
+    }
+  }
+
+  return model.route;
+};
+
 const renderRoute = async () => {
   if (!mapEl.value || !props.order || !leaflet) return;
 
   await nextTick();
+  const requestId = ++routeRequestId;
 
   if (!map) {
     map = leaflet.map(mapEl.value, {
@@ -68,7 +93,16 @@ const renderRoute = async () => {
   const model = routeModel.value;
   if (!model) return;
 
-  const routePoints = model.route.map((point) => [point.lat, point.lng]);
+  const resolvedRoute = await resolveRoutePoints(model, requestId);
+  if (requestId !== routeRequestId || !resolvedRoute?.length) return;
+
+  const driver = canShowDriver.value
+    ? {
+        ...getPointAlongRoute(resolvedRoute, model.progress),
+        label: model.driver.label,
+      }
+    : null;
+  const routePoints = resolvedRoute.map((point) => [point.lat, point.lng]);
   routeLayer = leaflet.layerGroup().addTo(map);
   markerLayer = leaflet.layerGroup().addTo(map);
 
@@ -96,11 +130,11 @@ const renderRoute = async () => {
     .addTo(markerLayer)
     .bindPopup(model.customer.label || 'Cliente');
 
-  if (canShowDriver.value) {
+  if (driver) {
     leaflet
-      .marker([model.driver.lat, model.driver.lng], { icon: createIcon('fa-solid fa-motorcycle', '#F48C06') })
+      .marker([driver.lat, driver.lng], { icon: createIcon('fa-solid fa-motorcycle', '#F48C06') })
       .addTo(markerLayer)
-      .bindPopup(model.driver.label);
+      .bindPopup(driver.label);
   }
 
   const bounds = leaflet.latLngBounds(routePoints);
@@ -124,6 +158,7 @@ watch(() => [props.order?.id, props.statusLabel], () => {
 });
 
 onBeforeUnmount(() => {
+  routeAbortController?.abort();
   clearLayers();
   if (map) {
     map.remove();
@@ -144,15 +179,17 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="relative h-[320px] bg-slate-100 sm:h-[380px]">
+    <div class="relative h-[280px] bg-slate-100 sm:h-[380px]">
       <div ref="mapEl" class="h-full w-full"></div>
 
       <div v-if="mapError" class="absolute inset-0 flex items-center justify-center bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">
         {{ mapError }}
       </div>
 
-      <div class="pointer-events-none absolute left-4 top-4 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
-        <p class="text-[11px] font-black uppercase tracking-wide text-slate-400">Ruta estimada</p>
+      <div class="pointer-events-none absolute left-3 right-3 top-3 rounded-2xl bg-white/95 px-4 py-3 shadow-lg backdrop-blur sm:left-4 sm:right-auto sm:top-4">
+        <p class="text-[11px] font-black uppercase tracking-wide text-slate-400">
+          {{ routeSource === 'street' ? 'Ruta por calles' : 'Ruta estimada' }}
+        </p>
         <p class="text-sm font-black text-slate-900">Local -> cliente</p>
       </div>
     </div>

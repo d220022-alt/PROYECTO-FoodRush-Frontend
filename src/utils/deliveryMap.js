@@ -1,7 +1,7 @@
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 
-const SANTIAGO_CENTER = { lat: 19.4517, lng: -70.697, label: 'Santiago de los Caballeros' };
+export const SANTIAGO_CENTER = { lat: 19.4517, lng: -70.697, label: 'Santiago de los Caballeros' };
 
 const STORE_LOCATIONS = {
   1: { lat: 19.4568, lng: -70.6869, label: 'Starbucks Santiago' },
@@ -111,6 +111,72 @@ const buildMidpoint = (origin, destination) => ({
   lng: (origin.lng + destination.lng) / 2 - 0.003,
 });
 
+export const buildFallbackRoute = (origin, destination) => [origin, buildMidpoint(origin, destination), destination];
+
+export const getPointAlongRoute = (route = [], progress = 0) => {
+  const points = route.filter((point) => Number.isFinite(point?.lat) && Number.isFinite(point?.lng));
+  if (points.length === 0) return null;
+  if (points.length === 1) return points[0];
+
+  const clampedProgress = Math.max(0, Math.min(1, Number(progress) || 0));
+  const segmentDistances = [];
+  let totalDistance = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    const distance = Math.hypot(current.lat - previous.lat, current.lng - previous.lng);
+    segmentDistances.push(distance);
+    totalDistance += distance;
+  }
+
+  if (totalDistance <= 0) return points[0];
+
+  let targetDistance = totalDistance * clampedProgress;
+  for (let index = 1; index < points.length; index += 1) {
+    const distance = segmentDistances[index - 1];
+    if (targetDistance > distance) {
+      targetDistance -= distance;
+      continue;
+    }
+
+    const ratio = distance === 0 ? 0 : targetDistance / distance;
+    const previous = points[index - 1];
+    const current = points[index];
+    return {
+      lat: previous.lat + (current.lat - previous.lat) * ratio,
+      lng: previous.lng + (current.lng - previous.lng) * ratio,
+    };
+  }
+
+  return points[points.length - 1];
+};
+
+export const fetchStreetRoute = async (origin, destination, { signal } = {}) => {
+  if (!origin || !destination) return null;
+
+  const coordinates = `${origin.lng},${origin.lat};${destination.lng},${destination.lat}`;
+  const endpoint = `https://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson&steps=false`;
+  const response = await fetch(endpoint, { signal });
+
+  if (!response.ok) {
+    throw new Error('No se pudo calcular la ruta por calles.');
+  }
+
+  const payload = await response.json();
+  const coordinatesList = payload?.routes?.[0]?.geometry?.coordinates;
+  if (!Array.isArray(coordinatesList) || coordinatesList.length < 2) {
+    throw new Error('La ruta por calles no devolvio puntos suficientes.');
+  }
+
+  return {
+    points: coordinatesList.map(([lng, lat]) => ({ lat, lng })),
+    distanceMeters: payload.routes[0].distance || 0,
+    durationSeconds: payload.routes[0].duration || 0,
+    source: 'street',
+  };
+};
+
 export const getTrackingStage = (statusLabel = '', order = {}) => {
   const source = safeText(order.source).toLowerCase();
   const normalized = safeText(statusLabel).toLowerCase();
@@ -138,8 +204,7 @@ export const buildDeliveryRoute = (order = {}, statusLabel = '') => {
     ? store
     : getCustomerLocation(order);
   const stage = getTrackingStage(statusLabel, order);
-  const midpoint = buildMidpoint(store, customer);
-  const route = [store, midpoint, customer];
+  const route = buildFallbackRoute(store, customer);
 
   const progressByStage = {
     local: 0,
@@ -151,10 +216,9 @@ export const buildDeliveryRoute = (order = {}, statusLabel = '') => {
   };
   const progress = progressByStage[stage] ?? 0;
   const driver = {
-    lat: store.lat + (customer.lat - store.lat) * progress,
-    lng: store.lng + (customer.lng - store.lng) * progress,
+    ...getPointAlongRoute(route, progress),
     label: stage === 'transit' ? 'Repartidor FoodRush' : 'Preparacion FoodRush',
   };
 
-  return { store, customer, driver, route, stage };
+  return { store, customer, driver, route, stage, progress };
 };

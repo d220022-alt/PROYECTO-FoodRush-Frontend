@@ -138,10 +138,10 @@ const goBack = () => router.push('/orders');
 
 <template>
     <div class="min-h-screen bg-[#fffaf5] font-sans">
-        <header class="sticky top-0 z-10 flex items-center justify-between border-b border-red-100 bg-white/95 p-4 backdrop-blur sm:p-6">
-            <div>
+        <header class="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-red-100 bg-white/95 p-4 backdrop-blur sm:p-6">
+            <div class="min-w-0">
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">FoodRush Tracking</p>
-                <h1 class="text-lg font-black text-slate-900 sm:text-xl">Seguimiento #{{ orderId }}</h1>
+                <h1 class="break-words text-lg font-black text-slate-900 sm:text-xl">Seguimiento #{{ orderId }}</h1>
             </div>
             <button @click="goBack" class="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-600 transition hover:bg-orange-100 sm:text-sm">Volver a Pedidos</button>
         </header>
@@ -154,7 +154,7 @@ const goBack = () => router.push('/orders');
             {{ warnings[0] }}
         </div>
 
-        <div v-if="order" class="mx-auto grid max-w-6xl gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:p-8">
+        <div v-if="order" class="mx-auto grid max-w-6xl gap-4 p-3 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:p-8">
             <div class="space-y-6">
                 <OrderTrackingMap :order="order" :status-label="rawStatusLabel" />
 
@@ -175,7 +175,7 @@ const goBack = () => router.push('/orders');
             </div>
 
             <aside class="space-y-6">
-                <div class="relative space-y-8 rounded-[1.75rem] border border-gray-100 bg-white p-6 pl-10 shadow-sm before:absolute before:left-[31px] before:top-8 before:h-[calc(100%-4rem)] before:w-0.5 before:bg-gray-100" role="list" aria-label="Progreso del pedido">
+                <div class="relative space-y-7 rounded-[1.5rem] border border-gray-100 bg-white p-4 pl-9 shadow-sm before:absolute before:left-[27px] before:top-8 before:h-[calc(100%-4rem)] before:w-0.5 before:bg-gray-100 sm:space-y-8 sm:rounded-[1.75rem] sm:p-6 sm:pl-10 sm:before:left-[31px]" role="list" aria-label="Progreso del pedido">
                     <div v-for="(step, index) in steps" :key="step.label" class="relative" role="listitem">
                         <div
                             class="absolute -left-[31px] top-3 z-10 h-4 w-4 rounded-full border-4 border-white shadow-sm transition-all duration-500"
@@ -202,27 +202,27 @@ const goBack = () => router.push('/orders');
                 </div>
 
             <div class="space-y-4 rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm">
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <span class="text-gray-500">Local</span>
                     <span class="text-right font-bold text-slate-800">{{ order.tenantName || 'FoodRush' }}</span>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <span class="text-gray-500">Cliente</span>
                     <span class="text-right font-bold text-slate-800">{{ order.customerName || 'Cliente FoodRush' }}</span>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <span class="text-gray-500">Direccion</span>
-                    <span class="w-1/2 text-right text-sm font-medium text-slate-800">{{ order.address || 'Recogida en tienda' }}</span>
+                    <span class="max-w-[70%] break-words text-right text-sm font-medium text-slate-800">{{ order.address || 'Recogida en tienda' }}</span>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <span class="text-gray-500">Total</span>
                     <span class="text-lg font-bold text-slate-800">{{ formatCurrency(order.totalValue || order.total) }}</span>
                 </div>
 
-                <div class="flex items-center justify-between">
+                <div class="flex items-start justify-between gap-4">
                     <span class="text-gray-500">Repartidor</span>
                     <span class="text-right font-bold text-slate-800">{{ order.driverName || 'Pendiente de asignacion' }}</span>
                 </div>

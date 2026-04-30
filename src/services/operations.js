@@ -1,4 +1,5 @@
 import { api } from './api';
+import { getDeliveryAssignment } from './storage';
 import { franchiseConfigs } from '../views/franchiseConfigs';
 
 export const ORDER_STATUS_IDS = {
@@ -244,6 +245,7 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
       }
     : null;
   const customer = clientsMap.get(customerId) || customerFromOrder || {};
+  const deliveryAssignment = getDeliveryAssignment(id);
 
   return {
     ...order,
@@ -267,7 +269,9 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     statusVariant: getStatusVariant(statusLabel),
     progressStep: getOrderProgressStep(statusLabel),
     securityCode: safeText(order.codigo_seguridad || order.securityCode),
-    driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName),
+    driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName || deliveryAssignment?.driverName),
+    driverEmail: safeText(order.repartidor_email || order.driverEmail || deliveryAssignment?.driverEmail),
+    deliveryAssignment,
     itemsDetailed: relatedItems,
     itemCount: relatedItems.reduce((total, item) => total + item.quantity, 0),
     itemSummary: relatedItems.length

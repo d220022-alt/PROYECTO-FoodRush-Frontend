@@ -4,13 +4,14 @@ import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
 import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset } from '../services/operations';
-import { clearSession, getSession } from '../services/storage';
+import { clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
+import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
 const STORAGE_KEY = 'FoodRush_Delivery_Real_V2';
 const TUTORIAL_KEY = 'FoodRush_Tutorial_Final';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-const coordsSantiago = [19.4517, -70.697];
+const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -80,6 +81,8 @@ let mapInstance = null;
 let riderMarker = null;
 let routeLayers = [];
 let currentRoute = null;
+let routeRequestId = 0;
+let routeAbortController = null;
 const scheduledTimeouts = [];
 
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
@@ -350,12 +353,57 @@ const buildLeafletIcon = (emoji) => {
     return leaflet.divIcon({ className: '', html: `<div style="font-size:20px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">${emoji}</div>`, iconSize: [20, 20] });
 };
 
-const renderCurrentRoute = () => {
+const resolveActiveRoute = () => {
+    if (!state.activeOrder) return null;
+
+    const store = getStoreLocation(state.activeOrder);
+    const customer = getCustomerLocation(state.activeOrder);
+    const origin = state.activeOrder.status === 'picked' ? store : SANTIAGO_CENTER;
+    const target = state.activeOrder.status === 'picked' ? customer : store;
+    const progressByStage = {
+        accepted: 0.2,
+        arrived: 0.95,
+        picked: 0.42,
+    };
+
+    return {
+        type: state.activeOrder.status === 'picked' ? 'customer' : 'restaurant',
+        origin,
+        target,
+        progress: progressByStage[state.activeOrder.status] ?? 0.2,
+        color: state.activeOrder.status === 'picked' ? '#22c55e' : '#f97316',
+        emoji: state.activeOrder.status === 'picked' ? '🏠' : '🏪',
+    };
+};
+
+const resolveStreetPoints = async (route, requestId) => {
+    try {
+        routeAbortController?.abort();
+        routeAbortController = new AbortController();
+        const streetRoute = await fetchStreetRoute(route.origin, route.target, { signal: routeAbortController.signal });
+        if (requestId !== routeRequestId) return null;
+        if (streetRoute?.points?.length >= 2) return streetRoute.points;
+    } catch (error) {
+        if (error?.name !== 'AbortError') {
+            console.warn('No se pudo calcular ruta real en delivery, usando estimacion', error);
+        }
+    }
+
+    return buildFallbackRoute(route.origin, route.target);
+};
+
+const renderCurrentRoute = async () => {
     if (!mapInstance || !leaflet || !currentRoute) return;
+    const requestId = ++routeRequestId;
     clearRouteLayers();
-    const marker = leaflet.marker(currentRoute.target, { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
-    const line = leaflet.polyline([coordsSantiago, currentRoute.target], { color: currentRoute.color, weight: 4, dashArray: '6,6' }).addTo(mapInstance);
-    routeLayers = [marker, line];
+    const routePoints = await resolveStreetPoints(currentRoute, requestId);
+    if (requestId !== routeRequestId || !routePoints?.length) return;
+
+    const riderPoint = getPointAlongRoute(routePoints, currentRoute.progress) || currentRoute.origin;
+    const targetMarker = leaflet.marker([currentRoute.target.lat, currentRoute.target.lng], { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
+    const rider = leaflet.marker([riderPoint.lat, riderPoint.lng], { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
+    const line = leaflet.polyline(routePoints.map((point) => [point.lat, point.lng]), { color: currentRoute.color, weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(mapInstance);
+    routeLayers = [targetMarker, rider, line];
     queueTimeout(() => {
         if (!mapInstance) return;
         mapInstance.invalidateSize();
@@ -363,17 +411,10 @@ const renderCurrentRoute = () => {
     }, 100);
 };
 
-const setRoute = (targetType) => {
+const setRoute = () => {
     if (!leaflet || !mapInstance) return;
-    if (!currentRoute || currentRoute.type !== targetType) {
-        currentRoute = {
-            type: targetType,
-            target: [coordsSantiago[0] + ((Math.random() - 0.5) * 0.02), coordsSantiago[1] + ((Math.random() - 0.5) * 0.02)],
-            color: targetType === 'restaurant' ? '#f97316' : '#22c55e',
-            emoji: targetType === 'restaurant' ? '🏪' : '🏠',
-        };
-    }
-    renderCurrentRoute();
+    currentRoute = resolveActiveRoute();
+    void renderCurrentRoute();
 };
 
 const syncRouteFromState = () => {
@@ -381,7 +422,7 @@ const syncRouteFromState = () => {
         clearRoute();
         return;
     }
-    setRoute(state.activeOrder.status === 'picked' ? 'customer' : 'restaurant');
+    setRoute();
 };
 
 const ensureLeaflet = () => new Promise((resolve, reject) => {
@@ -413,15 +454,23 @@ const initMap = () => {
     if (!mapEl.value || !leaflet || mapInstance) return;
     mapInstance = leaflet.map(mapEl.value, { zoomControl: false, attributionControl: false }).setView(coordsSantiago, 14);
     leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapInstance);
-    riderMarker = leaflet.marker(coordsSantiago, { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
-    void riderMarker;
     if (state.activeOrder) syncRouteFromState();
 };
 
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
-    const knownPendingIds = new Set(scopedOrders.filter((order) => normalize(order.statusKey) === 'pendiente').map((order) => String(order.id)));
-    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => knownPendingIds.has(String(id)));
+    const currentDriverEmail = normalize(session.userEmail);
+    const dispatchableOrders = scopedOrders.filter((order) => normalize(order.statusKey) === 'preparando');
+    const dispatchableIds = new Set(dispatchableOrders.map((order) => String(order.id)));
+    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => dispatchableIds.has(String(id)));
+
+    if (!state.activeOrderId && currentDriverEmail) {
+        const claimedOrder = scopedOrders.find((order) => (
+            normalize(order.deliveryAssignment?.driverEmail) === currentDriverEmail &&
+            ['preparando', 'en camino'].includes(normalize(order.statusKey))
+        ));
+        if (claimedOrder) state.activeOrderId = String(claimedOrder.id);
+    }
 
     const activeSource = state.activeOrderId ? (data.value.orders || []).find((order) => String(order.id) === String(state.activeOrderId)) : null;
     if (activeSource && !['entregado', 'cancelado'].includes(normalize(activeSource.statusKey))) {
@@ -434,9 +483,13 @@ const syncOrdersFromBackend = () => {
         state.activeOrder = null;
     }
 
-    state.availableOrders = scopedOrders
-        .filter((order) => normalize(order.statusKey) === 'pendiente')
+    state.availableOrders = dispatchableOrders
         .filter((order) => String(order.id) !== String(state.activeOrderId))
+        .filter((order) => {
+            const assignment = order.deliveryAssignment;
+            if (!assignment?.driverEmail) return true;
+            return normalize(assignment.driverEmail) === currentDriverEmail;
+        })
         .filter((order) => !state.dismissedOrderIds.includes(String(order.id)))
         .map((order) => buildOrderView(order, 'pending'));
 
@@ -530,7 +583,19 @@ const acceptOrder = async (id) => {
 
     isAdvancing.value = true;
     try {
+        const driverName = session.userName || session.userEmail || 'Repartidor FoodRush';
         await api.updateOrder(order.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(order.tenantId));
+        setDeliveryAssignment(order.id, {
+            tenantId: order.tenantId,
+            driverName,
+            driverEmail: session.userEmail || '',
+            status: 'accepted',
+            stage: 'accepted',
+        });
+        updateCachedOrderStatus(order.id, ORDER_STATUS_IDS.preparing, null, {
+            repartidor_nombre: driverName,
+            repartidor_email: session.userEmail || '',
+        });
         state.activeOrderId = String(order.id);
         state.activeStage = 'accepted';
         state.lastWorkDate = Date.now();
@@ -559,6 +624,13 @@ const updateOrderStatus = async (status) => {
     if (status === 'arrived') {
         state.activeStage = 'arrived';
         state.activeOrder = buildOrderView(state.activeOrder, 'arrived');
+        setDeliveryAssignment(state.activeOrder.id, {
+            tenantId: state.activeOrder.tenantId,
+            driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
+            driverEmail: session.userEmail || '',
+            status: 'arrived',
+            stage: 'arrived',
+        });
         saveState();
         syncRouteFromState();
         showToast('Llegaste al local. Espera la comida.');
@@ -569,6 +641,17 @@ const updateOrderStatus = async (status) => {
         isAdvancing.value = true;
         try {
             await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
+            setDeliveryAssignment(state.activeOrder.id, {
+                tenantId: state.activeOrder.tenantId,
+                driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
+                driverEmail: session.userEmail || '',
+                status: 'picked',
+                stage: 'picked',
+            });
+            updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.inTransit, null, {
+                repartidor_nombre: session.userName || session.userEmail || 'Repartidor FoodRush',
+                repartidor_email: session.userEmail || '',
+            });
             state.activeStage = 'picked';
             state.activeOrder = buildOrderView(state.activeOrder, 'picked');
             saveState();
@@ -591,11 +674,13 @@ const cancelOrder = async () => {
     }
 
     try {
-        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.pending }, buildTenantHeaders(state.activeOrder.tenantId));
+        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(state.activeOrder.tenantId));
+        updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.preparing);
     } catch (error) {
-        console.warn('No se pudo devolver el pedido a pendiente', error);
+        console.warn('No se pudo devolver el pedido a preparacion', error);
     }
 
+    clearDeliveryAssignment(state.activeOrder.id);
     state.activeOrder = null;
     state.activeOrderId = '';
     state.activeStage = '';
@@ -619,6 +704,17 @@ const handleDeliveryPhoto = async (event) => {
 
     try {
         await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
+        setDeliveryAssignment(state.activeOrder.id, {
+            tenantId: state.activeOrder.tenantId,
+            driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
+            driverEmail: session.userEmail || '',
+            status: 'delivered',
+            stage: 'delivered',
+        });
+        updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.delivered, null, {
+            repartidor_nombre: session.userName || session.userEmail || 'Repartidor FoodRush',
+            repartidor_email: session.userEmail || '',
+        });
         const payment = Number(state.activeOrder.price || 0);
         state.earnings += payment;
         state.trips += 1;
@@ -737,6 +833,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+    routeAbortController?.abort();
     stopShiftTimer();
     clearScheduledTimeouts();
     if (refreshTimer) window.clearInterval(refreshTimer);
@@ -751,7 +848,7 @@ onBeforeUnmount(() => {
     <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700">
         <div
             :class="[
-                'fixed inset-0 z-[200] flex flex-col bg-white transition-opacity duration-500',
+                'delivery-onboarding fixed inset-0 flex flex-col bg-white transition-opacity duration-500',
                 onboardingVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
             ]"
         >
@@ -772,7 +869,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent p-6">
+            <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-white via-white to-transparent p-6">
                 <button
                     type="button"
                     class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#f97316] py-4 text-sm font-black text-white shadow-xl shadow-orange-500/40 active:bg-[#ea580c]"
@@ -1367,6 +1464,10 @@ onBeforeUnmount(() => {
 .delivery-pro {
     font-family: 'Inter', sans-serif;
     -webkit-tap-highlight-color: transparent;
+}
+
+.delivery-onboarding {
+    z-index: 200;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
