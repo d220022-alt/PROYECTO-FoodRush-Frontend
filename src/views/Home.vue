@@ -236,13 +236,22 @@ const goToFranchise = (id, name) => {
 
 const scrollToSection = (id) => {
     const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: 'smooth' });
+    if (!element) return;
+
+    const stickyOffset = id === 'top' ? 0 : 96;
+    const top = element.getBoundingClientRect().top + window.scrollY - stickyOffset;
+    window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
 };
 
 const selectCategorySection = (category) => {
     searchTerm.value = '';
     currentCategory.value = category;
-    requestAnimationFrame(() => scrollToSection('franchises'));
+};
+
+const clearHomeFilters = () => {
+    searchTerm.value = '';
+    currentCategory.value = 'all';
+    activeFilters.value = [];
 };
 
 const showPromoResults = () => {
@@ -253,6 +262,22 @@ const showPromoResults = () => {
     }
     requestAnimationFrame(() => scrollToSection('franchises'));
 };
+
+const applyModalFilters = () => {
+    showFilters.value = false;
+    requestAnimationFrame(() => scrollToSection('franchises'));
+};
+
+const hasActiveRestaurantFilters = computed(() =>
+    currentCategory.value !== 'all' || searchTerm.value.trim() || activeFilters.value.length > 0,
+);
+
+const filterResultText = computed(() => {
+    const count = filteredFranchises.value.length;
+    if (count === 0) return 'Sin resultados con estos filtros';
+    if (count === 1) return '1 franquicia disponible';
+    return `${count} franquicias disponibles`;
+});
 </script>
 
 <template>
@@ -359,6 +384,20 @@ const showPromoResults = () => {
                 </div>
             </div>
         </div>
+
+        <div v-if="hasActiveRestaurantFilters" class="filter-action-bar">
+            <div class="min-w-0">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-primary">Filtro aplicado</p>
+                <p class="truncate text-sm font-bold text-slate-700">{{ filterResultText }}</p>
+            </div>
+            <div class="flex flex-shrink-0 items-center gap-2">
+                <button @click="clearHomeFilters" class="filter-secondary-action">Limpiar</button>
+                <button @click="scrollToSection('franchises')" class="filter-primary-action">
+                    Ver resultados
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+            </div>
+        </div>
     </section>
 
     <section id="offers" class="bg-white py-8 md:py-12">
@@ -430,7 +469,7 @@ const showPromoResults = () => {
             </div>
             <h3 class="text-2xl font-bold text-slate-800 mb-2 font-display">Ups, no hay resultados</h3>
             <p class="text-gray-500 max-w-md mx-auto mb-6">No encontramos restaurantes que coincidan con tu búsqueda. Intenta con otros términos o quita los filtros activos.</p>
-            <button @click="searchTerm = ''; currentCategory = 'all'; activeFilters = []" class="bg-orange-50 text-orange-600 px-6 py-2.5 rounded-full font-bold border border-orange-200 hover:bg-orange-100 transition shadow-sm">
+            <button @click="clearHomeFilters" class="bg-orange-50 text-orange-600 px-6 py-2.5 rounded-full font-bold border border-orange-200 hover:bg-orange-100 transition shadow-sm">
                 Limpiar Filtros
             </button>
         </div>
@@ -533,7 +572,7 @@ const showPromoResults = () => {
                 </div>
             </div>
 
-            <button @click="showFilters = false" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
+            <button @click="applyModalFilters" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
                 <span>Ver Resultados</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -696,6 +735,57 @@ const showPromoResults = () => {
 .filter-btn:hover { border-color: #D90429; color: #D90429; }
 .filter-btn.active { background-color: #D90429; color: white; border-color: #D90429; box-shadow: 0 4px 6px rgba(217, 4, 41, 0.2); }
 
+.filter-action-bar {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid rgba(217, 4, 41, 0.12);
+    border-radius: 18px;
+    background: #fff;
+    padding: 12px 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.filter-primary-action,
+.filter-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-primary-action {
+    gap: 8px;
+    background: #D90429;
+    color: #fff;
+    padding: 11px 16px;
+    box-shadow: 0 8px 18px rgba(217, 4, 41, 0.18);
+}
+
+.filter-primary-action:hover {
+    transform: translateY(-1px);
+    background: #b90323;
+    box-shadow: 0 12px 22px rgba(217, 4, 41, 0.22);
+}
+
+.filter-secondary-action {
+    border: 1px solid rgba(217, 4, 41, 0.16);
+    background: #fff5f6;
+    color: #D90429;
+    padding: 10px 14px;
+}
+
+.filter-secondary-action:hover {
+    background: #ffe9ed;
+}
+
 /* ── Modal Chips ── */
 .modal-chip {
     padding: 8px 16px; border-radius: 9999px; font-size: 0.85rem;
@@ -778,6 +868,23 @@ const showPromoResults = () => {
     .franchise-category {
         max-width: 100%;
         font-size: 11px;
+    }
+
+    .filter-action-bar {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+        border-radius: 16px;
+    }
+
+    .filter-action-bar > div:last-child {
+        width: 100%;
+    }
+
+    .filter-primary-action,
+    .filter-secondary-action {
+        min-height: 42px;
+        flex: 1;
     }
 
     .offer-card {
