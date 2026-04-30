@@ -2,7 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body { font-family: 'Poppins', sans-serif; background-color: #FFFBE6; }
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.leaflet-container {
+  font-family: 'Poppins', sans-serif;
+}
 
 /* Global Page Transitions */
 .page-enter-active,
@@ -42,4 +74,27 @@ body { font-family: 'Poppins', sans-serif; background-color: #FFFBE6; }
 /* ensure leaving items are taken out of layout flow so others move smoothly */
 .list-leave-active {
   position: absolute;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-color: #FAFAF5;
+  }
+
+  .swal2-popup {
+    width: calc(100vw - 2rem) !important;
+    border-radius: 1.25rem !important;
+  }
+
+  .swal2-title {
+    font-size: 1.25rem !important;
+  }
+
+  .swal2-html-container {
+    font-size: 0.92rem !important;
+  }
+
+  table {
+    min-width: 640px;
+  }
 }

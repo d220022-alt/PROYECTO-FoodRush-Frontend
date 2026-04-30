@@ -29,6 +29,22 @@ const error = ref(null);
 const searchTerm = ref('');
 const currentCategory = ref('all');
 
+const CATEGORY_OPTIONS = [
+    { key: 'Hamburguesa', label: 'Hamburguesas', icon: 'fa-solid fa-burger', tone: 'bg-red-50 text-red-600' },
+    { key: 'Pizza', label: 'Pizza', icon: 'fa-solid fa-pizza-slice', tone: 'bg-orange-50 text-orange-600' },
+    { key: 'Pollo', label: 'Pollo', icon: 'fa-solid fa-drumstick-bite', tone: 'bg-amber-50 text-amber-600' },
+    { key: 'Bebidas', label: 'Bebidas', icon: 'fa-solid fa-mug-hot', tone: 'bg-emerald-50 text-emerald-600' },
+    { key: 'Postres', label: 'Postres', icon: 'fa-solid fa-ice-cream', tone: 'bg-pink-50 text-pink-600' },
+    { key: 'Tacos', label: 'Tacos', icon: 'fa-solid fa-pepper-hot', tone: 'bg-purple-50 text-purple-600' },
+    { key: 'Criolla', label: 'Criolla', icon: 'fa-solid fa-utensils', tone: 'bg-slate-100 text-slate-700' },
+];
+
+const OFFER_MESSAGES = [
+    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rapido sin revisar todo el menu.' },
+    { title: 'Favorito FoodRush', badge: 'Popular', copy: 'Franquicias con ofertas y productos ideales para compartir.' },
+    { title: 'Delivery recomendado', badge: 'Envio agil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
+];
+
 const router = useRouter();
 const userName = ref(getSession().userName || '');
 
@@ -102,7 +118,10 @@ const buildFallbackFranchises = () =>
     }));
 
 const fetchFranchises = async () => {
-    loading.value = true;
+    if (franchises.value.length === 0) {
+        franchises.value = buildFallbackFranchises();
+    }
+    loading.value = false;
     error.value = null;
     try {
         const response = await api.getFranchises();
@@ -125,7 +144,9 @@ const fetchFranchises = async () => {
         franchises.value = mappedFranchises.length > 0 ? mappedFranchises : buildFallbackFranchises();
     } catch (err) {
         console.warn('Falling back to local franchises list', err);
-        franchises.value = buildFallbackFranchises();
+        if (franchises.value.length === 0) {
+            franchises.value = buildFallbackFranchises();
+        }
     } finally {
         loading.value = false;
     }
@@ -183,6 +204,22 @@ const filteredFranchises = computed(() => {
     return result;
 });
 
+const categoryCards = computed(() =>
+    CATEGORY_OPTIONS.map((category) => ({
+        ...category,
+        count: franchises.value.filter((item) => item.category === category.key).length,
+    })).filter((category) => category.count > 0),
+);
+
+const offerCards = computed(() =>
+    franchises.value
+        .filter((item) => item.promo)
+        .map((item, index) => ({
+            ...item,
+            offer: OFFER_MESSAGES[index % OFFER_MESSAGES.length],
+        })),
+);
+
 const toggleModalFilter = (filter) => {
     if (activeFilters.value.includes(filter)) {
         activeFilters.value = activeFilters.value.filter(f => f !== filter);
@@ -222,6 +259,21 @@ const scrollToSection = (id) => {
     const element = document.getElementById(id);
     if (element) element.scrollIntoView({ behavior: 'smooth' });
 };
+
+const selectCategorySection = (category) => {
+    searchTerm.value = '';
+    currentCategory.value = category;
+    requestAnimationFrame(() => scrollToSection('franchises'));
+};
+
+const showPromoResults = () => {
+    searchTerm.value = '';
+    currentCategory.value = 'all';
+    if (!activeFilters.value.includes('descuentos')) {
+        activeFilters.value = [...activeFilters.value, 'descuentos'];
+    }
+    requestAnimationFrame(() => scrollToSection('franchises'));
+};
 </script>
 
 <template>
@@ -230,50 +282,50 @@ const scrollToSection = (id) => {
         <span class="text-accent">⚡</span> ¡Tu Gusto Nuestra Felicidad! <span class="text-accent">⚡</span>
     </div>
     <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
+        <div class="max-w-screen-xl flex items-center justify-between mx-auto px-3 sm:px-4 md:px-12 gap-3">
             <a href="#" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
-                <i class="fas fa-bolt text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
-                <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
+                <i class="fas fa-bolt text-xl sm:text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
+                <span class="self-center text-xl sm:text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
                     FOOD<span class="text-primary">RUSH</span>
                 </span>
             </a>
 
             <nav class="hidden md:flex gap-8 font-medium">
                 <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
-                <a href="#" @click.prevent="scrollToSection('franchises')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
-                <a href="#" @click.prevent="scrollToSection('contact')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
+                <a href="#" @click.prevent="scrollToSection('categories')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
+                <a href="#" @click.prevent="scrollToSection('offers')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
             </nav>
 
-            <div class="flex items-center gap-5">
-                <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button @click="scrollToSection('top')" class="md:hidden text-gray-500 text-lg h-9 w-9 rounded-full flex items-center justify-center hover:bg-gray-50" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
 
-                <div v-if="userName" class="flex items-center gap-5">
-                    <div class="flex items-center gap-4 mr-2">
+                <div v-if="userName" class="flex items-center gap-2 sm:gap-4">
+                    <div class="flex items-center gap-3 sm:mr-1">
                         <button @click="router.push('/notifications')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
-                            <i class="fa-regular fa-bell text-xl"></i>
+                            <i class="fa-regular fa-bell text-lg sm:text-xl"></i>
                             <span v-if="notificationCount > 0" class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ notificationCount }}</span>
                         </button>
                         <button @click="router.push('/cart')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Carrito de compras">
-                            <i class="fa-solid fa-cart-shopping text-xl"></i>
+                            <i class="fa-solid fa-cart-shopping text-lg sm:text-xl"></i>
                             <span v-if="cartCount > 0" class="absolute -top-1.5 -right-2 bg-orange-500 text-white text-[10px] w-4.5 h-4.5 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ cartCount }}</span>
                         </button>
                     </div>
 
-                    <div class="h-8 w-px bg-gray-200"></div>
+                    <div class="hidden sm:block h-8 w-px bg-gray-200"></div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="flex flex-col items-end">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="hidden sm:flex flex-col items-end">
                             <span class="font-bold text-slate-700 text-sm">{{ userName.split(' ')[0] }}</span>
                             <button @click="handleLogout" class="text-[11px] text-red-500 font-bold hover:underline">Cerrar sesión</button>
                         </div>
-                        <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
+                        <div @click="router.push('/profile')" class="w-9 h-9 sm:w-10 sm:h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
                             <i class="fa-regular fa-user"></i>
                         </div>
                     </div>
                 </div>
 
-                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-sm">
-                    <i class="fa-solid fa-user text-xs"></i> Iniciar Sesión
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-3 sm:px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-xs sm:text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-user text-xs"></i> <span class="hidden sm:inline">Iniciar Sesión</span><span class="sm:hidden">Entrar</span>
                 </button>
             </div>
         </div>
@@ -295,7 +347,7 @@ const scrollToSection = (id) => {
                         <i class="fa-solid fa-magnifying-glass text-accent"></i>
                     </div>
                     <input type="text" v-model="searchTerm" placeholder="Buscar franquicia o comida...">
-                    <button>Buscar</button>
+                    <button @click="scrollToSection('franchises')">Buscar</button>
                 </div>
             </div>
         </div>
@@ -308,7 +360,81 @@ const scrollToSection = (id) => {
         </div>
     </div>
 
+    <section id="categories" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div class="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+                <p class="text-xs font-black uppercase tracking-[0.25em] text-primary">Categorías</p>
+                <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Elige por antojo</h2>
+            </div>
+            <button @click="selectCategorySection('all')" class="w-fit rounded-full border border-red-100 bg-white px-4 py-2 text-sm font-bold text-primary shadow-sm transition hover:bg-red-50">
+                Ver todo
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-7">
+            <button
+                v-for="category in categoryCards"
+                :key="category.key"
+                @click="selectCategorySection(category.key)"
+                class="category-card group rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-sm transition hover:-translate-y-1 hover:border-red-100 hover:shadow-lg"
+            >
+                <span :class="['mb-4 flex h-12 w-12 items-center justify-center rounded-2xl text-xl transition group-hover:scale-105', category.tone]">
+                    <i :class="category.icon"></i>
+                </span>
+                <span class="block text-sm font-black text-dark md:text-base">{{ category.label }}</span>
+                <span class="mt-1 block text-xs font-bold text-gray-400">{{ category.count }} opciones</span>
+            </button>
+        </div>
+    </section>
+
+    <section id="offers" class="bg-white py-8 md:py-12">
+        <div class="container mx-auto px-4 md:px-12">
+            <div class="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.25em] text-accent">Ofertas</p>
+                    <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Promos activas hoy</h2>
+                </div>
+                <button @click="showPromoResults" class="w-fit rounded-full bg-dark px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-black">
+                    Ver todas las promos
+                </button>
+            </div>
+
+            <div v-if="offerCards.length === 0" class="rounded-2xl border border-dashed border-orange-200 bg-orange-50 p-6 text-sm font-bold text-orange-700">
+                No hay ofertas activas ahora mismo.
+            </div>
+
+            <div v-else class="grid gap-4 md:grid-cols-3">
+                <article
+                    v-for="item in offerCards.slice(0, 3)"
+                    :key="`offer-${item.id}`"
+                    class="offer-card overflow-hidden rounded-2xl border border-orange-100 bg-[#fffaf3] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                >
+                    <div class="flex items-center gap-4 p-4">
+                        <div class="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
+                            <img :src="item.img" :alt="item.name" class="max-h-full max-w-full object-contain">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="inline-flex rounded-full bg-accent px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white">{{ item.offer.badge }}</span>
+                            <h3 class="mt-2 truncate text-lg font-black text-dark">{{ item.name }}</h3>
+                            <p class="mt-1 text-xs font-semibold text-gray-500">{{ item.offer.copy }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-orange-100 bg-white/70 px-4 py-3">
+                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400">{{ item.offer.title }}</span>
+                        <button @click="goToFranchise(item.id, item.name)" class="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition hover:bg-red-700">
+                            Ver oferta
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
     <section id="franchises" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div class="mb-6">
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-primary">Restaurantes</p>
+            <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Franquicias disponibles</h2>
+        </div>
         <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
             <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
                 <i class="fa-solid fa-sliders"></i>
@@ -542,4 +668,38 @@ const scrollToSection = (id) => {
 /* ── Scrollbar Hide ── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width: 640px) {
+    .clean-search {
+        height: 50px;
+        border-radius: 14px;
+    }
+
+    .clean-search input {
+        min-width: 0;
+        padding-left: 10px;
+        font-size: 14px;
+    }
+
+    .clean-search button {
+        padding: 0 14px;
+        font-size: 12px;
+        letter-spacing: 0;
+    }
+
+    .search-icon {
+        padding-left: 14px;
+        font-size: 16px;
+    }
+
+    .card-franchise {
+        min-height: 210px;
+        padding: 16px;
+    }
+
+    .category-card,
+    .offer-card {
+        border-radius: 18px;
+    }
+}
 </style>

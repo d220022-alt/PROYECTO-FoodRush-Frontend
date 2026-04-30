@@ -21,6 +21,7 @@ import {
   saveSavedPayPal,
   setLastClientId,
 } from '../services/storage';
+import { getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
@@ -545,6 +546,7 @@ const processOrder = async () => {
               finalOrder = saveCachedOrder(
                 {
                   ...orderParams.data,
+                  tenant_id: orderParams.data.tenant_id || orderPayload.tenant_id,
                   items: orderParams.data.items || orderPayload.items,
                   user_email: identity.email,
                   user_name: identity.name,
@@ -572,13 +574,26 @@ const processOrder = async () => {
       }
 
       if (finalOrder) {
+          const notificationTitle = usedLocalFallback
+            ? `Pedido #${finalOrder.id} pendiente`
+            : `Pedido #${finalOrder.id} enviado`;
+          const notificationMessage = usedLocalFallback
+            ? 'Quedo guardado en este dispositivo. Todavia no esta confirmado por el servidor.'
+            : 'Tu pedido fue enviado al local. El estado cambiara cuando el local lo confirme.';
+          const confirmationTitle = usedLocalFallback
+            ? 'Pedido guardado localmente'
+            : paymentMethod.value === 'cash'
+              ? 'Pedido enviado'
+              : 'Pago registrado';
+          const confirmationDetail = usedLocalFallback
+            ? 'No se pudo confirmar con el servidor, por eso lo veras como pendiente de sincronizar.'
+            : 'El local debe confirmar el pedido antes de marcarlo como recibido o en preparacion.';
+
           addNotification(
             {
               type: 'order',
-              title: `Pedido #${finalOrder.id} confirmado`,
-              message: usedLocalFallback
-                ? 'Quedo guardado localmente y podras seguirlo desde tu historial.'
-                : 'Tu pedido fue recibido y ya esta en seguimiento.',
+              title: notificationTitle,
+              message: notificationMessage,
               icon: 'fa-solid fa-receipt',
               route: `/tracking/${finalOrder.id}`,
               order_id: finalOrder.id,
@@ -587,9 +602,9 @@ const processOrder = async () => {
           );
 
           Swal.fire({
-              icon: 'success',
-              title: paymentMethod.value === 'cash' ? '¡Pedido Confirmado!' : '¡Pago Procesado con Éxito!',
-              html: `Tu pedido <b>#${finalOrder.id}</b> está siendo preparado.<br><br><span class="text-sm text-gray-500">${usedLocalFallback ? 'Quedó guardado localmente mientras el servidor termina de responder.' : 'Recibirás actualizaciones sobre el estado de tu entrega.'}</span>`,
+              icon: usedLocalFallback ? 'info' : 'success',
+              title: confirmationTitle,
+              html: `Tu pedido <b>#${finalOrder.id}</b> quedo en estado <b>Pendiente de confirmacion</b>.<br><br><span class="text-sm text-gray-500">${confirmationDetail}</span>`,
               confirmButtonColor: '#BD0A0A',
               allowOutsideClick: false
           }).then(() => {
@@ -662,6 +677,13 @@ const updateMap = (lat, lng, label, isUser) => {
 const locateUser = () => {
   if (!mapInstance) return;
 
+  const savedAddress = addressDetails.value;
+  if (savedAddress && savedAddress !== 'Espere un momento') {
+    const location = getCustomerLocation({ id: 'checkout', address: savedAddress });
+    updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+    return;
+  }
+
   if (cachedPos) {
     updateMap(cachedPos.lat, cachedPos.lng, 'Tu Ubicación', true);
     return;
@@ -690,7 +712,8 @@ const locateUser = () => {
 };
 
 const showStoreLocation = () => {
-  updateMap(19.459, -70.69, 'Tienda', false);
+  const location = getStoreLocation({ tenant_id: resolveTenantId() });
+  updateMap(location.lat, location.lng, location.label || 'Tienda FoodRush', false);
 };
 
 const initMapDefault = () => {
@@ -1006,7 +1029,7 @@ onBeforeUnmount(() => {
               
               <div class="bg-slate-50 rounded-2xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a Preparar</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a cobrar</p>
                 <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">${{ total.toFixed(2) }}</p>
                 <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y Sin Comisiones</p>
               </div>
@@ -1418,6 +1441,45 @@ onBeforeUnmount(() => {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-page main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .checkout-page nav > div {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .checkout-page nav .text-2xl {
+    font-size: 1.25rem;
+  }
+
+  .checkout-page nav .h-8.w-px,
+  .checkout-page nav .flex-col.items-end {
+    display: none;
+  }
+
+  .checkout-page .grid {
+    min-width: 0;
+  }
+
+  .checkout-page .rounded-2xl {
+    border-radius: 18px;
+  }
+
+  .checkout-page #btn-delivery,
+  .checkout-page #btn-pickup {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .credit-card-visual {
+    padding: 18px;
   }
 }
 </style>

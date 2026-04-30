@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
 import { getCachedOrderById, getSession } from '../services/storage';
+import OrderTrackingMap from '../components/OrderTrackingMap.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -14,7 +15,7 @@ const errorMessage = ref('');
 const isLoading = ref(true);
 
 const steps = [
-    { label: 'Confirmado', icon: 'fa-solid fa-clipboard-check' },
+    { label: 'Solicitado', icon: 'fa-solid fa-clipboard-check' },
     { label: 'Preparando', icon: 'fa-solid fa-fire-burner' },
     { label: 'En Camino', icon: 'fa-solid fa-motorcycle' },
     { label: 'Entregado', icon: 'fa-solid fa-flag-checkered' },
@@ -23,11 +24,21 @@ const steps = [
 let refreshTimer = null;
 
 const orderId = computed(() => route.params.id);
-const tenantId = computed(() => String(route.query.tenant || 'Global'));
 const currentUserEmail = computed(() => session.userEmail || '');
 
-const currentStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
-const currentProgress = computed(() => getOrderProgressStep(currentStatusLabel.value));
+const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
+const currentStatusLabel = computed(() => {
+    const label = String(rawStatusLabel.value || '').toLowerCase();
+    const source = String(order.value?.source || '').toLowerCase();
+
+    if (label.includes('cancel')) return 'Pedido cancelado';
+    if (label.includes('entreg')) return 'Pedido entregado';
+    if (label.includes('camino')) return 'Repartidor en camino';
+    if (label.includes('prepar')) return 'Preparando en el local';
+    if (source === 'local') return 'Pendiente de sincronizar';
+    return 'Pendiente de confirmacion';
+});
+const currentProgress = computed(() => getOrderProgressStep(rawStatusLabel.value));
 const currentStep = computed(() => Math.max(0, currentProgress.value - 1));
 const isCancelled = computed(() => String(currentStatusLabel.value || '').toLowerCase().includes('cancelado'));
 const overlayIcon = computed(() => (isCancelled.value ? 'fa-solid fa-ban' : steps[currentStep.value]?.icon || steps[0].icon));
@@ -62,31 +73,49 @@ const normalizeCachedOrder = (cachedOrder) => {
                 subtotal: Number(item.subtotal || (Number(item.qty || item.cantidad || 1) * Number(item.price || item.precio || 0))),
             }))
             : [],
+        tenantId: cachedOrder.tenantId || cachedOrder.tenant_id || cachedOrder.items?.[0]?.tenantId || cachedOrder.items?.[0]?.tenant_id || '',
         tenantName: cachedOrder.tenantName || 'FoodRush',
         driverName: cachedOrder.repartidor_nombre || '',
+        source: cachedOrder.source || 'local',
     };
 };
 
 const fetchOrder = async () => {
     warnings.value = [];
     errorMessage.value = '';
+    const cachedOrder = normalizeCachedOrder(getCachedOrderById(orderId.value, currentUserEmail.value));
+    if (cachedOrder) {
+        order.value = cachedOrder;
+        if (cachedOrder.source === 'local') {
+            isLoading.value = false;
+            return;
+        }
+    }
 
     try {
         isLoading.value = true;
+        const selectedTenantId = String(route.query.tenant || cachedOrder?.tenantId || 'Global');
 
         const dataset = await fetchOperationalDataset({
-            selectedTenantId: tenantId.value || 'Global',
+            selectedTenantId,
             includeSessions: false,
         });
 
-        warnings.value = dataset.warnings || [];
-        order.value = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
+        const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
+        if (remoteOrder) {
+            order.value = remoteOrder;
+            warnings.value = [];
+        } else if (!cachedOrder) {
+            warnings.value = dataset.warnings || [];
+        }
     } catch (error) {
         console.error('Error fetching order', error);
-        errorMessage.value = error.message || 'No se pudo cargar el pedido.';
+        if (!order.value) {
+            errorMessage.value = error.message || 'No se pudo cargar el pedido.';
+        }
     } finally {
         if (!order.value) {
-            order.value = normalizeCachedOrder(getCachedOrderById(orderId.value, currentUserEmail.value));
+            order.value = cachedOrder;
         }
 
         isLoading.value = false;
@@ -108,10 +137,13 @@ const goBack = () => router.push('/orders');
 </script>
 
 <template>
-    <div class="min-h-screen bg-white font-sans">
-        <header class="sticky top-0 z-10 flex items-center justify-between border-b bg-white p-6">
-            <h1 class="text-xl font-bold text-slate-800">Seguimiento #{{ orderId }}</h1>
-            <button @click="goBack" class="text-sm font-bold text-orange-500">Volver a Pedidos</button>
+    <div class="min-h-screen bg-[#fffaf5] font-sans">
+        <header class="sticky top-0 z-10 flex items-center justify-between border-b border-red-100 bg-white/95 p-4 backdrop-blur sm:p-6">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">FoodRush Tracking</p>
+                <h1 class="text-lg font-black text-slate-900 sm:text-xl">Seguimiento #{{ orderId }}</h1>
+            </div>
+            <button @click="goBack" class="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-600 transition hover:bg-orange-100 sm:text-sm">Volver a Pedidos</button>
         </header>
 
         <div v-if="errorMessage" class="mx-auto mt-6 max-w-lg rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">
@@ -122,48 +154,54 @@ const goBack = () => router.push('/orders');
             {{ warnings[0] }}
         </div>
 
-        <div v-if="order" class="mx-auto max-w-lg p-8">
-            <div class="relative mb-8 flex h-64 items-center justify-center overflow-hidden rounded-3xl bg-gray-100 shadow-inner" role="region" aria-label="Mapa de seguimiento">
-                <div class="absolute inset-0 bg-[url('https://img.freepik.com/free-vector/city-map-navigation-interface_23-2148496660.jpg')] bg-cover bg-center opacity-30" aria-hidden="true"></div>
+        <div v-if="order" class="mx-auto grid max-w-6xl gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:p-8">
+            <div class="space-y-6">
+                <OrderTrackingMap :order="order" :status-label="rawStatusLabel" />
 
-                <div class="z-10 rounded-2xl bg-white/90 p-4 text-center shadow-lg backdrop-blur-sm" role="status" aria-live="polite">
-                    <i :class="overlayIcon" class="mb-2 text-4xl text-orange-500" aria-hidden="true"></i>
-                    <p class="text-lg font-bold text-slate-800">{{ currentStatusLabel }}</p>
-                    <p class="text-xs text-gray-500">Ultima actualizacion: {{ formatDate(order.createdAt) }}</p>
-                </div>
-
-                <div v-if="currentStep === 2 && !isCancelled" class="absolute bottom-4 left-4 animate-bounce" aria-label="El repartidor esta en camino">
-                    <i class="fa-solid fa-motorcycle text-3xl text-slate-800" aria-hidden="true"></i>
-                </div>
-            </div>
-
-            <div class="relative space-y-10 border-l-2 border-gray-100 pl-8" role="list" aria-label="Progreso del pedido">
-                <div v-for="(step, index) in steps" :key="step.label" class="relative" role="listitem">
-                    <div
-                        class="absolute -left-[41px] z-10 h-5 w-5 rounded-full border-4 border-white shadow-sm transition-all duration-500"
-                        :class="index <= currentStep && !isCancelled ? 'bg-green-500 scale-125' : 'bg-gray-200'"
-                        :aria-hidden="true"
-                    ></div>
-
-                    <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep && !isCancelled ? 'opacity-100' : 'opacity-40'">
-                        <div
-                            class="flex h-12 w-12 items-center justify-center rounded-full text-xl shadow-sm transition-colors duration-500"
-                            :class="index <= currentStep && !isCancelled ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'"
-                            :aria-hidden="true"
-                        >
-                            <i :class="step.icon"></i>
+                <div class="rounded-[1.75rem] border border-red-100 bg-white p-5 shadow-sm" role="status" aria-live="polite">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-orange-50 text-2xl text-orange-500">
+                            <i :class="overlayIcon" aria-hidden="true"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-800">{{ step.label }}</h3>
-                            <p v-if="isCancelled && index === 0" class="text-xs font-bold text-red-500">Pedido cancelado</p>
-                            <p v-else-if="index === currentStep && !isCancelled" class="text-xs text-gray-400">{{ index === steps.length - 1 ? 'Pedido completado' : 'En progreso...' }}</p>
-                            <p v-else-if="index < currentStep && !isCancelled" class="text-xs font-bold text-green-500">Completado</p>
+                            <p class="text-xl font-black text-slate-900">{{ currentStatusLabel }}</p>
+                            <p class="mt-1 text-sm font-medium text-gray-500">Ultima actualizacion: {{ formatDate(order.createdAt) }}</p>
+                            <p v-if="order.source === 'local'" class="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-700">
+                                Este pedido esta guardado localmente. Todavia no esta confirmado por el servidor.
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-10 space-y-4 rounded-2xl border border-gray-100 bg-gray-50 p-6">
+            <aside class="space-y-6">
+                <div class="relative space-y-8 rounded-[1.75rem] border border-gray-100 bg-white p-6 pl-10 shadow-sm before:absolute before:left-[31px] before:top-8 before:h-[calc(100%-4rem)] before:w-0.5 before:bg-gray-100" role="list" aria-label="Progreso del pedido">
+                    <div v-for="(step, index) in steps" :key="step.label" class="relative" role="listitem">
+                        <div
+                            class="absolute -left-[31px] top-3 z-10 h-4 w-4 rounded-full border-4 border-white shadow-sm transition-all duration-500"
+                            :class="index <= currentStep && !isCancelled ? 'bg-green-500 scale-125' : 'bg-gray-200'"
+                            :aria-hidden="true"
+                        ></div>
+
+                        <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep && !isCancelled ? 'opacity-100' : 'opacity-40'">
+                            <div
+                                class="flex h-12 w-12 items-center justify-center rounded-full text-xl shadow-sm transition-colors duration-500"
+                                :class="index <= currentStep && !isCancelled ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'"
+                                :aria-hidden="true"
+                            >
+                                <i :class="step.icon"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800">{{ step.label }}</h3>
+                                <p v-if="isCancelled && index === 0" class="text-xs font-bold text-red-500">Pedido cancelado</p>
+                                <p v-else-if="index === currentStep && !isCancelled" class="text-xs text-gray-400">{{ index === 0 ? 'Esperando respuesta del local' : index === steps.length - 1 ? 'Pedido completado' : 'En progreso...' }}</p>
+                                <p v-else-if="index < currentStep && !isCancelled" class="text-xs font-bold text-green-500">Completado</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <div class="space-y-4 rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm">
                 <div class="flex items-center justify-between">
                     <span class="text-gray-500">Local</span>
                     <span class="text-right font-bold text-slate-800">{{ order.tenantName || 'FoodRush' }}</span>
@@ -190,7 +228,7 @@ const goBack = () => router.push('/orders');
                 </div>
             </div>
 
-            <div class="mt-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div class="rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm">
                 <h2 class="text-sm font-bold uppercase tracking-wide text-slate-500">Lo que pediste</h2>
                 <div class="mt-4 space-y-3">
                     <div v-for="item in order.itemsDetailed" :key="item.id" class="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
@@ -203,6 +241,7 @@ const goBack = () => router.push('/orders');
                     <p v-if="order.itemsDetailed?.length === 0" class="text-sm font-bold text-gray-500">{{ order.itemSummary || 'Sin detalle del pedido.' }}</p>
                 </div>
             </div>
+            </aside>
         </div>
 
         <div v-else class="flex min-h-[50vh] flex-col items-center justify-center p-10 text-center text-gray-500">
