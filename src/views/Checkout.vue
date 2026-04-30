@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import { api } from '../services/api';
 import {
   APP_EVENTS,
+  addNotification,
   buildLocalOrder,
   clearCart,
   clearSession,
@@ -571,6 +572,20 @@ const processOrder = async () => {
       }
 
       if (finalOrder) {
+          addNotification(
+            {
+              type: 'order',
+              title: `Pedido #${finalOrder.id} confirmado`,
+              message: usedLocalFallback
+                ? 'Quedo guardado localmente y podras seguirlo desde tu historial.'
+                : 'Tu pedido fue recibido y ya esta en seguimiento.',
+              icon: 'fa-solid fa-receipt',
+              route: `/tracking/${finalOrder.id}`,
+              order_id: finalOrder.id,
+            },
+            identity.email,
+          );
+
           Swal.fire({
               icon: 'success',
               title: paymentMethod.value === 'cash' ? '¡Pedido Confirmado!' : '¡Pago Procesado con Éxito!',

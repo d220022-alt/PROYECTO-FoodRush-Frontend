@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
-import { APP_EVENTS, clearSession, getCartCount, getSession } from '../services/storage';
+import { APP_EVENTS, clearSession, getCartCount, getSession, getUnreadNotificationsCount } from '../services/storage';
 
 // Image Imports
 import heroBg from '@/assets/images/hero-bg.png';
@@ -34,12 +34,18 @@ const userName = ref(getSession().userName || '');
 
 // Cart State
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const updateCartCount = () => {
     cartCount.value = getCartCount();
+};
+const updateNotificationCount = () => {
+    const session = getSession();
+    notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
 };
 const syncSessionState = () => {
     userName.value = getSession().userName || '';
     updateCartCount();
+    updateNotificationCount();
 };
 
 // Carousel
@@ -90,7 +96,7 @@ const buildFallbackFranchises = () =>
         name,
         category: meta.category || 'General',
         rating: meta.rating || 4,
-        img: meta.img || "https://via.placeholder.com/150",
+        img: meta.img || logoStarbucks,
         pickup: meta.pickup !== undefined ? meta.pickup : true,
         promo: meta.promo !== undefined ? meta.promo : false
     }));
@@ -110,7 +116,7 @@ const fetchFranchises = async () => {
                     name: tenant.nombre,
                     category: meta.category || 'General',
                     rating: meta.rating || 4.0,
-                    img: meta.img || "https://via.placeholder.com/150",
+                    img: meta.img || logoStarbucks,
                     pickup: meta.pickup !== undefined ? meta.pickup : true,
                     promo: meta.promo !== undefined ? meta.promo : false
                 };
@@ -128,9 +134,11 @@ const fetchFranchises = async () => {
 onMounted(async () => {
     syncSessionState();
     updateCartCount();
-    window.addEventListener('storage', updateCartCount);
+    updateNotificationCount();
+    window.addEventListener('storage', syncSessionState);
     window.addEventListener(APP_EVENTS.cartChanged, updateCartCount);
     window.addEventListener(APP_EVENTS.authChanged, syncSessionState);
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 
     await fetchFranchises();
     startCarousel();
@@ -138,9 +146,10 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     clearInterval(carouselInterval);
-    window.removeEventListener('storage', updateCartCount);
+    window.removeEventListener('storage', syncSessionState);
     window.removeEventListener(APP_EVENTS.cartChanged, updateCartCount);
     window.removeEventListener(APP_EVENTS.authChanged, syncSessionState);
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
 const setCategory = (category) => {
@@ -240,9 +249,9 @@ const scrollToSection = (id) => {
 
                 <div v-if="userName" class="flex items-center gap-5">
                     <div class="flex items-center gap-4 mr-2">
-                        <button class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
+                        <button @click="router.push('/notifications')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
                             <i class="fa-regular fa-bell text-xl"></i>
-                            <span class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold border-2 border-white">2</span>
+                            <span v-if="notificationCount > 0" class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ notificationCount }}</span>
                         </button>
                         <button @click="router.push('/cart')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Carrito de compras">
                             <i class="fa-solid fa-cart-shopping text-xl"></i>

@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   preferredPayments: 'foodrush_preferred_payments',
   orders: 'foodrush_orders',
   clients: 'foodrush_clients',
+  notifications: 'foodrush_notifications',
 };
 
 export const APP_EVENTS = {
@@ -22,6 +23,7 @@ export const APP_EVENTS = {
   favoritesChanged: 'foodrush:favorites-changed',
   paymentsChanged: 'foodrush:payments-changed',
   ordersChanged: 'foodrush:orders-changed',
+  notificationsChanged: 'foodrush:notifications-changed',
 };
 
 const STATUS_LABELS = {
@@ -31,6 +33,29 @@ const STATUS_LABELS = {
   4: 'Entregado',
   5: 'Cancelado',
 };
+
+const DEFAULT_NOTIFICATIONS = [
+  {
+    id: 'welcome',
+    type: 'system',
+    title: 'Bienvenido a FoodRush',
+    message: 'Tu cuenta esta lista para recibir alertas de pedidos, ofertas y cambios de estado.',
+    icon: 'fa-solid fa-bolt',
+    route: '/',
+    read: false,
+    created_at: '2026-04-30T00:00:00.000Z',
+  },
+  {
+    id: 'promo-delivery',
+    type: 'promo',
+    title: 'Promos activas cerca de ti',
+    message: 'Revisa tus franquicias favoritas y agrega productos al carrito para no perder ofertas.',
+    icon: 'fa-solid fa-tag',
+    route: '/',
+    read: false,
+    created_at: '2026-04-30T00:01:00.000Z',
+  },
+];
 
 const CARD_ICONS = {
   Visa: 'fa-brands fa-cc-visa text-blue-800',
@@ -629,6 +654,102 @@ const sortOrdersByDate = (orders = []) =>
     return rightTime - leftTime;
   });
 
+const sortNotificationsByDate = (notifications = []) =>
+  [...notifications].sort((left, right) => {
+    const leftTime = new Date(left.created_at).getTime();
+    const rightTime = new Date(right.created_at).getTime();
+    return rightTime - leftTime;
+  });
+
+const normalizeNotification = (notification = {}) => ({
+  id: safeString(notification.id, `notif-${Date.now()}`),
+  type: safeString(notification.type, 'system'),
+  title: safeString(notification.title, 'Notificacion'),
+  message: safeString(notification.message, ''),
+  icon: safeString(notification.icon, 'fa-regular fa-bell'),
+  route: safeString(notification.route, ''),
+  read: Boolean(notification.read),
+  created_at: safeString(notification.created_at || notification.createdAt, new Date().toISOString()),
+  order_id: notification.order_id ?? notification.orderId ?? null,
+});
+
+const readNotificationsBucket = () => readJson(STORAGE_KEYS.notifications, {});
+
+const writeNotificationsBucket = (bucket, email = '') => {
+  writeJson(STORAGE_KEYS.notifications, bucket);
+  const emailKey = normalizeEmailKey(email);
+  const notifications = sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
+  emitAppEvent(APP_EVENTS.notificationsChanged, {
+    email: emailKey,
+    notifications,
+    unreadCount: notifications.filter((notification) => !notification.read).length,
+  });
+};
+
+const ensureNotificationsForEmail = (email = '') => {
+  const emailKey = normalizeEmailKey(email);
+  const bucket = readNotificationsBucket();
+
+  if (!Array.isArray(bucket[emailKey])) {
+    bucket[emailKey] = DEFAULT_NOTIFICATIONS.map((notification) => normalizeNotification(notification));
+    writeNotificationsBucket(bucket, emailKey);
+  }
+
+  return { bucket, emailKey };
+};
+
+export const getNotifications = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  return sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
+};
+
+export const getUnreadNotificationsCount = (email = '') =>
+  getNotifications(email).filter((notification) => !notification.read).length;
+
+export const addNotification = (notification = {}, email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  const normalized = normalizeNotification({
+    ...notification,
+    id: notification.id || `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    created_at: notification.created_at || new Date().toISOString(),
+    read: false,
+  });
+
+  const current = (bucket[emailKey] || []).map(normalizeNotification);
+  bucket[emailKey] = sortNotificationsByDate([
+    normalized,
+    ...current.filter((entry) => String(entry.id) !== String(normalized.id)),
+  ]);
+  writeNotificationsBucket(bucket, emailKey);
+  return normalized;
+};
+
+export const markNotificationRead = (notificationId, email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = (bucket[emailKey] || []).map((entry) => {
+    const normalized = normalizeNotification(entry);
+    return String(normalized.id) === String(notificationId)
+      ? { ...normalized, read: true }
+      : normalized;
+  });
+  writeNotificationsBucket(bucket, emailKey);
+};
+
+export const markAllNotificationsRead = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = (bucket[emailKey] || []).map((entry) => ({
+    ...normalizeNotification(entry),
+    read: true,
+  }));
+  writeNotificationsBucket(bucket, emailKey);
+};
+
+export const clearNotifications = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = [];
+  writeNotificationsBucket(bucket, emailKey);
+};
+
 const readOrdersBucket = () => readJson(STORAGE_KEYS.orders, {});
 
 const writeOrdersBucket = (bucket) => {
@@ -701,6 +822,17 @@ export const updateCachedOrderStatus = (orderId, statusId, email) => {
 
   if (updatedOrder) {
     writeOrdersBucket(bucket);
+    addNotification(
+      {
+        type: 'order',
+        title: `Pedido #${updatedOrder.id} actualizado`,
+        message: `Estado actual: ${updatedOrder.estado?.descripcion || STATUS_LABELS[statusId] || 'Actualizado'}.`,
+        icon: 'fa-solid fa-motorcycle',
+        route: `/tracking/${updatedOrder.id}`,
+        order_id: updatedOrder.id,
+      },
+      updatedOrder.user_email,
+    );
   }
 
   return updatedOrder;

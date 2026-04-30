@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, resolveProductImage } from '../utils/productImages';
 import { franchiseConfigs } from './franchiseConfigs';
 import { mockProducts } from '../data/mockProducts';
 import { getModifiersForCategory } from '../data/productModifiers';
@@ -15,6 +15,7 @@ import {
   getCartRestaurantInfo,
   getFavorites,
   getSession,
+  getUnreadNotificationsCount,
   hasCartRestaurantConflict,
   toggleFavoriteItem,
 } from '../services/storage';
@@ -32,6 +33,7 @@ const isLoading = ref(true);
 const fetchError = ref(false);
 const searchTerm = ref('');
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const userName = ref('');
 const currentCategory = ref('');
 const activeTypeFilters = ref([]);
@@ -324,11 +326,7 @@ const parseProduct = (product, index) => {
     price,
     isExtraFeature,
     description,
-    img:
-      product.img ||
-      product.imagen ||
-      getProductImage(name, category) ||
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80',
+    img: resolveProductImage(product.img || product.imagen, name, category),
   };
 };
 
@@ -925,6 +923,11 @@ const updateCartBadge = () => {
   cartCount.value = getCartCount();
 };
 
+const updateNotificationBadge = () => {
+  const session = getSession();
+  notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
+};
+
 const setCategory = (category) => {
   currentCategory.value = category;
   activeTypeFilters.value = [];
@@ -1174,8 +1177,10 @@ const goBackHome = () => {
 
 onMounted(async () => {
   updateCartBadge();
+  updateNotificationBadge();
   userName.value = getSession().userName || '';
   window.addEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+  window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
 
   currentCategory.value = 'Todos';
 
@@ -1185,6 +1190,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+  window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
   if (slideInterval) {
     clearInterval(slideInterval);
   }
@@ -1212,6 +1218,10 @@ onBeforeUnmount(() => {
 
         <div class="flex items-center gap-4 md:gap-6">
           <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button @click="router.push('/notifications')" class="transition relative text-xl text-gray-600 p-1" :style="{ color: 'var(--brand-primary)' }" aria-label="Ver notificaciones">
+            <i class="fa-regular fa-bell"></i>
+            <span v-if="notificationCount > 0" class="absolute -top-1 -right-1 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm bg-red-500">{{ notificationCount }}</span>
+          </button>
           <button @click="router.push('/cart')" class="transition relative text-xl text-gray-600 p-1" :style="{ color: 'var(--brand-primary)' }" aria-label="Ver carrito">
             <i class="fa-solid fa-cart-shopping"></i>
             <span v-if="cartCount > 0" class="absolute -top-1 -right-1 text-white font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm" :style="{ backgroundColor: 'var(--brand-primary)' }">{{ cartCount }}</span>

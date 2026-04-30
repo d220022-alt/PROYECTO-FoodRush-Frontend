@@ -52,7 +52,7 @@ router.beforeEach((to) => {
     if (!session.isAuthenticated) {
         if (to.path === '/') return '/login'
 
-        const protectedRoutes = ['/administracion', '/delivery', '/checkout', '/orders', '/profile', '/favorites', '/payment-methods', '/tracking']
+        const protectedRoutes = ['/administracion', '/delivery', '/checkout', '/orders', '/profile', '/favorites', '/payment-methods', '/notifications', '/tracking']
         if (protectedRoutes.some((route) => to.path === route || to.path.startsWith(`${route}/`))) {
             return '/login'
         }

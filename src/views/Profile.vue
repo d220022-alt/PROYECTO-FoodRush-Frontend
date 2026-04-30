@@ -1,9 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import { clearSession, getSession, updateSessionProfile } from '../services/storage';
+import {
+    APP_EVENTS,
+    clearSession,
+    getSession,
+    getUnreadNotificationsCount,
+    updateSessionProfile,
+} from '../services/storage';
 
 const router = useRouter();
 const session = getSession();
@@ -18,8 +24,16 @@ const user = ref({
 });
 
 const isLoading = ref(true);
+const notificationCount = ref(getUnreadNotificationsCount(session.userEmail));
+
+const updateNotificationCount = () => {
+    notificationCount.value = getUnreadNotificationsCount(getSession().userEmail);
+};
 
 onMounted(async () => {
+    updateNotificationCount();
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
+
     const userId = localStorage.getItem('user_id');
     if (userId) {
         try {
@@ -44,6 +58,10 @@ onMounted(async () => {
         isLoading.value = false;
         if (!user.value.address) user.value.address = "Sin dirección registrada";
     }
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
 // Navigation Handlers
@@ -259,6 +277,7 @@ const saveProfile = async () => {
                              <i :class="item.icon"></i>
                          </div>
                          <span class="font-semibold text-slate-700 text-sm">{{ item.title }}</span>
+                         <span v-if="item.route === '/notifications' && notificationCount > 0" class="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ notificationCount }}</span>
                      </div>
                      <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
                  </button>

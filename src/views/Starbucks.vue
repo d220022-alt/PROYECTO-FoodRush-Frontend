@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
 import starbucksLogo from '../assets/images/logo-starbucks.png';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, resolveProductImage } from '../utils/productImages';
 import {
     APP_EVENTS,
     addCartItem,
@@ -13,6 +13,7 @@ import {
     getCartRestaurantInfo,
     getFavorites,
     getSession,
+    getUnreadNotificationsCount,
     hasCartRestaurantConflict,
     toggleFavoriteItem
 } from '../services/storage';
@@ -28,6 +29,7 @@ const isLoading = ref(true);
 const currentCategory = ref('Todos');
 const searchTerm = ref('');
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const userName = ref('');
 
 // Sidebar filter state
@@ -145,11 +147,7 @@ const inferMcType = (category, name, description, rawType = '') => {
 };
 
 const getSafeImage = (rawImage, name, category) => {
-    const candidate = String(rawImage || '').trim();
-    if (candidate && (candidate.startsWith('http://') || candidate.startsWith('https://'))) {
-        return candidate;
-    }
-    return getProductImage(name, category);
+    return resolveProductImage(rawImage, name, category);
 };
 
 const getProductMediaVariant = (category, context = 'card') => {
@@ -907,6 +905,11 @@ const updateCartBadge = () => {
     cartCount.value = getCartCount();
 };
 
+const updateNotificationBadge = () => {
+    const session = getSession();
+    notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
+};
+
 const createCartItem = () => {
     let detailsStr = `Tamano: ${currentSize.value}`;
 
@@ -984,7 +987,9 @@ const goBackHome = () => {
 
 onMounted(() => {
     updateCartBadge();
+    updateNotificationBadge();
     window.addEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
     const storedName = getSession().userName;
     if (storedName) userName.value = storedName;
     fetchProducts();
@@ -993,6 +998,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
     clearInterval(slideInterval);
 });
 </script>
@@ -1018,6 +1024,10 @@ onBeforeUnmount(() => {
 
             <div class="flex items-center gap-4 md:gap-6">
                 <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button @click="router.push('/notifications')" class="hover:text-[#00704A] transition relative text-xl text-gray-600 p-1" aria-label="Ver notificaciones">
+                    <i class="fa-regular fa-bell"></i>
+                    <span v-if="notificationCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm">{{ notificationCount }}</span>
+                </button>
                 <button @click="router.push('/cart')" class="hover:text-[#00704A] transition relative text-xl text-gray-600 p-1" aria-label="Ver carrito">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-[#D4E9E2] text-[#00704A] font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm">{{ cartCount }}</span>
