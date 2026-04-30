@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 import { setSessionFromAuth } from '../services/storage';
@@ -7,13 +7,25 @@ import { getPortalRouteByEmail } from '../utils/portalRouting';
 
 const router = useRouter();
 
+const DELIVERY_ZONES = [
+    { key: 'pekin', label: 'Pekín', fee: 25, keywords: ['pekin', 'pekín'] },
+    { key: 'gurabo', label: 'Gurabo', fee: 50, keywords: ['gurabo'] },
+    { key: 'villa_olga', label: 'Villa Olga', fee: 75, keywords: ['villa olga'] },
+];
+
 // State for Animation
 const isRegisterActive = ref(false);
 
 // Form State
 const loginForm = ref({ email: '', password: '' });
-const registerForm = ref({ email: '', name: '', phone: '', password: '', confirmPassword: '', address: '', zone: '' });
+const registerForm = ref({ email: '', name: '', phone: '', password: '', confirmPassword: '', address: '' });
 const termsAccepted = ref(false);
+
+const detectedZone = computed(() => {
+    const normalized = String(registerForm.value.address || '').toLowerCase();
+    if (!normalized.trim()) return null;
+    return DELIVERY_ZONES.find((zone) => zone.keywords.some((kw) => normalized.includes(kw))) || null;
+});
 
 const loginError = ref('');
 const registerError = ref('');
@@ -63,7 +75,6 @@ onMounted(() => {
             registerForm.value.password = data.password || '';
             registerForm.value.confirmPassword = data.confirmPassword || '';
             registerForm.value.address = data.address || '';
-            registerForm.value.zone = data.zone || '';
 
             if (data.termsChecked) {
                 termsAccepted.value = true;
@@ -125,10 +136,10 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
     registerError.value = '';
-    const { email, name, phone, password, confirmPassword, address, zone } = registerForm.value;
+    const { email, name, phone, password, confirmPassword, address } = registerForm.value;
 
-    if (!email || !name || !phone || !password || !confirmPassword || !address || !zone) {
-        registerError.value = 'Completa todos los campos, incluyendo dirección y zona.';
+    if (!email || !name || !phone || !password || !confirmPassword || !address) {
+        registerError.value = 'Completa todos los campos obligatorios.';
         return;
     }
     if (!termsAccepted.value) {
@@ -151,7 +162,8 @@ const handleRegister = async () => {
     isSubmitting.value = true;
 
     try {
-        const registerRes = await api.register({ email, name, phone, password, direccion: address, zona: zone });
+        const zona = detectedZone.value?.key || '';
+        const registerRes = await api.register({ email, name, phone, password, direccion: address, zona });
 
         if (registerRes?.success && registerRes?.user && registerRes?.token) {
             localStorage.removeItem('register_draft');
@@ -268,20 +280,13 @@ const handleRegister = async () => {
                             </div>
                         </div>
                         
-                        <div class="input-row">
-                            <div class="input-group flex-2">
-                                <label for="reg-address">Dirección de Entrega</label>
-                                <input id="reg-address" v-model.trim="registerForm.address" type="text" placeholder="Calle, Número, Sector" aria-required="true">
-                            </div>
-                            <div class="input-group flex-1">
-                                <label for="reg-zone">Zona</label>
-                                <select id="reg-zone" v-model="registerForm.zone" aria-required="true">
-                                    <option value="" disabled selected>Selecciona</option>
-                                    <option value="pekin">Pekín ($25)</option>
-                                    <option value="gurabo">Gurabo ($50)</option>
-                                    <option value="villa_olga">Villa Olga ($75)</option>
-                                </select>
-                            </div>
+                        <div class="input-group">
+                            <label for="reg-address">Dirección de Entrega</label>
+                            <input id="reg-address" v-model.trim="registerForm.address" type="text" placeholder="Calle, Número, Sector (ej. Calle 5, Gurabo)" aria-required="true">
+                            <span v-if="detectedZone" class="zone-hint">
+                                <i class="fa-solid fa-location-dot"></i>
+                                Zona: <strong>{{ detectedZone.label }}</strong> · Envío ${{ detectedZone.fee }}
+                            </span>
                         </div>
 
                         <div class="checkbox-group" style="margin-top:10px; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
@@ -451,6 +456,8 @@ input:focus, select:focus {
 .invalid-input { border-color: #D90429 !important; background-color: #fff1f2; }
 .error-msg { color: #D90429; font-size: 12px; margin-top: 4px; display: block; font-weight: 700; }
 .error-msg-global { color: #D90429; font-size: 13px; margin-top: 10px; text-align: center; font-weight: 700; background: #fff1f2; padding: 10px; border-radius: 8px; }
+.zone-hint { color: #047857; font-size: 12px; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; background: #ecfdf5; padding: 4px 10px; border-radius: 6px; }
+.zone-hint strong { font-weight: 800; }
 
 /* --- BOTONES --- */
 .btn-action {

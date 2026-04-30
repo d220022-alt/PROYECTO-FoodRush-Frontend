@@ -418,7 +418,7 @@ export const api = {
     return normalizeEntityResult(
       await this.request('/api/usuarios', {
         method: 'POST',
-        headers,
+        headers: { ...headers, 'X-Tenant-ID': String(tenantId) },
         body: JSON.stringify(payload),
       }),
       ['data', 'user', 'usuario'],
