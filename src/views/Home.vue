@@ -296,7 +296,7 @@ const filterResultText = computed(() => {
 
             <nav class="hidden md:flex gap-8 font-medium">
                 <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
-                <a href="#" @click.prevent="scrollToSection('categories')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
+                <a href="#" @click.prevent="scrollToSection('category-filters')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
                 <a href="#" @click.prevent="scrollToSection('offers')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
             </nav>
 
@@ -365,7 +365,7 @@ const filterResultText = computed(() => {
     </div>
 
     <section id="categories" class="container mx-auto px-4 md:px-12 py-8 md:py-10">
-        <div class="flex flex-col gap-4 md:flex-row md:items-center">
+        <div id="category-filters" class="flex flex-col gap-4 md:flex-row md:items-center">
             <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
                 <i class="fa-solid fa-sliders"></i>
                 <span>Filtros</span>
@@ -894,7 +894,40 @@ const filterResultText = computed(() => {
 
 @media (max-width: 360px) {
     .franchise-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.625rem;
+    }
+
+    .card-franchise {
+        min-height: 205px;
+        padding: 9px;
+        border-radius: 13px;
+    }
+
+    .promo-chip {
+        padding: 3px 6px;
+        font-size: 8px;
+    }
+
+    .franchise-logo-frame {
+        max-width: 82px;
+        margin-bottom: 10px;
+        padding: 8px;
+    }
+
+    .franchise-title {
+        min-height: 2.35em;
+        font-size: 0.88rem;
+    }
+
+    .franchise-meta {
+        gap: 4px;
+        font-size: 0.72rem;
+    }
+
+    .franchise-category {
+        padding: 3px 6px;
+        font-size: 10px;
     }
 }
 
