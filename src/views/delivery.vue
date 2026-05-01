@@ -46,6 +46,7 @@ const defaultState = () => ({
     activeStage: '',
     activeOrder: null,
     availableOrders: [],
+    tripHistory: [],
     history: [],
 });
 
@@ -261,6 +262,150 @@ const activeOrderMeta = computed(() => {
 });
 const activeOrderAddress = computed(() => (state.activeOrder ? (state.activeOrder.status === 'picked' ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
 
+const isAssignedToCurrentDriver = (order = {}) => {
+    const currentDriverEmail = normalize(session.userEmail);
+    if (!currentDriverEmail) return false;
+    return normalize(order.deliveryAssignment?.driverEmail || order.driverEmail) === currentDriverEmail;
+};
+
+const assignedDriverOrders = computed(() =>
+    buildScopedOrders()
+        .filter((order) => isAssignedToCurrentDriver(order))
+        .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()),
+);
+
+const completedDriverOrders = computed(() => assignedDriverOrders.value.filter((order) => orderStatusKey(order) === 'entregado'));
+const cancelledDriverOrders = computed(() => assignedDriverOrders.value.filter((order) => orderStatusKey(order) === 'cancelado'));
+const localCompletedTrips = computed(() => state.tripHistory.filter((item) => item.kind === 'delivered'));
+const localCancelledTrips = computed(() => state.tripHistory.filter((item) => ['released', 'cancelled'].includes(item.kind)));
+
+const completedTripsCount = computed(() => {
+    const ids = new Set([
+        ...completedDriverOrders.value.map((order) => String(order.id)),
+        ...localCompletedTrips.value.map((item) => String(item.orderId || item.id || item.createdAt)),
+    ]);
+    return Math.max(Number(state.trips || 0), ids.size);
+});
+
+const cancelledTripsCount = computed(() => {
+    const ids = new Set([
+        ...cancelledDriverOrders.value.map((order) => String(order.id)),
+        ...localCancelledTrips.value.map((item) => String(item.orderId || item.id || item.createdAt)),
+    ]);
+    return ids.size;
+});
+
+const activeTripsCount = computed(() => {
+    if (state.activeOrder) return 1;
+    return assignedDriverOrders.value.filter((order) => ['preparando', 'en camino'].includes(orderStatusKey(order))).length;
+});
+
+const estimatedActiveTime = computed(() => {
+    if (!state.activeOrder) return 'Sin viaje activo';
+    if (state.activeOrder.status === 'accepted') return '12 min al local';
+    if (state.activeOrder.status === 'arrived') return 'Esperando local';
+    return '18 min al cliente';
+});
+
+const averageTripValue = computed(() => {
+    const values = [
+        ...completedDriverOrders.value.map((order) => Number(order.totalValue || 0)),
+        ...localCompletedTrips.value.map((item) => Number(item.amount || 0)),
+    ].filter((value) => value > 0);
+    if (values.length === 0) return '$0.00';
+    return formatCurrency(values.reduce((sum, value) => sum + value, 0) / values.length);
+});
+
+const driverPerformanceCards = computed(() => [
+    { label: 'Activos', value: activeTripsCount.value, hint: estimatedActiveTime.value, icon: 'fa-solid fa-route', class: 'bg-orange-50 text-[#f97316]' },
+    { label: 'Completados', value: completedTripsCount.value, hint: `${averageTripValue.value} promedio`, icon: 'fa-solid fa-check', class: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Cancelados', value: cancelledTripsCount.value, hint: 'Liberados o anulados', icon: 'fa-solid fa-ban', class: 'bg-rose-50 text-rose-500' },
+    { label: 'Ganancias', value: financeBalance.value, hint: `${state.trips} viajes pagados`, icon: 'fa-solid fa-wallet', class: 'bg-slate-100 text-slate-700' },
+]);
+
+const formatTripDate = (value) => {
+    if (!value) return 'Ahora';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return `${date.toLocaleDateString('es-DO', { day: '2-digit', month: 'short' })} ${date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}`;
+};
+
+const appendTripHistory = (entry = {}) => {
+    const createdAt = new Date().toISOString();
+    const normalizedEntry = {
+        ...entry,
+        orderId: String(entry.orderId || ''),
+        createdAt,
+        time: entry.time || formatTripDate(createdAt),
+    };
+    state.tripHistory = [
+        ...state.tripHistory.filter((item) => !(normalizedEntry.orderId && String(item.orderId) === normalizedEntry.orderId && item.kind === normalizedEntry.kind)),
+        normalizedEntry,
+    ].slice(-60);
+};
+
+const buildLocalTripRow = (item = {}) => {
+    const isDone = item.kind === 'delivered';
+    return {
+        id: `local-${item.kind}-${item.orderId || item.createdAt}`,
+        icon: isDone ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation',
+        iconClass: isDone ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500',
+        title: item.franchiseName || item.desc || 'Viaje FoodRush',
+        subtitle: item.status || (isDone ? 'Entregado' : 'Liberado'),
+        detail: item.address || 'Sin direccion registrada',
+        amountText: Number(item.amount || 0) > 0 ? `+${formatCurrency(item.amount)}` : 'Sin pago',
+        amountClass: Number(item.amount || 0) > 0 ? 'text-emerald-600' : 'text-slate-400',
+        time: item.time || formatTripDate(item.createdAt),
+    };
+};
+
+const buildRemoteTripRow = (order = {}) => {
+    const statusKey = orderStatusKey(order);
+    const isDone = statusKey === 'entregado';
+    return {
+        id: `remote-${statusKey}-${order.id}`,
+        icon: isDone ? 'fa-solid fa-check' : 'fa-solid fa-ban',
+        iconClass: isDone ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500',
+        title: `${order.tenantName} #${order.id}`,
+        subtitle: isDone ? 'Entregado' : 'Cancelado',
+        detail: order.address || 'Sin direccion registrada',
+        amountText: isDone ? `+${formatCurrency(order.totalValue)}` : 'Cancelado',
+        amountClass: isDone ? 'text-emerald-600' : 'text-rose-500',
+        time: formatTripDate(order.createdAt),
+    };
+};
+
+const activeTripRow = computed(() => {
+    if (!state.activeOrder) return null;
+    return {
+        id: `active-${state.activeOrder.id}`,
+        icon: 'fa-solid fa-motorcycle',
+        iconClass: 'bg-orange-50 text-[#f97316]',
+        title: state.activeOrder.franchise.name,
+        subtitle: activeOrderMeta.value?.title || 'En curso',
+        detail: activeOrderAddress.value,
+        amountText: formatCurrency(state.activeOrder.price),
+        amountClass: 'text-[#f97316]',
+        time: estimatedActiveTime.value,
+    };
+});
+
+const driverHistoryRows = computed(() => {
+    const localOrderIds = new Set(state.tripHistory.map((item) => String(item.orderId)).filter(Boolean));
+    const localRows = [...state.tripHistory].reverse().map((item) => buildLocalTripRow(item));
+    const remoteRows = assignedDriverOrders.value
+        .filter((order) => ['entregado', 'cancelado'].includes(orderStatusKey(order)))
+        .filter((order) => !localOrderIds.has(String(order.id)))
+        .map((order) => buildRemoteTripRow(order));
+
+    return [
+        ...(activeTripRow.value ? [activeTripRow.value] : []),
+        ...localRows,
+        ...remoteRows,
+    ].slice(0, 30);
+});
+const badgeHistory = computed(() => driverHistoryRows.value.length);
+
 const saveState = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
         status: state.status,
@@ -275,6 +420,7 @@ const saveState = () => {
         dismissedOrderIds: state.dismissedOrderIds,
         activeOrderId: state.activeOrderId,
         activeStage: state.activeStage,
+        tripHistory: state.tripHistory,
         history: state.history,
     }));
 };
@@ -287,6 +433,7 @@ const loadState = () => {
         const parsed = JSON.parse(saved);
         const merged = { ...defaultState(), ...parsed };
         merged.shiftHistory = Array.isArray(merged.shiftHistory) ? merged.shiftHistory : [];
+        merged.tripHistory = Array.isArray(merged.tripHistory) ? merged.tripHistory : [];
         merged.history = Array.isArray(merged.history) ? merged.history : [];
         merged.dismissedOrderIds = Array.isArray(merged.dismissedOrderIds) ? merged.dismissedOrderIds : [];
         Object.assign(state, merged);
@@ -561,7 +708,7 @@ const syncOrdersFromBackend = () => {
         .filter((order) => !state.dismissedOrderIds.includes(String(order.id)))
         .map((order) => buildOrderView(order, 'pending'));
 
-    if (state.activeOrder) currentTab.value = 'active';
+    if (state.activeOrder && currentTab.value !== 'history') currentTab.value = 'active';
     else if (currentTab.value === 'active') currentTab.value = 'available';
 
     nextTick(() => {
@@ -769,15 +916,25 @@ const cancelOrder = async () => {
         return;
     }
 
+    const releasedOrder = state.activeOrder;
+
     try {
-        const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(state.activeOrder.tenantId));
-        await syncDeliveryAssignment(state.activeOrder, 'released', 'released');
-        updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
+        const response = await api.updateOrder(releasedOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(releasedOrder.tenantId));
+        await syncDeliveryAssignment(releasedOrder, 'released', 'released');
+        updateCachedOrderStatus(releasedOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
     } catch (error) {
         console.warn('No se pudo devolver el pedido a preparacion', error);
     }
 
-    clearDeliveryAssignment(state.activeOrder.id);
+    appendTripHistory({
+        kind: 'released',
+        orderId: releasedOrder.id,
+        franchiseName: releasedOrder.franchise.name,
+        status: 'Liberado por incidencia',
+        amount: 0,
+        address: releasedOrder.dropoff,
+    });
+    clearDeliveryAssignment(releasedOrder.id);
     state.activeOrder = null;
     state.activeOrderId = '';
     state.activeStage = '';
@@ -800,17 +957,26 @@ const handleDeliveryPhoto = async (event) => {
     showToast('Registrando entrega...', 'info');
 
     try {
+        const deliveredOrder = state.activeOrder;
         const identity = driverIdentity();
-        const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
-        await syncDeliveryAssignment(state.activeOrder, 'delivered', 'delivered');
-        updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
+        const response = await api.updateOrder(deliveredOrder.id, { estado_id: ORDER_STATUS_CODES.delivered }, buildTenantHeaders(deliveredOrder.tenantId));
+        await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
+        updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
             repartidor_nombre: identity.driverName,
             repartidor_email: identity.driverEmail,
         });
-        const payment = Number(state.activeOrder.price || 0);
+        const payment = Number(deliveredOrder.price || 0);
         state.earnings += payment;
         state.trips += 1;
-        state.history.push({ emoji: state.activeOrder.franchise.emoji, desc: `Entrega ${state.activeOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        appendTripHistory({
+            kind: 'delivered',
+            orderId: deliveredOrder.id,
+            franchiseName: deliveredOrder.franchise.name,
+            status: 'Entregado',
+            amount: payment,
+            address: deliveredOrder.dropoff,
+        });
+        state.history.push({ emoji: deliveredOrder.franchise.emoji, desc: `Entrega ${deliveredOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         state.activeOrder = null;
         state.activeOrderId = '';
         state.activeStage = '';
@@ -1024,6 +1190,23 @@ onBeforeUnmount(() => {
 
         <main class="hide-scrollbar relative mx-auto w-full max-w-md flex-1 overflow-y-auto pb-20">
             <section :class="['view px-4 pt-4', currentView === 'orders' ? 'active' : '']">
+                <div class="mb-4 grid grid-cols-2 gap-2">
+                    <div
+                        v-for="card in driverPerformanceCards"
+                        :key="card.label"
+                        class="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm"
+                    >
+                        <div class="mb-2 flex items-center justify-between gap-2">
+                            <span :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm', card.class]">
+                                <i :class="card.icon"></i>
+                            </span>
+                            <p class="truncate text-right text-lg font-black leading-none text-slate-800">{{ card.value }}</p>
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">{{ card.label }}</p>
+                        <p class="mt-0.5 truncate text-[10px] font-bold text-slate-500">{{ card.hint }}</p>
+                    </div>
+                </div>
+
                 <div class="mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
                     <button
                         type="button"
@@ -1044,6 +1227,16 @@ onBeforeUnmount(() => {
                         @click="switchTab('active')"
                     >
                         En Curso ({{ badgeActive }})
+                    </button>
+                    <button
+                        type="button"
+                        :class="[
+                            'flex-1 rounded-lg py-2.5 text-sm font-bold',
+                            currentTab === 'history' ? 'bg-white text-[#f97316] shadow-sm' : 'text-slate-400'
+                        ]"
+                        @click="switchTab('history')"
+                    >
+                        Historial ({{ badgeHistory }})
                     </button>
                 </div>
 
@@ -1196,6 +1389,49 @@ onBeforeUnmount(() => {
 
                     <div :class="['relative min-h-[250px] flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-inner', showMapWrapper ? '' : 'hidden']">
                         <div ref="mapEl" class="delivery-map absolute inset-0"></div>
+                    </div>
+                </div>
+
+                <div :class="['space-y-3 pb-4', currentTab === 'history' ? '' : 'hidden']">
+                    <div class="rounded-2xl border border-orange-100 bg-orange-50 p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#f97316] shadow-sm">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800">Resumen del repartidor</h3>
+                                <p class="text-[11px] font-bold text-slate-500">Viajes activos, completados, cancelados e ingresos aproximados.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="driverHistoryRows.length === 0" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
+                        <div class="mb-2 text-4xl"><i class="fa-regular fa-clipboard text-slate-300"></i></div>
+                        <h3 class="text-sm font-black text-slate-800">Sin historial todavia</h3>
+                        <p class="text-xs text-slate-500">Cuando aceptes o completes viajes apareceran aqui.</p>
+                    </div>
+
+                    <div
+                        v-for="item in driverHistoryRows"
+                        :key="item.id"
+                        class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-start gap-3">
+                                <div :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm', item.iconClass]">
+                                    <i :class="item.icon"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="truncate text-sm font-black text-slate-800">{{ item.title }}</h3>
+                                    <p class="text-[10px] font-black uppercase tracking-wide text-[#f97316]">{{ item.subtitle }}</p>
+                                    <p class="mt-1 line-clamp-2 text-xs font-bold leading-snug text-slate-500">{{ item.detail }}</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <p :class="['text-sm font-black', item.amountClass]">{{ item.amountText }}</p>
+                                <p class="mt-1 text-[9px] font-bold text-slate-400">{{ item.time }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
