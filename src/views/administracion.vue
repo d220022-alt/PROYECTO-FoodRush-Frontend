@@ -2,7 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import AdminZonesMap from '../components/AdminZonesMap.vue';
 import { api } from '../services/api';
+import { appendAuditLog, buildClosureSnapshot, createClosureRecord, getAdminZones, getAuditLog, getClosureRecords, saveAdminZone } from '../services/adminPhaseTwo';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
@@ -21,8 +23,14 @@ const isLoading = ref(true);
 const isRefreshing = ref(false);
 const savingOrderId = ref('');
 const errorMessage = ref('');
+const phaseTwoMessage = ref('');
 const lastUpdatedAt = ref('');
 const data = ref({ tenants: [], orders: [], products: [], users: [], connectedUsers: [], sessions: [], warnings: [] });
+const operationZones = ref(getAdminZones());
+const selectedZoneId = ref(operationZones.value[0]?.id || '');
+const zoneDraft = ref({});
+const closureRecords = ref(getClosureRecords());
+const auditEntries = ref(getAuditLog());
 const AUTO_REFRESH_INTERVAL_MS = 60000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
@@ -39,8 +47,16 @@ const menuGroups = [
   {
     name: 'LOGISTICA DELIVERY',
     items: [
+      { id: 'zones', name: 'Zonas y Rutas', icon: 'fa-solid fa-route' },
       { id: 'users_fleet', name: 'Personas Conectadas', icon: 'fa-solid fa-users' },
       { id: 'support', name: 'Centro de Alertas', icon: 'fa-solid fa-headset' },
+    ],
+  },
+  {
+    name: 'CONTROL OPERATIVO',
+    items: [
+      { id: 'daily_close', name: 'Cierre Operativo', icon: 'fa-solid fa-cash-register' },
+      { id: 'audit', name: 'Auditoria', icon: 'fa-solid fa-clipboard-list' },
     ],
   },
   { name: 'CONFIGURACION', items: [{ id: 'settings', name: 'Ajustes Base', icon: 'fa-solid fa-gear' }] },
@@ -63,6 +79,8 @@ const orderDeliveryFilterOptions = [
   { id: 'unassigned', label: 'Sin delivery' },
 ];
 const orderPageSizeOptions = [5, 10, 20, 50];
+const zonePriorityOptions = ['Alta', 'Media', 'Baja'];
+const zoneColorOptions = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626'];
 
 let refreshTimer = null;
 let realtimeRefreshTimer = null;
@@ -304,6 +322,83 @@ const supportAlerts = computed(() => scopedOrders.value
   .filter((order) => !isFinalOrder(order))
   .slice(0, 6));
 
+const selectedZone = computed(() =>
+  operationZones.value.find((zone) => zone.id === selectedZoneId.value) || operationZones.value[0] || null,
+);
+
+const toZoneDraft = (zone = {}) => ({
+  id: zone.id || '',
+  name: zone.name || '',
+  center: {
+    lat: Number(zone.center?.lat || 0),
+    lng: Number(zone.center?.lng || 0),
+  },
+  radiusKm: Number(zone.radiusKm || 1),
+  deliveryFee: Number(zone.deliveryFee || 0),
+  etaMin: Number(zone.etaMin || 20),
+  priority: zone.priority || 'Media',
+  active: zone.active !== false,
+  color: zone.color || '#f97316',
+  keywordsText: Array.isArray(zone.keywords) ? zone.keywords.join(', ') : '',
+  notes: zone.notes || '',
+});
+
+zoneDraft.value = toZoneDraft(selectedZone.value || {});
+
+const getZoneOrders = (zone = {}) => {
+  const keys = [
+    zone.name,
+    ...(Array.isArray(zone.keywords) ? zone.keywords : []),
+  ].map(normalize).filter(Boolean);
+
+  return scopedOrders.value.filter((order) => {
+    const address = normalize(`${order.address} ${order.customerName} ${order.tenantName}`);
+    return keys.some((key) => address.includes(key));
+  });
+};
+
+const zoneCoverageRows = computed(() => operationZones.value.map((zone) => {
+  const orders = getZoneOrders(zone);
+  const delivered = orders.filter(isDeliveredOrder);
+  const active = orders.filter((order) => !isFinalOrder(order));
+  const revenue = delivered.reduce((sum, order) => sum + Number(order.totalValue || 0), 0);
+  return {
+    ...zone,
+    ordersCount: orders.length,
+    activeCount: active.length,
+    deliveredCount: delivered.length,
+    revenue,
+  };
+}));
+
+const closurePreview = computed(() => buildClosureSnapshot({
+  tenantId: selectedTenant.value,
+  tenantName: selectedTenantName.value,
+  orders: scopedOrders.value,
+  zones: operationZones.value,
+}));
+
+const closureHistory = computed(() => (
+  selectedTenant.value === 'Global'
+    ? closureRecords.value
+    : closureRecords.value.filter((record) => String(record.tenantId) === String(selectedTenant.value))
+));
+
+const auditRows = computed(() => (
+  selectedTenant.value === 'Global'
+    ? auditEntries.value
+    : auditEntries.value.filter((entry) => !entry.tenantId || String(entry.tenantId) === String(selectedTenant.value))
+));
+
+const auditSummaryRows = computed(() => {
+  const rows = new Map();
+  auditRows.value.forEach((entry) => {
+    const key = entry.action || 'Accion';
+    rows.set(key, (rows.get(key) || 0) + 1);
+  });
+  return Array.from(rows, ([label, count]) => ({ label, count })).slice(0, 6);
+});
+
 const getStatusBadgeClass = (statusValue) => {
   const key = normalizeStatusKey(statusValue);
   if (key === 'pendiente') return 'bg-yellow-100 text-yellow-700';
@@ -316,6 +411,9 @@ const getStatusBadgeClass = (statusValue) => {
 
 const getMenuBadge = (id) => {
   if (id === 'orders') return pendingOrdersCount.value;
+  if (id === 'zones') return operationZones.value.filter((zone) => zone.active === false).length;
+  if (id === 'daily_close') return closurePreview.value.activeOrders;
+  if (id === 'audit') return auditRows.value.length;
   if (id === 'users_fleet') return connectedUsers.value.length;
   if (id === 'support') return systemAlerts.value.length;
   return 0;
@@ -332,6 +430,62 @@ const clearOrderFilters = () => {
   orderStatusFilter.value = 'all';
   orderDeliveryFilter.value = 'all';
   orderPage.value = 1;
+};
+
+const refreshPhaseTwoState = () => {
+  operationZones.value = getAdminZones();
+  closureRecords.value = getClosureRecords();
+  auditEntries.value = getAuditLog();
+};
+
+const selectZone = (zoneId) => {
+  selectedZoneId.value = zoneId;
+};
+
+const resetZoneDraft = () => {
+  zoneDraft.value = toZoneDraft(selectedZone.value || {});
+};
+
+const saveZone = () => {
+  const draft = zoneDraft.value;
+  const saved = saveAdminZone({
+    ...draft,
+    center: {
+      lat: Number(draft.center?.lat),
+      lng: Number(draft.center?.lng),
+    },
+    keywords: String(draft.keywordsText || '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean),
+  });
+
+  selectedZoneId.value = saved.id;
+  phaseTwoMessage.value = `Zona ${saved.name} guardada para operaciones.`;
+  appendAuditLog({
+    action: 'Zona actualizada',
+    detail: `${saved.name}: ${saved.radiusKm} km, envio ${formatCurrency(saved.deliveryFee)}, ETA ${saved.etaMin} min.`,
+    tenantId: selectedTenant.value === 'Global' ? '' : selectedTenant.value,
+    tenantName: selectedTenantName.value,
+    tone: 'info',
+    metadata: { zoneId: saved.id },
+  });
+  refreshPhaseTwoState();
+  resetZoneDraft();
+};
+
+const generateDailyClosure = () => {
+  const record = createClosureRecord(closurePreview.value);
+  appendAuditLog({
+    action: 'Cierre operativo',
+    detail: `${record.tenantName}: ${formatCurrency(record.grossSales)} en ${record.deliveredOrders} pedidos entregados.`,
+    tenantId: record.tenantId === 'Global' ? '' : record.tenantId,
+    tenantName: record.tenantName,
+    tone: 'success',
+    metadata: { closureId: record.id },
+  });
+  phaseTwoMessage.value = `Cierre operativo generado para ${record.tenantName}.`;
+  refreshPhaseTwoState();
 };
 
 const refreshData = async ({ silent = false } = {}) => {
@@ -373,6 +527,15 @@ const updateOrderStatus = async (order, nextStatusId) => {
     const response = await api.updateOrder(order.id, { estado_id: nextStatusId }, buildTenantHeaders(order.tenantId));
     const resolvedStatusId = response?.data?.estado_id || response?.data?.estado?.id;
     updateCachedOrderStatus(order.id, resolvedStatusId || nextStatusId);
+    appendAuditLog({
+      action: 'Estado de pedido',
+      detail: `Pedido #${order.id} paso a ${nextStatusId}.`,
+      tenantId: order.tenantId,
+      tenantName: order.tenantName,
+      tone: statusKey === 'cancelado' ? 'danger' : statusKey === 'entregado' ? 'success' : 'info',
+      metadata: { orderId: order.id, status: nextStatusId },
+    });
+    auditEntries.value = getAuditLog();
     if (['pendiente', 'cancelado'].includes(statusKey)) {
       clearDeliveryAssignment(order.id);
     }
@@ -428,6 +591,10 @@ watch(
     orderPage.value = 1;
   },
 );
+
+watch(selectedZoneId, () => {
+  resetZoneDraft();
+});
 
 watch(orderTotalPages, (totalPages) => {
   if (orderPage.value > totalPages) orderPage.value = totalPages;
@@ -515,6 +682,10 @@ onBeforeUnmount(() => {
 
       <main class="hide-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
         <div v-if="errorMessage" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{{ errorMessage }}</div>
+        <div v-if="phaseTwoMessage" class="mb-5 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+          <span><i class="fa-solid fa-circle-check mr-2"></i>{{ phaseTwoMessage }}</span>
+          <button type="button" class="text-emerald-500 hover:text-emerald-700" @click="phaseTwoMessage = ''"><i class="fa-solid fa-xmark"></i></button>
+        </div>
 
         <div v-if="isLoading" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <div v-for="card in 8" :key="card" class="h-28 animate-pulse rounded-2xl border border-slate-100 bg-white shadow-sm"></div>
@@ -769,6 +940,194 @@ onBeforeUnmount(() => {
                 <div v-for="order in supportAlerts" :key="order.id" class="rounded-xl border border-red-200 bg-red-50 p-4"><p class="text-sm font-black text-red-700">Pedido #{{ order.id }}</p><p class="mt-1 text-xs font-bold text-red-500">{{ order.customerName }} · {{ order.tenantName }}</p><p class="mt-2 text-xs text-red-600">{{ order.itemSummary }}</p></div>
                 <div v-for="(alert, index) in systemAlerts" :key="`alert-${index}`" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-700">{{ alert }}</div>
                 <div v-if="supportAlerts.length === 0 && systemAlerts.length === 0" class="py-12 text-center text-sm font-bold text-slate-500">Sistema estable. No hay alertas criticas.</div>
+              </div>
+            </div>
+          </section>
+
+          <section v-show="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm xl:col-span-7">
+              <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 class="font-black text-slate-800">Editor de Zonas y Rutas</h3>
+                  <p class="text-xs font-bold text-slate-500">Cobertura operativa de delivery sobre OpenStreetMap.</p>
+                </div>
+                <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
+              </div>
+              <div class="h-[420px]">
+                <AdminZonesMap :zones="operationZones" :selected-zone-id="selectedZoneId" @select-zone="selectZone" />
+              </div>
+            </div>
+
+            <div class="space-y-6 xl:col-span-5">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-black text-slate-800">Zonas activas</h3>
+                    <p class="text-xs font-bold text-slate-400">Pedidos detectados por direccion.</p>
+                  </div>
+                  <p class="text-2xl font-black text-slate-800">{{ operationZones.filter((zone) => zone.active).length }}</p>
+                </div>
+                <div class="space-y-3">
+                  <button v-for="zone in zoneCoverageRows" :key="zone.id" type="button" class="w-full rounded-xl border p-4 text-left transition" :class="selectedZoneId === zone.id ? 'border-brand-500 bg-orange-50' : 'border-slate-100 bg-slate-50 hover:border-orange-200'" @click="selectZone(zone.id)">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-black text-slate-800">{{ zone.name }}</p>
+                        <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">{{ zone.radiusKm }} km - ETA {{ zone.etaMin }} min - {{ formatCurrency(zone.deliveryFee) }}</p>
+                      </div>
+                      <span class="rounded-full px-3 py-1 text-[10px] font-black" :class="zone.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">{{ zone.active ? 'Activa' : 'Pausada' }}</span>
+                    </div>
+                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Pedidos</p><p class="text-sm font-black text-slate-800">{{ zone.ordersCount }}</p></div>
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Activos</p><p class="text-sm font-black text-slate-800">{{ zone.activeCount }}</p></div>
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Ventas</p><p class="text-sm font-black text-slate-800">{{ formatCurrency(zone.revenue) }}</p></div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <h3 class="mb-4 text-sm font-black text-slate-800">Ajustar zona seleccionada</h3>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <label class="block sm:col-span-2">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Nombre</span>
+                    <input v-model="zoneDraft.name" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Latitud</span>
+                    <input v-model.number="zoneDraft.center.lat" type="number" step="0.0001" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Longitud</span>
+                    <input v-model.number="zoneDraft.center.lng" type="number" step="0.0001" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Radio km</span>
+                    <input v-model.number="zoneDraft.radiusKm" type="number" min="0.5" step="0.1" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Envio</span>
+                    <input v-model.number="zoneDraft.deliveryFee" type="number" min="0" step="5" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">ETA min</span>
+                    <input v-model.number="zoneDraft.etaMin" type="number" min="5" step="1" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Prioridad</span>
+                    <select v-model="zoneDraft.priority" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                      <option v-for="priority in zonePriorityOptions" :key="priority" :value="priority">{{ priority }}</option>
+                    </select>
+                  </label>
+                  <label class="block sm:col-span-2">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Palabras clave de direccion</span>
+                    <input v-model="zoneDraft.keywordsText" type="text" placeholder="gurabo, villa olga..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Color</span>
+                    <select v-model="zoneDraft.color" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                      <option v-for="color in zoneColorOptions" :key="color" :value="color">{{ color }}</option>
+                    </select>
+                  </label>
+                  <label class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black text-slate-600">
+                    <input v-model="zoneDraft.active" type="checkbox" class="h-4 w-4 accent-orange-500">
+                    Zona activa
+                  </label>
+                  <label class="block sm:col-span-2">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Notas operativas</span>
+                    <textarea v-model="zoneDraft.notes" rows="3" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500"></textarea>
+                  </label>
+                </div>
+                <div class="mt-4 flex flex-wrap justify-end gap-2">
+                  <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-black text-slate-500 hover:border-brand-500 hover:text-brand-600" @click="resetZoneDraft">REVERTIR</button>
+                  <button type="button" class="rounded-lg bg-brand-500 px-5 py-2 text-xs font-black text-white" @click="saveZone">GUARDAR ZONA</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section v-show="currentView === 'daily_close'" class="space-y-6">
+            <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.3em] text-brand-600">Cierre diario</p>
+                  <h3 class="mt-2 text-2xl font-black text-slate-800">Resumen operativo de {{ selectedTenantName }}</h3>
+                  <p class="mt-1 text-sm font-bold text-slate-500">Genera un corte local con ventas, pedidos, zonas y delivery.</p>
+                </div>
+                <button type="button" class="rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-900/10 hover:bg-brand-600" @click="generateDailyClosure">
+                  <i class="fa-solid fa-file-circle-check mr-2"></i> GENERAR CIERRE
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase text-slate-400">Ventas entregadas</p><p class="mt-3 text-2xl font-black text-slate-800">{{ formatCurrency(closurePreview.grossSales) }}</p><p class="mt-1 text-xs font-bold text-slate-500">{{ closurePreview.deliveredOrders }} pedidos completados</p></div>
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase text-slate-400">Ticket promedio</p><p class="mt-3 text-2xl font-black text-slate-800">{{ formatCurrency(closurePreview.averageTicket) }}</p><p class="mt-1 text-xs font-bold text-slate-500">{{ closurePreview.totalOrders }} pedidos totales</p></div>
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase text-slate-400">Pedidos activos</p><p class="mt-3 text-2xl font-black text-slate-800">{{ closurePreview.activeOrders }}</p><p class="mt-1 text-xs font-bold text-slate-500">{{ closurePreview.assignedOrders }} con delivery asignado</p></div>
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase text-slate-400">Zonas activas</p><p class="mt-3 text-2xl font-black text-slate-800">{{ closurePreview.activeZones }}</p><p class="mt-1 text-xs font-bold text-slate-500">{{ closurePreview.cancelledOrders }} cancelados</p></div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div class="border-b border-slate-100 p-5">
+                <h3 class="font-black text-slate-800">Historial de cierres</h3>
+                <p class="text-xs font-bold text-slate-500">Ultimos cortes generados desde este navegador administrativo.</p>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="min-w-[860px] w-full text-left">
+                  <thead><tr class="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500"><th class="p-4 pl-6">Fecha</th><th class="p-4">Alcance</th><th class="p-4">Ventas</th><th class="p-4">Entregados</th><th class="p-4">Activos</th><th class="p-4 pr-6">Zonas</th></tr></thead>
+                  <tbody class="text-sm">
+                    <tr v-for="record in closureHistory" :key="record.id" class="border-b border-slate-50">
+                      <td class="p-4 pl-6 font-black text-slate-800">{{ formatDate(record.generatedAt) }}</td>
+                      <td class="p-4 font-bold text-slate-600">{{ record.tenantName }}</td>
+                      <td class="p-4 font-black text-slate-800">{{ formatCurrency(record.grossSales) }}</td>
+                      <td class="p-4 font-bold text-slate-600">{{ record.deliveredOrders }}</td>
+                      <td class="p-4 font-bold text-slate-600">{{ record.activeOrders }}</td>
+                      <td class="p-4 pr-6 font-bold text-slate-600">{{ record.activeZones }}</td>
+                    </tr>
+                    <tr v-if="closureHistory.length === 0"><td colspan="6" class="p-10 text-center text-sm font-bold text-slate-400">Todavia no hay cierres generados.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <section v-show="currentView === 'audit'" class="space-y-6">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Eventos</p><p class="mt-3 text-3xl font-black text-slate-800">{{ auditRows.length }}</p><p class="mt-1 text-xs font-bold text-slate-500">Acciones registradas</p></div>
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Cierres</p><p class="mt-3 text-3xl font-black text-slate-800">{{ closureHistory.length }}</p><p class="mt-1 text-xs font-bold text-slate-500">Cortes locales guardados</p></div>
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Ultimo evento</p><p class="mt-3 text-sm font-black text-slate-800">{{ auditRows[0]?.action || 'Sin actividad' }}</p><p class="mt-1 text-xs font-bold text-slate-500">{{ auditRows[0] ? formatDate(auditRows[0].createdAt) : 'Pendiente' }}</p></div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm xl:col-span-4">
+                <h3 class="mb-4 text-sm font-black text-slate-800">Resumen de acciones</h3>
+                <div class="space-y-3">
+                  <div v-for="row in auditSummaryRows" :key="row.label" class="flex items-center justify-between rounded-xl bg-slate-50 p-3">
+                    <p class="text-xs font-black text-slate-700">{{ row.label }}</p>
+                    <span class="rounded-full bg-white px-3 py-1 text-xs font-black text-slate-800">{{ row.count }}</span>
+                  </div>
+                  <div v-if="auditSummaryRows.length === 0" class="rounded-xl bg-slate-50 p-6 text-center text-xs font-bold text-slate-400">Sin acciones registradas.</div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-100 bg-white shadow-sm xl:col-span-8">
+                <div class="border-b border-slate-100 p-5">
+                  <h3 class="font-black text-slate-800">Bitacora administrativa</h3>
+                  <p class="text-xs font-bold text-slate-500">Cambios de estado, ajustes de zonas y cierres operativos.</p>
+                </div>
+                <div class="divide-y divide-slate-100">
+                  <div v-for="entry in auditRows" :key="entry.id" class="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase" :class="entry.tone === 'success' ? 'bg-emerald-100 text-emerald-700' : entry.tone === 'danger' ? 'bg-red-100 text-red-700' : 'bg-orange-50 text-brand-600'">{{ entry.action }}</span>
+                        <p class="text-xs font-bold text-slate-400">{{ entry.tenantName }}</p>
+                      </div>
+                      <p class="mt-2 text-sm font-bold text-slate-700">{{ entry.detail }}</p>
+                      <p class="mt-1 text-xs font-bold text-slate-400">{{ entry.userName }} - {{ entry.userEmail || 'sin correo' }}</p>
+                    </div>
+                    <p class="shrink-0 text-xs font-black text-slate-400">{{ formatDate(entry.createdAt) }}</p>
+                  </div>
+                  <div v-if="auditRows.length === 0" class="p-12 text-center text-sm font-bold text-slate-400">La auditoria empezara a llenarse cuando cambies estados, zonas o cierres.</div>
+                </div>
               </div>
             </div>
           </section>
