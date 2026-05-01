@@ -216,7 +216,28 @@ const buildClientsMap = (clients = []) =>
     ]),
   );
 
-const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap) => {
+const buildAssignmentsByOrderId = (assignments = []) =>
+  new Map(
+    assignments
+      .filter((assignment) => !['released', 'liberado'].includes(safeText(assignment.status || assignment.estado).toLowerCase()))
+      .map((assignment) => [
+        safeText(assignment.orderId || assignment.pedido_id),
+        {
+          orderId: safeText(assignment.orderId || assignment.pedido_id),
+          tenantId: safeText(assignment.tenantId || assignment.tenant_id),
+          driverId: safeText(assignment.driverId || assignment.repartidor_id),
+          repartidor_id: safeText(assignment.repartidor_id || assignment.driverId),
+          driverName: safeText(assignment.driverName || assignment.repartidor_nombre, 'Repartidor FoodRush'),
+          driverEmail: safeText(assignment.driverEmail || assignment.repartidor_email),
+          status: safeText(assignment.status || assignment.estado, 'accepted'),
+          stage: safeText(assignment.stage || assignment.status, 'accepted'),
+          assignedAt: safeText(assignment.assignedAt || assignment.asignado_en),
+          updatedAt: safeText(assignment.updatedAt),
+        },
+      ]),
+  );
+
+const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId) => {
   const id = safeText(order.id);
   const statusLabel = getStatusLabel(order);
   const statusKey = getStatusKey(statusLabel);
@@ -245,7 +266,7 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
       }
     : null;
   const customer = clientsMap.get(customerId) || customerFromOrder || {};
-  const deliveryAssignment = getDeliveryAssignment(id);
+  const deliveryAssignment = assignmentsByOrderId.get(id) || getDeliveryAssignment(id);
 
   return {
     ...order,
@@ -295,12 +316,13 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   const headers = buildTenantHeaders(tenant.id);
   const warnings = [];
 
-  const [ordersResult, productsResult, usersResult, clientsResult, orderItemsResult] = await Promise.allSettled([
+  const [ordersResult, productsResult, usersResult, clientsResult, orderItemsResult, assignmentsResult] = await Promise.allSettled([
     api.getOrders({}, headers),
     api.getProducts({ limite: 200 }, headers),
     api.getUsers({}, headers),
     api.getClients({}, headers),
     api.getOrderItems({}, headers),
+    api.getDeliveryAssignments({}, headers),
   ]);
 
   collectWarning(warnings, ordersResult, `Pedidos ${tenant.name}`);
@@ -308,6 +330,7 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   collectWarning(warnings, usersResult, `Usuarios ${tenant.name}`);
   collectWarning(warnings, clientsResult, `Clientes ${tenant.name}`);
   collectWarning(warnings, orderItemsResult, `Detalle de pedidos ${tenant.name}`);
+  collectWarning(warnings, assignmentsResult, `Delivery ${tenant.name}`);
 
   const products = collectResultOrDefault(productsResult).map((product) => normalizeProduct(product, tenant));
   const users = collectResultOrDefault(usersResult).map((user) => normalizeUser(user, tenant, connectedUserKeys));
@@ -321,9 +344,10 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   const productsMap = buildProductsMap(products);
   const clientsMap = buildClientsMap(clients);
   const itemsByOrderId = buildItemsByOrderId(orderItems, orderIds);
+  const assignmentsByOrderId = buildAssignmentsByOrderId(collectResultOrDefault(assignmentsResult));
 
   const orders = rawOrders
-    .map((order) => normalizeOrder(order, tenant, itemsByOrderId, productsMap, clientsMap))
+    .map((order) => normalizeOrder(order, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId))
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
   return {

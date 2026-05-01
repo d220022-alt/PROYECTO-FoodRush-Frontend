@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
 import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset } from '../services/operations';
+import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
 import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
@@ -83,6 +84,9 @@ let routeLayers = [];
 let currentRoute = null;
 let routeRequestId = 0;
 let routeAbortController = null;
+let realtimeRefreshTimer = null;
+let realtimeConnections = [];
+let lastLocationReportKey = '';
 const scheduledTimeouts = [];
 
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
@@ -123,6 +127,60 @@ const resolveSecurityCode = (order = {}) => {
     const provided = String(order.securityCode || '').trim().toUpperCase();
     if (provided) return provided;
     return String(order.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+};
+
+const driverIdentity = () => ({
+    driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
+    driverEmail: session.userEmail || '',
+});
+
+const syncDeliveryAssignment = async (order, stage, status = stage) => {
+    const identity = driverIdentity();
+    const response = await api.upsertDeliveryAssignment({
+        orderId: order.id,
+        pedido_id: order.id,
+        stage,
+        status,
+        ...identity,
+    }, buildTenantHeaders(order.tenantId));
+
+    const assignment = response?.data || {};
+    setDeliveryAssignment(order.id, {
+        ...assignment,
+        tenantId: order.tenantId,
+        status,
+        stage,
+        ...identity,
+    });
+
+    return assignment;
+};
+
+const reportDriverLocation = async (point, stage = '') => {
+    if (!point || !state.activeOrder) return;
+
+    const key = [
+        state.activeOrder.id,
+        stage,
+        Number(point.lat).toFixed(5),
+        Number(point.lng).toFixed(5),
+    ].join(':');
+
+    if (key === lastLocationReportKey) return;
+    lastLocationReportKey = key;
+
+    try {
+        await api.recordDriverLocation({
+            orderId: state.activeOrder.id,
+            pedido_id: state.activeOrder.id,
+            repartidor_id: state.activeOrder.deliveryAssignment?.driverId || state.activeOrder.deliveryAssignment?.repartidor_id || null,
+            lat: point.lat,
+            lon: point.lng,
+            stage,
+        }, buildTenantHeaders(state.activeOrder.tenantId));
+    } catch (error) {
+        console.warn('No se pudo reportar ubicacion del repartidor', error);
+    }
 };
 
 const deriveActiveStage = (order = {}) => {
@@ -400,6 +458,7 @@ const renderCurrentRoute = async () => {
     if (requestId !== routeRequestId || !routePoints?.length) return;
 
     const riderPoint = getPointAlongRoute(routePoints, currentRoute.progress) || currentRoute.origin;
+    void reportDriverLocation(riderPoint, state.activeOrder.status);
     const targetMarker = leaflet.marker([currentRoute.target.lat, currentRoute.target.lng], { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
     const rider = leaflet.marker([riderPoint.lat, riderPoint.lng], { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
     const line = leaflet.polyline(routePoints.map((point) => [point.lat, point.lng]), { color: currentRoute.color, weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(mapInstance);
@@ -525,6 +584,36 @@ const refreshData = async ({ silent = false } = {}) => {
     }
 };
 
+const queueRealtimeRefresh = () => {
+    if (realtimeRefreshTimer) return;
+    realtimeRefreshTimer = window.setTimeout(() => {
+        realtimeRefreshTimer = null;
+        void refreshData({ silent: true });
+    }, 500);
+};
+
+const closeRealtimeConnections = () => {
+    realtimeConnections.forEach((connection) => connection.close());
+    realtimeConnections = [];
+};
+
+const setupRealtimeConnections = () => {
+    closeRealtimeConnections();
+    realtimeConnections = (data.value.tenants || []).map((tenant) =>
+        connectRealtime({
+            tenantId: tenant.id,
+            onEvent(message) {
+                if (['order-created', 'order-updated', 'order-cancelled', 'delivery-assigned'].includes(message.event)) {
+                    queueRealtimeRefresh();
+                }
+            },
+            onError(error) {
+                console.warn('Realtime delivery no disponible', error);
+            },
+        }),
+    );
+};
+
 const toggleShift = async () => {
     if (state.status === 'offline') {
         state.status = 'online';
@@ -583,18 +672,12 @@ const acceptOrder = async (id) => {
 
     isAdvancing.value = true;
     try {
-        const driverName = session.userName || session.userEmail || 'Repartidor FoodRush';
+        const identity = driverIdentity();
         await api.updateOrder(order.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(order.tenantId));
-        setDeliveryAssignment(order.id, {
-            tenantId: order.tenantId,
-            driverName,
-            driverEmail: session.userEmail || '',
-            status: 'accepted',
-            stage: 'accepted',
-        });
+        await syncDeliveryAssignment(order, 'accepted', 'accepted');
         updateCachedOrderStatus(order.id, ORDER_STATUS_IDS.preparing, null, {
-            repartidor_nombre: driverName,
-            repartidor_email: session.userEmail || '',
+            repartidor_nombre: identity.driverName,
+            repartidor_email: identity.driverEmail,
         });
         state.activeOrderId = String(order.id);
         state.activeStage = 'accepted';
@@ -624,12 +707,8 @@ const updateOrderStatus = async (status) => {
     if (status === 'arrived') {
         state.activeStage = 'arrived';
         state.activeOrder = buildOrderView(state.activeOrder, 'arrived');
-        setDeliveryAssignment(state.activeOrder.id, {
-            tenantId: state.activeOrder.tenantId,
-            driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
-            driverEmail: session.userEmail || '',
-            status: 'arrived',
-            stage: 'arrived',
+        void syncDeliveryAssignment(state.activeOrder, 'arrived', 'arrived').catch((error) => {
+            console.warn('No se pudo sincronizar llegada al local', error);
         });
         saveState();
         syncRouteFromState();
@@ -640,17 +719,12 @@ const updateOrderStatus = async (status) => {
     if (status === 'picked') {
         isAdvancing.value = true;
         try {
+            const identity = driverIdentity();
             await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
-            setDeliveryAssignment(state.activeOrder.id, {
-                tenantId: state.activeOrder.tenantId,
-                driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
-                driverEmail: session.userEmail || '',
-                status: 'picked',
-                stage: 'picked',
-            });
+            await syncDeliveryAssignment(state.activeOrder, 'picked', 'picked');
             updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.inTransit, null, {
-                repartidor_nombre: session.userName || session.userEmail || 'Repartidor FoodRush',
-                repartidor_email: session.userEmail || '',
+                repartidor_nombre: identity.driverName,
+                repartidor_email: identity.driverEmail,
             });
             state.activeStage = 'picked';
             state.activeOrder = buildOrderView(state.activeOrder, 'picked');
@@ -675,6 +749,7 @@ const cancelOrder = async () => {
 
     try {
         await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(state.activeOrder.tenantId));
+        await syncDeliveryAssignment(state.activeOrder, 'released', 'released');
         updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.preparing);
     } catch (error) {
         console.warn('No se pudo devolver el pedido a preparacion', error);
@@ -703,17 +778,12 @@ const handleDeliveryPhoto = async (event) => {
     showToast('Registrando entrega...', 'info');
 
     try {
+        const identity = driverIdentity();
         await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
-        setDeliveryAssignment(state.activeOrder.id, {
-            tenantId: state.activeOrder.tenantId,
-            driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
-            driverEmail: session.userEmail || '',
-            status: 'delivered',
-            stage: 'delivered',
-        });
+        await syncDeliveryAssignment(state.activeOrder, 'delivered', 'delivered');
         updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.delivered, null, {
-            repartidor_nombre: session.userName || session.userEmail || 'Repartidor FoodRush',
-            repartidor_email: session.userEmail || '',
+            repartidor_nombre: identity.driverName,
+            repartidor_email: identity.driverEmail,
         });
         const payment = Number(state.activeOrder.price || 0);
         state.earnings += payment;
@@ -818,6 +888,7 @@ onMounted(async () => {
     checkOnboarding();
     checkAbsence();
     await refreshData();
+    setupRealtimeConnections();
 
     try {
         leaflet = await ensureLeaflet();
@@ -837,6 +908,8 @@ onBeforeUnmount(() => {
     stopShiftTimer();
     clearScheduledTimeouts();
     if (refreshTimer) window.clearInterval(refreshTimer);
+    if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+    closeRealtimeConnections();
     if (mapInstance) {
         mapInstance.remove();
         mapInstance = null;

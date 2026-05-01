@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { api } from '../services/api';
+import { buildTenantHeaders } from '../services/operations';
 import {
   APP_EVENTS,
   clearNotifications,
@@ -8,6 +10,7 @@ import {
   getSession,
   markAllNotificationsRead,
   markNotificationRead,
+  mergeNotifications,
 } from '../services/storage';
 
 const router = useRouter();
@@ -25,6 +28,20 @@ const unreadCount = computed(() => notifications.value.filter((item) => !item.re
 
 const loadNotifications = () => {
   notifications.value = getNotifications(currentEmail.value);
+};
+
+const syncServerNotifications = async () => {
+  const session = getSession();
+  if (!session.isAuthenticated) return;
+
+  try {
+    const response = await api.getServerNotifications({ limit: 60 }, buildTenantHeaders(session.tenantId || 1));
+    if (response.success !== false) {
+      notifications.value = mergeNotifications(response.data || [], currentEmail.value);
+    }
+  } catch (error) {
+    console.warn('No se pudieron sincronizar notificaciones del servidor', error);
+  }
 };
 
 const goBack = () => router.go(-1);
@@ -69,6 +86,7 @@ watch(settings, (newVal) => {
 
 onMounted(() => {
   loadNotifications();
+  void syncServerNotifications();
   window.addEventListener(APP_EVENTS.notificationsChanged, loadNotifications);
 });
 

@@ -706,6 +706,27 @@ export const getNotifications = (email = '') => {
   return sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
 };
 
+export const mergeNotifications = (notifications = [], email = '') => {
+  const incoming = Array.isArray(notifications) ? notifications.map(normalizeNotification) : [];
+  if (incoming.length === 0) return getNotifications(email);
+
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  const current = (bucket[emailKey] || []).map(normalizeNotification);
+  const currentById = new Map(current.map((notification) => [String(notification.id), notification]));
+  const incomingIds = new Set(incoming.map((notification) => String(notification.id)));
+
+  bucket[emailKey] = sortNotificationsByDate([
+    ...incoming.map((notification) => ({
+      ...notification,
+      read: currentById.get(String(notification.id))?.read ?? Boolean(notification.read),
+    })),
+    ...current.filter((notification) => !incomingIds.has(String(notification.id))),
+  ]);
+
+  writeNotificationsBucket(bucket, emailKey);
+  return getNotifications(emailKey);
+};
+
 export const getUnreadNotificationsCount = (email = '') =>
   getNotifications(email).filter((notification) => !notification.read).length;
 
@@ -763,6 +784,8 @@ const writeOrdersBucket = (bucket) => {
 const normalizeDeliveryAssignment = (assignment = {}) => ({
   orderId: safeString(assignment.orderId || assignment.pedido_id || assignment.id),
   tenantId: safeString(assignment.tenantId || assignment.tenant_id),
+  driverId: safeString(assignment.driverId || assignment.repartidor_id),
+  repartidor_id: safeString(assignment.repartidor_id || assignment.driverId),
   driverName: safeString(assignment.driverName || assignment.repartidor_nombre, 'Repartidor FoodRush'),
   driverEmail: normalizeEmailKey(assignment.driverEmail || assignment.repartidor_email),
   status: safeString(assignment.status, 'accepted'),

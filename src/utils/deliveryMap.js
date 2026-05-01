@@ -215,8 +215,13 @@ export const buildDeliveryRoute = (order = {}, statusLabel = '') => {
     cancelled: 0,
   };
   const progress = progressByStage[stage] ?? 0;
+  const liveDriverLat = Number(order.driverLocation?.lat);
+  const liveDriverLng = Number(order.driverLocation?.lng ?? order.driverLocation?.lon);
+  const liveDriver = Number.isFinite(liveDriverLat) && Number.isFinite(liveDriverLng)
+    ? { lat: liveDriverLat, lng: liveDriverLng }
+    : null;
   const driver = {
-    ...getPointAlongRoute(route, progress),
+    ...(liveDriver || getPointAlongRoute(route, progress)),
     label: stage === 'transit' ? 'Repartidor FoodRush' : 'Preparacion FoodRush',
   };
 

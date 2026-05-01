@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
 import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset, isSessionActive } from '../services/operations';
+import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
 
 const router = useRouter();
@@ -48,6 +49,8 @@ const statusOptions = [
 ];
 
 let refreshTimer = null;
+let realtimeRefreshTimer = null;
+let realtimeConnections = [];
 
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
@@ -239,6 +242,36 @@ const updateOrderStatus = async (order, nextStatusId) => {
   }
 };
 
+const queueRealtimeRefresh = () => {
+  if (realtimeRefreshTimer) return;
+  realtimeRefreshTimer = window.setTimeout(() => {
+    realtimeRefreshTimer = null;
+    void refreshData({ silent: true });
+  }, 500);
+};
+
+const closeRealtimeConnections = () => {
+  realtimeConnections.forEach((connection) => connection.close());
+  realtimeConnections = [];
+};
+
+const setupRealtimeConnections = () => {
+  closeRealtimeConnections();
+  realtimeConnections = (data.value.tenants || []).map((tenant) =>
+    connectRealtime({
+      tenantId: tenant.id,
+      onEvent(message) {
+        if (['order-created', 'order-updated', 'order-cancelled', 'delivery-assigned', 'driver-location'].includes(message.event)) {
+          queueRealtimeRefresh();
+        }
+      },
+      onError(error) {
+        console.warn('Realtime administracion no disponible', error);
+      },
+    }),
+  );
+};
+
 const confirmOrder = (order) => updateOrderStatus(order, ORDER_STATUS_IDS.preparing);
 
 const logout = () => {
@@ -252,11 +285,14 @@ onMounted(async () => {
     return;
   }
   await refreshData();
+  setupRealtimeConnections();
   refreshTimer = window.setInterval(() => { void refreshData({ silent: true }); }, 15000);
 });
 
 onBeforeUnmount(() => {
   if (refreshTimer) window.clearInterval(refreshTimer);
+  if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+  closeRealtimeConnections();
 });
 </script>
 

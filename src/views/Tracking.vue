@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
+import { connectRealtime } from '../services/realtime';
 import { getCachedOrderById, getSession } from '../services/storage';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
 
@@ -22,6 +23,9 @@ const steps = [
 ];
 
 let refreshTimer = null;
+let realtimeConnection = null;
+let realtimeTenantId = '';
+let realtimeRefreshTimer = null;
 
 const orderId = computed(() => route.params.id);
 const currentUserEmail = computed(() => session.userEmail || '');
@@ -103,7 +107,10 @@ const fetchOrder = async () => {
 
         const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
         if (remoteOrder) {
-            order.value = remoteOrder;
+            order.value = {
+                ...remoteOrder,
+                driverLocation: order.value?.driverLocation || null,
+            };
             warnings.value = [];
         } else if (!cachedOrder) {
             warnings.value = dataset.warnings || [];
@@ -119,7 +126,58 @@ const fetchOrder = async () => {
         }
 
         isLoading.value = false;
+        setupRealtimeConnection();
     }
+};
+
+const closeRealtimeConnection = () => {
+    realtimeConnection?.close();
+    realtimeConnection = null;
+    realtimeTenantId = '';
+};
+
+const queueRealtimeOrderRefresh = () => {
+    if (realtimeRefreshTimer) return;
+    realtimeRefreshTimer = window.setTimeout(() => {
+        realtimeRefreshTimer = null;
+        void fetchOrder();
+    }, 500);
+};
+
+const setupRealtimeConnection = () => {
+    const tenantId = order.value?.tenantId || route.query.tenant;
+    if (!tenantId || String(tenantId) === 'Global' || String(tenantId) === realtimeTenantId) return;
+
+    closeRealtimeConnection();
+    realtimeTenantId = String(tenantId);
+    realtimeConnection = connectRealtime({
+        tenantId,
+        onEvent(message) {
+            const data = message.data || {};
+            const messageOrderId = data.order_id || data.pedido_id || data.orderId || data.assignment?.orderId;
+            if (String(messageOrderId) !== String(orderId.value)) return;
+
+            if (message.event === 'driver-location') {
+                order.value = {
+                    ...order.value,
+                    driverLocation: {
+                        lat: data.lat,
+                        lng: data.lng ?? data.lon,
+                        stage: data.stage,
+                        recordedAt: data.recorded_at,
+                    },
+                };
+                return;
+            }
+
+            if (['order-updated', 'order-cancelled', 'delivery-assigned'].includes(message.event)) {
+                queueRealtimeOrderRefresh();
+            }
+        },
+        onError(error) {
+            console.warn('Realtime tracking no disponible', error);
+        },
+    });
 };
 
 onMounted(async () => {
@@ -131,6 +189,8 @@ onMounted(async () => {
 
 onUnmounted(() => {
     if (refreshTimer) clearInterval(refreshTimer);
+    if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+    closeRealtimeConnection();
 });
 
 const goBack = () => router.push('/orders');

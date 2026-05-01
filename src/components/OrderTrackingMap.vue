@@ -153,7 +153,12 @@ onMounted(async () => {
   }
 });
 
-watch(() => [props.order?.id, props.statusLabel], () => {
+watch(() => [
+  props.order?.id,
+  props.statusLabel,
+  props.order?.driverLocation?.lat,
+  props.order?.driverLocation?.lng,
+], () => {
   if (isMapReady.value) void renderRoute();
 });
 

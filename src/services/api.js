@@ -644,6 +644,42 @@ export const api = {
     };
   },
 
+  async getServerNotifications(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/notificaciones?${query}` : '/api/notificaciones';
+    return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'notificaciones']);
+  },
+
+  async getDeliveryAssignments(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/realtime/assignments?${query}` : '/api/realtime/assignments';
+    return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'assignments']);
+  },
+
+  async upsertDeliveryAssignment(data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/realtime/assignments', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data', 'assignment'],
+    );
+  },
+
+  async recordDriverLocation(data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/realtime/location', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data', 'location'],
+    );
+  },
+
   async getSessions(params = {}, headers = {}) {
     const queryParams = sanitizeParams(params);
     const query = new URLSearchParams(queryParams).toString();
