@@ -35,6 +35,48 @@ const redirectToPortal = (email) => {
     router.replace(getPortalRouteByEmail(email));
 };
 
+const formatRetryAfter = (retryAfter) => {
+    const seconds = Number.parseInt(retryAfter, 10);
+    if (!Number.isFinite(seconds) || seconds <= 0) return '';
+
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return minutes === 1 ? '1 minuto' : `${minutes} minutos`;
+};
+
+const formatAuthError = (error) => {
+    const code = String(error?.code || error?.payload?.error || '').toUpperCase();
+    const status = Number.parseInt(error?.status, 10);
+
+    if (code === 'AUTH_ERROR' || status === 401) {
+        return 'Correo o contraseña incorrectos. Revisa los datos de la cuenta que estás usando.';
+    }
+
+    if (code === 'USER_INACTIVE' || status === 403) {
+        return 'Esta cuenta está desactivada. Contacta a administración para volver a usarla.';
+    }
+
+    if (code === 'TOO_MANY_LOGIN_ATTEMPTS' || code === 'TOO_MANY_REQUESTS' || status === 429) {
+        const wait = formatRetryAfter(error?.retryAfter);
+        return wait
+            ? `Demasiados intentos de inicio de sesión. Espera ${wait} e intenta otra vez.`
+            : 'Demasiados intentos de inicio de sesión. Espera unos minutos e intenta otra vez.';
+    }
+
+    if (code === 'NETWORK_ERROR') {
+        return 'No pudimos conectar con el servidor de FoodRush. Revisa tu conexión o intenta de nuevo en unos segundos.';
+    }
+
+    if (code === 'REQUEST_TIMEOUT') {
+        return 'El servidor tardó demasiado en responder. Intenta de nuevo en unos segundos.';
+    }
+
+    if (status >= 500 || code === 'SERVER_ERROR') {
+        return 'El servidor tuvo un problema al iniciar sesión. Intenta de nuevo en unos minutos.';
+    }
+
+    return error?.message || 'No se pudo iniciar sesión. Revisa los datos e intenta nuevamente.';
+};
+
 const registerWebSession = async (session) => {
     if (!session?.userId) return;
 
@@ -103,7 +145,9 @@ const togglePanel = (active) => {
 
 const handleLogin = async () => {
     loginError.value = '';
-    const { email, password } = loginForm.value;
+    const email = String(loginForm.value.email || '').trim().toLowerCase();
+    const password = loginForm.value.password;
+    loginForm.value.email = email;
 
     if (!email || !password) {
         loginError.value = 'Por favor, ingresa correo y contraseña.';
@@ -124,11 +168,11 @@ const handleLogin = async () => {
             await registerWebSession(session);
             redirectToPortal(session.userEmail || email);
         } else {
-            loginError.value = response.message || 'Error al iniciar sesión';
+            loginError.value = formatAuthError(response);
         }
     } catch (err) {
         console.error(err);
-        loginError.value = err.message || 'Error de conexión';
+        loginError.value = formatAuthError(err);
     } finally {
         isSubmitting.value = false;
     }

@@ -274,6 +274,12 @@ const parseResponseBody = async (response) => {
   }
 };
 
+const createApiError = (message, details = {}) => {
+  const error = new Error(message || 'No se pudo completar la solicitud.');
+  Object.assign(error, details);
+  return error;
+};
+
 export const api = {
   async resolveOrderStatusId(preferredId = null, headers = {}) {
     if (!cachedOrderStatusesPromise) {
@@ -320,13 +326,32 @@ export const api = {
           payload?.error ||
           `Error ${response.status}: ${response.statusText}`;
 
-        throw new Error(message);
+        throw createApiError(message, {
+          status: response.status,
+          code: payload?.error || payload?.code || null,
+          payload,
+          retryAfter: response.headers.get('retry-after'),
+        });
       }
 
       return payload;
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('El servidor tardo demasiado en responder. Intenta nuevamente.');
+        throw createApiError('El servidor tardó demasiado en responder. Intenta nuevamente.', {
+          code: 'REQUEST_TIMEOUT',
+          status: 0,
+        });
+      }
+
+      if (error instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(error.message || '')) {
+        throw createApiError('No pudimos conectar con el servidor de FoodRush. Revisa tu conexión e intenta nuevamente.', {
+          code: 'NETWORK_ERROR',
+          status: 0,
+        });
+      }
+
+      if (error.status) {
+        throw error;
       }
 
       console.error('API Error:', error);
@@ -353,14 +378,21 @@ export const api = {
   },
 
   async login(email, password, headers = {}) {
+    const loginHeaders = { ...headers };
+    if (!hasTenantHeader(loginHeaders)) {
+      loginHeaders['X-Tenant-ID'] = DEFAULT_TENANT_ID;
+    }
+
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+
     return normalizeAuthResult(
       await this.request('/api/usuarios/login', {
         method: 'POST',
-        headers,
+        headers: loginHeaders,
         body: JSON.stringify({
-          email,
+          email: normalizedEmail,
           password,
-          correo: email,
+          correo: normalizedEmail,
           contrasena: password,
         }),
       }),
