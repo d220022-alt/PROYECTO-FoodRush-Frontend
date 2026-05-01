@@ -41,6 +41,7 @@ __screenshots__/
 # Archivos locales (no compartidos con el equipo)
 .claude/
 .playwright-mcp/
+.playwright-cli/
 AGENTS.md
 CLAUDE.md
 docs/
