@@ -1,5 +1,5 @@
 import { api } from './api';
-import { getDeliveryAssignment } from './storage';
+import { getDeliveryAssignment, getSession } from './storage';
 import { franchiseConfigs } from '../views/franchiseConfigs';
 
 export const ORDER_STATUS_IDS = {
@@ -397,17 +397,24 @@ export async function fetchOperationalDataset({ selectedTenantId = 'Global', inc
   const warnings = [];
   const tenantsResponse = await api.getFranchises();
   const tenants = (tenantsResponse?.data || []).map((tenant, index) => normalizeTenant(tenant, index));
+  const sessionTenantId = safeText(getSession().tenantId);
+  const requestedTenantId = safeText(selectedTenantId, 'Global');
+  const effectiveTenantId =
+    requestedTenantId === 'Global' && sessionTenantId && tenants.some((tenant) => safeText(tenant.id) === sessionTenantId)
+      ? sessionTenantId
+      : requestedTenantId;
   const scopedTenants =
-    safeText(selectedTenantId, 'Global') === 'Global'
+    effectiveTenantId === 'Global'
       ? tenants
-      : tenants.filter((tenant) => safeText(tenant.id) === safeText(selectedTenantId));
+      : tenants.filter((tenant) => safeText(tenant.id) === effectiveTenantId);
 
   let sessions = [];
   let connectedUserKeys = new Set();
 
   if (includeSessions && tenants.length > 0) {
+    const sessionTenants = sessionTenantId ? scopedTenants : tenants;
     const sessionResults = await Promise.allSettled(
-      tenants.map(async (tenant) => {
+      sessionTenants.map(async (tenant) => {
         try {
           return {
             tenant,
