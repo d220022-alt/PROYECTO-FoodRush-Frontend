@@ -4,18 +4,28 @@ import { franchiseConfigs } from '../views/franchiseConfigs';
 
 export const ORDER_STATUS_IDS = {
   pending: 1,
-  preparing: 2,
-  inTransit: 3,
-  delivered: 4,
-  cancelled: 5,
+  confirmed: 2,
+  preparing: 3,
+  inTransit: 4,
+  delivered: 5,
+  cancelled: 6,
+};
+
+export const ORDER_STATUS_CODES = {
+  pending: 'pendiente',
+  preparing: 'preparando',
+  inTransit: 'en camino',
+  delivered: 'entregado',
+  cancelled: 'cancelado',
 };
 
 export const ORDER_STATUS_LABELS = {
-  1: 'Pendiente',
-  2: 'Preparando',
-  3: 'En camino',
-  4: 'Entregado',
-  5: 'Cancelado',
+  1: 'Pedido recibido',
+  2: 'Pedido confirmado por el restaurante',
+  3: 'Pedido en preparación',
+  4: 'Pedido en camino',
+  5: 'Pedido entregado',
+  6: 'Pedido cancelado',
 };
 
 const STATUS_VARIANTS = {
@@ -56,6 +66,30 @@ const safeText = (value, fallback = '') => {
   return normalized || fallback;
 };
 
+const normalizeText = (value = '') =>
+  safeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+
+export const normalizeStatusKey = (value = '') => {
+  const rawValue = safeText(value);
+  const numericValue = Number.parseInt(rawValue, 10);
+  if (Number.isFinite(numericValue) && rawValue === String(numericValue) && ORDER_STATUS_LABELS[numericValue]) {
+    return normalizeStatusKey(ORDER_STATUS_LABELS[numericValue]);
+  }
+
+  const normalized = normalizeText(rawValue);
+  if (!normalized) return 'pendiente';
+  if (normalized.includes('cancel')) return 'cancelado';
+  if (normalized.includes('entreg')) return 'entregado';
+  if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
+  if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  return normalized;
+};
+
 const toNumber = (value, fallback = 0) => {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -86,7 +120,7 @@ export const getStatusLabel = (order = {}) => {
   return ORDER_STATUS_LABELS[statusId] || 'Pendiente';
 };
 
-const getStatusKey = (label = '') => safeText(label, 'Pendiente').toLowerCase();
+const getStatusKey = (label = '') => normalizeStatusKey(label || 'Pendiente');
 
 export const getStatusVariant = (label = '') =>
   STATUS_VARIANTS[getStatusKey(label)] || 'bg-slate-50 text-slate-700 border-slate-200';
@@ -240,7 +274,7 @@ const buildAssignmentsByOrderId = (assignments = []) =>
 const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId) => {
   const id = safeText(order.id);
   const statusLabel = getStatusLabel(order);
-  const statusKey = getStatusKey(statusLabel);
+  const statusKey = getStatusKey(order.estado?.codigo || order.statusKey || order.status_key || statusLabel);
   const relatedItems = (itemsByOrderId.get(id) || []).map((item, index) => {
     const productId = safeText(item.producto_id || item.productoId);
     const product = productsMap.get(productId);

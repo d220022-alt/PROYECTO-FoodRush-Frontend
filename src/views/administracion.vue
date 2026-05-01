@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
-import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset, isSessionActive } from '../services/operations';
+import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
 
@@ -41,11 +41,11 @@ const menuGroups = [
 ];
 
 const statusOptions = [
-  { id: ORDER_STATUS_IDS.pending, label: 'Pendiente' },
-  { id: ORDER_STATUS_IDS.preparing, label: 'Preparacion' },
-  { id: ORDER_STATUS_IDS.inTransit, label: 'En camino' },
-  { id: ORDER_STATUS_IDS.delivered, label: 'Entregado' },
-  { id: ORDER_STATUS_IDS.cancelled, label: 'Cancelado' },
+  { id: ORDER_STATUS_CODES.pending, label: 'Pendiente' },
+  { id: ORDER_STATUS_CODES.preparing, label: 'Preparacion' },
+  { id: ORDER_STATUS_CODES.inTransit, label: 'En camino' },
+  { id: ORDER_STATUS_CODES.delivered, label: 'Entregado' },
+  { id: ORDER_STATUS_CODES.cancelled, label: 'Cancelado' },
 ];
 
 let refreshTimer = null;
@@ -53,6 +53,13 @@ let realtimeRefreshTimer = null;
 let realtimeConnections = [];
 
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
+const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
+const isDeliveredOrder = (order = {}) => orderStatusKey(order) === 'entregado';
+const isCancelledOrder = (order = {}) => orderStatusKey(order) === 'cancelado';
+const isPendingOrder = (order = {}) => orderStatusKey(order) === 'pendiente';
+const isPreparingOrder = (order = {}) => orderStatusKey(order) === 'preparando';
+const isInTransitOrder = (order = {}) => orderStatusKey(order) === 'en camino';
+const isFinalOrder = (order = {}) => isDeliveredOrder(order) || isCancelledOrder(order);
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
 const formatDate = (value) => value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
 
@@ -124,12 +131,12 @@ const franchiseCards = computed(() => filteredFranchises.value.map((franchise) =
     productsCount: products.length,
     usersCount: users.length,
     connectedCount: users.filter((user) => user.isConnected).length,
-    sales: orders.filter((order) => order.statusId === ORDER_STATUS_IDS.delivered).reduce((sum, order) => sum + Number(order.totalValue || 0), 0),
+    sales: orders.filter(isDeliveredOrder).reduce((sum, order) => sum + Number(order.totalValue || 0), 0),
   };
 }));
 
-const totalSales = computed(() => scopedOrders.value.filter((order) => order.statusId === ORDER_STATUS_IDS.delivered).reduce((sum, order) => sum + Number(order.totalValue || 0), 0));
-const pendingOrdersCount = computed(() => scopedOrders.value.filter((order) => ![ORDER_STATUS_IDS.delivered, ORDER_STATUS_IDS.cancelled].includes(order.statusId)).length);
+const totalSales = computed(() => scopedOrders.value.filter(isDeliveredOrder).reduce((sum, order) => sum + Number(order.totalValue || 0), 0));
+const pendingOrdersCount = computed(() => scopedOrders.value.filter((order) => !isFinalOrder(order)).length);
 const activeDriversCount = computed(() => {
   const deliveryUsers = scopedUsers.value.filter((user) => {
     const role = normalize(user.roleLabel);
@@ -147,7 +154,7 @@ const weeklySales = computed(() => {
     date.setDate(date.getDate() - i);
     const key = date.toISOString().slice(0, 10);
     const amount = scopedOrders.value
-      .filter((order) => order.statusId === ORDER_STATUS_IDS.delivered)
+      .filter(isDeliveredOrder)
       .filter((order) => new Date(order.createdAt).toISOString().slice(0, 10) === key)
       .reduce((sum, order) => sum + Number(order.totalValue || 0), 0);
     points.push({ key, label: fmt.format(date).replace('.', ''), amount });
@@ -159,7 +166,7 @@ const weeklySales = computed(() => {
 const systemAlerts = computed(() => {
   const alerts = [...(data.value.warnings || [])];
   scopedOrders.value.forEach((order) => {
-    if (order.statusId === ORDER_STATUS_IDS.pending) {
+    if (isPendingOrder(order)) {
       const minutes = Math.floor((Date.now() - new Date(order.createdAt).getTime()) / 60000);
       if (minutes >= 30) alerts.push(`Pedido #${order.id} sigue pendiente hace ${minutes} min.`);
     }
@@ -186,15 +193,16 @@ const sessionRows = computed(() => {
 });
 
 const supportAlerts = computed(() => scopedOrders.value
-  .filter((order) => ![ORDER_STATUS_IDS.delivered, ORDER_STATUS_IDS.cancelled].includes(order.statusId))
+  .filter((order) => !isFinalOrder(order))
   .slice(0, 6));
 
-const getStatusBadgeClass = (statusId) => {
-  if (statusId === ORDER_STATUS_IDS.pending) return 'bg-yellow-100 text-yellow-700';
-  if (statusId === ORDER_STATUS_IDS.preparing) return 'bg-blue-100 text-blue-700';
-  if (statusId === ORDER_STATUS_IDS.inTransit) return 'bg-purple-100 text-purple-700';
-  if (statusId === ORDER_STATUS_IDS.delivered) return 'bg-green-100 text-green-700';
-  if (statusId === ORDER_STATUS_IDS.cancelled) return 'bg-red-100 text-red-700';
+const getStatusBadgeClass = (statusValue) => {
+  const key = normalizeStatusKey(statusValue);
+  if (key === 'pendiente') return 'bg-yellow-100 text-yellow-700';
+  if (key === 'preparando') return 'bg-blue-100 text-blue-700';
+  if (key === 'en camino') return 'bg-purple-100 text-purple-700';
+  if (key === 'entregado') return 'bg-green-100 text-green-700';
+  if (key === 'cancelado') return 'bg-red-100 text-red-700';
   return 'bg-slate-100 text-slate-700';
 };
 
@@ -223,14 +231,15 @@ const refreshData = async ({ silent = false } = {}) => {
 };
 
 const updateOrderStatus = async (order, nextStatusId) => {
-  const statusId = Number(nextStatusId);
-  if (!statusId || statusId === Number(order.statusId)) return;
+  const statusKey = normalizeStatusKey(nextStatusId);
+  if (!statusKey || statusKey === orderStatusKey(order)) return;
 
   savingOrderId.value = String(order.id);
   try {
-    await api.updateOrder(order.id, { estado_id: statusId }, buildTenantHeaders(order.tenantId));
-    updateCachedOrderStatus(order.id, statusId);
-    if ([ORDER_STATUS_IDS.pending, ORDER_STATUS_IDS.cancelled].includes(statusId)) {
+    const response = await api.updateOrder(order.id, { estado_id: nextStatusId }, buildTenantHeaders(order.tenantId));
+    const resolvedStatusId = response?.data?.estado_id || response?.data?.estado?.id;
+    updateCachedOrderStatus(order.id, resolvedStatusId || nextStatusId);
+    if (['pendiente', 'cancelado'].includes(statusKey)) {
       clearDeliveryAssignment(order.id);
     }
     await refreshData({ silent: true });
@@ -272,7 +281,7 @@ const setupRealtimeConnections = () => {
   );
 };
 
-const confirmOrder = (order) => updateOrderStatus(order, ORDER_STATUS_IDS.preparing);
+const confirmOrder = (order) => updateOrderStatus(order, ORDER_STATUS_CODES.preparing);
 
 const logout = () => {
   clearSession();
@@ -408,16 +417,16 @@ onBeforeUnmount(() => {
                     <td class="p-4"><p class="font-bold text-slate-700">{{ order.customerName }}</p><p class="mt-1 text-xs text-slate-400">{{ order.customerPhone }}</p></td>
                     <td class="p-4"><p class="max-w-[260px] text-xs font-bold text-slate-500">{{ order.itemSummary }}</p></td>
                     <td class="p-4 font-black text-slate-800">{{ formatCurrency(order.totalValue) }}</td>
-                    <td class="p-4"><select class="rounded-full px-3 py-1.5 text-xs font-black outline-none" :class="getStatusBadgeClass(order.statusId)" :disabled="savingOrderId === String(order.id)" :value="order.statusId" @change="updateOrderStatus(order, $event.target.value)"><option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option></select></td>
+                    <td class="p-4"><select class="rounded-full px-3 py-1.5 text-xs font-black outline-none" :class="getStatusBadgeClass(order.statusKey)" :disabled="savingOrderId === String(order.id)" :value="orderStatusKey(order)" @change="updateOrderStatus(order, $event.target.value)"><option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option></select></td>
                     <td class="p-4">
                       <p class="text-xs font-black text-slate-700">{{ order.driverName || order.deliveryAssignment?.driverName || 'Sin asignar' }}</p>
                       <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">
-                        {{ order.statusId === ORDER_STATUS_IDS.preparing ? 'Listo para delivery' : order.statusId === ORDER_STATUS_IDS.inTransit ? 'En ruta' : 'Esperando local' }}
+                        {{ isPreparingOrder(order) ? 'Listo para delivery' : isInTransitOrder(order) ? 'En ruta' : 'Esperando local' }}
                       </p>
                     </td>
                     <td class="p-4 pr-6">
                       <div class="flex flex-wrap justify-end gap-2">
-                        <button v-if="order.statusId === ORDER_STATUS_IDS.pending" type="button" class="rounded-lg bg-orange-50 px-3 py-2 text-xs font-black text-orange-600 hover:bg-orange-100" :disabled="savingOrderId === String(order.id)" @click="confirmOrder(order)">CONFIRMAR</button>
+                        <button v-if="isPendingOrder(order)" type="button" class="rounded-lg bg-orange-50 px-3 py-2 text-xs font-black text-orange-600 hover:bg-orange-100" :disabled="savingOrderId === String(order.id)" @click="confirmOrder(order)">CONFIRMAR</button>
                         <button type="button" class="rounded-lg bg-slate-50 px-3 py-2 text-xs font-black text-slate-600 hover:bg-brand-50 hover:text-brand-600" @click="router.push({ path: `/tracking/${order.id}`, query: { tenant: order.tenantId } })">VER TRACKING</button>
                       </div>
                     </td>

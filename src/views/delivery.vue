@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
-import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset } from '../services/operations';
+import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
 import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
@@ -91,6 +91,7 @@ const scheduledTimeouts = [];
 
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
+const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
 const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
 
 const queueTimeout = (callback, delay) => {
@@ -185,7 +186,7 @@ const reportDriverLocation = async (point, stage = '') => {
 
 const deriveActiveStage = (order = {}) => {
     if (state.activeStage) return state.activeStage;
-    return Number(order.statusId) >= ORDER_STATUS_IDS.inTransit ? 'picked' : 'accepted';
+    return orderStatusKey(order) === 'en camino' ? 'picked' : 'accepted';
 };
 
 const buildOrderDescription = (order = {}) => {
@@ -519,20 +520,20 @@ const initMap = () => {
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
     const currentDriverEmail = normalize(session.userEmail);
-    const dispatchableOrders = scopedOrders.filter((order) => normalize(order.statusKey) === 'preparando');
+    const dispatchableOrders = scopedOrders.filter((order) => orderStatusKey(order) === 'preparando');
     const dispatchableIds = new Set(dispatchableOrders.map((order) => String(order.id)));
     state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => dispatchableIds.has(String(id)));
 
     if (!state.activeOrderId && currentDriverEmail) {
         const claimedOrder = scopedOrders.find((order) => (
             normalize(order.deliveryAssignment?.driverEmail) === currentDriverEmail &&
-            ['preparando', 'en camino'].includes(normalize(order.statusKey))
+            ['preparando', 'en camino'].includes(orderStatusKey(order))
         ));
         if (claimedOrder) state.activeOrderId = String(claimedOrder.id);
     }
 
     const activeSource = state.activeOrderId ? (data.value.orders || []).find((order) => String(order.id) === String(state.activeOrderId)) : null;
-    if (activeSource && !['entregado', 'cancelado'].includes(normalize(activeSource.statusKey))) {
+    if (activeSource && !['entregado', 'cancelado'].includes(orderStatusKey(activeSource))) {
         const activeStage = deriveActiveStage(activeSource);
         state.activeStage = activeStage;
         state.activeOrder = buildOrderView(activeSource, activeStage);
@@ -673,9 +674,9 @@ const acceptOrder = async (id) => {
     isAdvancing.value = true;
     try {
         const identity = driverIdentity();
-        await api.updateOrder(order.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(order.tenantId));
+        const response = await api.updateOrder(order.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(order.tenantId));
         await syncDeliveryAssignment(order, 'accepted', 'accepted');
-        updateCachedOrderStatus(order.id, ORDER_STATUS_IDS.preparing, null, {
+        updateCachedOrderStatus(order.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing, null, {
             repartidor_nombre: identity.driverName,
             repartidor_email: identity.driverEmail,
         });
@@ -720,9 +721,9 @@ const updateOrderStatus = async (status) => {
         isAdvancing.value = true;
         try {
             const identity = driverIdentity();
-            await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
+            const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
             await syncDeliveryAssignment(state.activeOrder, 'picked', 'picked');
-            updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.inTransit, null, {
+            updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.inTransit, null, {
                 repartidor_nombre: identity.driverName,
                 repartidor_email: identity.driverEmail,
             });
@@ -748,9 +749,9 @@ const cancelOrder = async () => {
     }
 
     try {
-        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(state.activeOrder.tenantId));
+        const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(state.activeOrder.tenantId));
         await syncDeliveryAssignment(state.activeOrder, 'released', 'released');
-        updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.preparing);
+        updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
     } catch (error) {
         console.warn('No se pudo devolver el pedido a preparacion', error);
     }
@@ -779,9 +780,9 @@ const handleDeliveryPhoto = async (event) => {
 
     try {
         const identity = driverIdentity();
-        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
+        const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
         await syncDeliveryAssignment(state.activeOrder, 'delivered', 'delivered');
-        updateCachedOrderStatus(state.activeOrder.id, ORDER_STATUS_IDS.delivered, null, {
+        updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
             repartidor_nombre: identity.driverName,
             repartidor_email: identity.driverEmail,
         });

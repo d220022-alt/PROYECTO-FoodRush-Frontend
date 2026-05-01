@@ -28,11 +28,42 @@ export const APP_EVENTS = {
 };
 
 const STATUS_LABELS = {
-  1: 'Pendiente',
-  2: 'Preparando',
-  3: 'En camino',
-  4: 'Entregado',
-  5: 'Cancelado',
+  1: 'Pedido recibido',
+  2: 'Pedido confirmado por el restaurante',
+  3: 'Pedido en preparación',
+  4: 'Pedido en camino',
+  5: 'Pedido entregado',
+  6: 'Pedido cancelado',
+};
+
+const STATUS_LABELS_BY_KEY = {
+  pendiente: 'Pedido recibido',
+  preparando: 'Pedido en preparación',
+  en_transito: 'Pedido en camino',
+  'en camino': 'Pedido en camino',
+  entregado: 'Pedido entregado',
+  cancelado: 'Pedido cancelado',
+};
+
+const normalizeStatusKey = (value = '') =>
+  String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const getStatusLabel = (statusId, fallback = 'Actualizado') => {
+  const numericStatus = Number.parseInt(statusId, 10);
+  if (Number.isFinite(numericStatus) && STATUS_LABELS[numericStatus]) return STATUS_LABELS[numericStatus];
+
+  const key = normalizeStatusKey(statusId).replace(/_/g, ' ');
+  if (key.includes('cancel')) return STATUS_LABELS_BY_KEY.cancelado;
+  if (key.includes('entreg')) return STATUS_LABELS_BY_KEY.entregado;
+  if (key.includes('transito') || key.includes('camino')) return STATUS_LABELS_BY_KEY.en_transito;
+  if (key.includes('prepar') || key.includes('confirm')) return STATUS_LABELS_BY_KEY.preparando;
+  if (key.includes('pend') || key.includes('recib') || key.includes('solicit')) return STATUS_LABELS_BY_KEY.pendiente;
+
+  return fallback;
 };
 
 const DEFAULT_NOTIFICATIONS = [
@@ -890,7 +921,7 @@ export const updateCachedOrderStatus = (orderId, statusId, email, patch = {}) =>
           estado_id: statusId,
           estado: {
             ...(normalizedEntry.estado || {}),
-            descripcion: STATUS_LABELS[statusId] || normalizedEntry.estado?.descripcion,
+            descripcion: getStatusLabel(statusId, normalizedEntry.estado?.descripcion),
           },
         },
         emailKey,
@@ -906,7 +937,7 @@ export const updateCachedOrderStatus = (orderId, statusId, email, patch = {}) =>
       {
         type: 'order',
         title: `Pedido #${updatedOrder.id} actualizado`,
-        message: `Estado actual: ${updatedOrder.estado?.descripcion || STATUS_LABELS[statusId] || 'Actualizado'}.`,
+        message: `Estado actual: ${updatedOrder.estado?.descripcion || getStatusLabel(statusId)}.`,
         icon: 'fa-solid fa-motorcycle',
         route: `/tracking/${updatedOrder.id}`,
         order_id: updatedOrder.id,

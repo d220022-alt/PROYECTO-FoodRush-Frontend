@@ -88,6 +88,33 @@ const normalizeEntityResult = (payload, preferredKeys = []) => {
 const hasMeaningfulValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 const isLocalOnlyOrderId = (value) => String(value || '').trim().toLowerCase().startsWith('local-');
 
+const normalizeStatusToken = (value = '') =>
+  String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+
+const getStatusSemanticKey = (value = '') => {
+  const normalized = normalizeStatusToken(value);
+  if (!normalized) return '';
+  if (normalized.includes('cancel')) return 'cancelado';
+  if (normalized.includes('entreg')) return 'entregado';
+  if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
+  if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  return normalized;
+};
+
+const getStatusSearchValues = (status = {}) => [
+  status.codigo,
+  status.descripcion,
+  status.nombre,
+  status.label,
+  status.estado,
+].map(getStatusSemanticKey).filter(Boolean);
+
 const sanitizeParams = (params = {}) =>
   Object.fromEntries(
     Object.entries(params).filter(([, value]) => value !== undefined && value !== null && String(value).trim() !== ''),
@@ -300,6 +327,13 @@ export const api = {
     if (Number.isFinite(requestedId)) {
       const existingStatus = statuses.find((status) => Number.parseInt(status?.id, 10) === requestedId);
       if (existingStatus) return requestedId;
+    }
+
+    const requestedStatusKey = getStatusSemanticKey(preferredId);
+    if (requestedStatusKey) {
+      const matchingStatus = statuses.find((status) => getStatusSearchValues(status).includes(requestedStatusKey));
+      const matchingStatusId = Number.parseInt(matchingStatus?.id, 10);
+      if (Number.isFinite(matchingStatusId)) return matchingStatusId;
     }
 
     const firstStatusId = Number.parseInt(statuses[0]?.id, 10);
