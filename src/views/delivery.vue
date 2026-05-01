@@ -942,9 +942,10 @@ onBeforeUnmount(() => {
 <template>
     <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700">
         <div
+            v-if="onboardingVisible"
             :class="[
                 'delivery-onboarding fixed inset-0 flex flex-col bg-white transition-opacity duration-500',
-                onboardingVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+                'pointer-events-auto opacity-100'
             ]"
         >
             <div class="flex-none bg-[#f97316] px-6 pb-4 pt-12 text-white shadow-md">
