@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
@@ -13,6 +13,10 @@ const session = getSession();
 const currentView = ref('dashboard');
 const selectedTenant = ref('Global');
 const search = ref({ orders: '', products: '', users: '', franchises: '' });
+const orderStatusFilter = ref('all');
+const orderDeliveryFilter = ref('all');
+const orderPage = ref(1);
+const orderPageSize = ref(10);
 const isLoading = ref(true);
 const isRefreshing = ref(false);
 const savingOrderId = ref('');
@@ -49,13 +53,28 @@ const statusOptions = [
   { id: ORDER_STATUS_CODES.delivered, label: 'Entregado' },
   { id: ORDER_STATUS_CODES.cancelled, label: 'Cancelado' },
 ];
+const orderStatusFilterOptions = [
+  { id: 'all', label: 'Todos los estados' },
+  ...statusOptions,
+];
+const orderDeliveryFilterOptions = [
+  { id: 'all', label: 'Todos los pedidos' },
+  { id: 'assigned', label: 'Con delivery' },
+  { id: 'unassigned', label: 'Sin delivery' },
+];
+const orderPageSizeOptions = [5, 10, 20, 50];
 
 let refreshTimer = null;
 let realtimeRefreshTimer = null;
 let realtimeConnections = [];
 let refreshPromise = null;
 
-const normalize = (value = '') => String(value || '').trim().toLowerCase();
+const normalize = (value = '') =>
+  String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
 const isDeliveredOrder = (order = {}) => orderStatusKey(order) === 'entregado';
 const isCancelledOrder = (order = {}) => orderStatusKey(order) === 'cancelado';
@@ -101,9 +120,43 @@ const connectedSessionsCount = computed(() => activeSessions.value.filter((sessi
 
 const filteredOrders = computed(() => {
   const term = normalize(search.value.orders);
-  if (!term) return scopedOrders.value;
-  return scopedOrders.value.filter((order) => normalize(`${order.id} ${order.tenantName} ${order.customerName} ${order.customerPhone} ${order.itemSummary}`).includes(term));
+  return scopedOrders.value.filter((order) => {
+    const statusKey = orderStatusKey(order);
+    const hasAssignedDriver = Boolean(order.driverName || order.deliveryAssignment?.driverName || order.deliveryAssignment?.driverId);
+    const matchesSearch = !term || normalize(`${order.id} ${order.tenantName} ${order.customerName} ${order.customerPhone} ${order.customerEmail} ${order.address} ${order.itemSummary} ${order.driverName} ${order.deliveryAssignment?.driverName} ${order.statusLabel} ${statusKey}`).includes(term);
+    const matchesStatus = orderStatusFilter.value === 'all' || statusKey === orderStatusFilter.value;
+    const matchesDelivery =
+      orderDeliveryFilter.value === 'all' ||
+      (orderDeliveryFilter.value === 'assigned' && hasAssignedDriver) ||
+      (orderDeliveryFilter.value === 'unassigned' && !hasAssignedDriver);
+    return matchesSearch && matchesStatus && matchesDelivery;
+  });
 });
+
+const orderPaginationTotal = computed(() => filteredOrders.value.length);
+const orderTotalPages = computed(() => Math.max(1, Math.ceil(orderPaginationTotal.value / Number(orderPageSize.value || 10))));
+const orderPageStart = computed(() => {
+  if (orderPaginationTotal.value === 0) return 0;
+  return ((orderPage.value - 1) * Number(orderPageSize.value)) + 1;
+});
+const orderPageEnd = computed(() => Math.min(orderPaginationTotal.value, orderPage.value * Number(orderPageSize.value)));
+const paginatedOrders = computed(() => {
+  const pageSize = Number(orderPageSize.value || 10);
+  const start = (orderPage.value - 1) * pageSize;
+  return filteredOrders.value.slice(start, start + pageSize);
+});
+const visibleOrderPages = computed(() => {
+  const total = orderTotalPages.value;
+  const current = orderPage.value;
+  const start = Math.max(1, current - 1);
+  const end = Math.min(total, start + 2);
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+});
+const hasOrderFilters = computed(() => Boolean(
+  search.value.orders ||
+  orderStatusFilter.value !== 'all' ||
+  orderDeliveryFilter.value !== 'all',
+));
 
 const filteredProducts = computed(() => {
   const term = normalize(search.value.products);
@@ -216,6 +269,19 @@ const getMenuBadge = (id) => {
   return 0;
 };
 
+const goToOrderPage = (page) => {
+  const nextPage = Number(page);
+  if (!Number.isFinite(nextPage)) return;
+  orderPage.value = Math.min(Math.max(1, nextPage), orderTotalPages.value);
+};
+
+const clearOrderFilters = () => {
+  search.value.orders = '';
+  orderStatusFilter.value = 'all';
+  orderDeliveryFilter.value = 'all';
+  orderPage.value = 1;
+};
+
 const refreshData = async ({ silent = false } = {}) => {
   if (silent && document.visibilityState === 'hidden') return null;
   if (refreshPromise) return refreshPromise;
@@ -303,6 +369,17 @@ const logout = () => {
   clearSession();
   router.replace('/login');
 };
+
+watch(
+  [selectedTenant, () => search.value.orders, orderStatusFilter, orderDeliveryFilter, orderPageSize],
+  () => {
+    orderPage.value = 1;
+  },
+);
+
+watch(orderTotalPages, (totalPages) => {
+  if (orderPage.value > totalPages) orderPage.value = totalPages;
+});
 
 onMounted(async () => {
   if (!session.isAuthenticated) {
@@ -420,15 +497,52 @@ onBeforeUnmount(() => {
           </section>
 
           <section v-show="currentView === 'orders'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div class="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-              <input v-model="search.orders" type="text" placeholder="Buscar ID de pedido o Cliente..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500 sm:w-72">
-              <button type="button" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-black text-white" @click="refreshData({ silent: true })">RECARGAR</button>
+            <div class="border-b border-slate-100 p-4 sm:p-6">
+              <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+                <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.2fr)_180px_170px_130px]">
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Buscar pedido</span>
+                    <input v-model="search.orders" type="text" placeholder="ID, cliente, local, telefono..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Estado</span>
+                    <select v-model="orderStatusFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+                      <option v-for="status in orderStatusFilterOptions" :key="status.id" :value="status.id">{{ status.label }}</option>
+                    </select>
+                  </label>
+
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Delivery</span>
+                    <select v-model="orderDeliveryFilter" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+                      <option v-for="option in orderDeliveryFilterOptions" :key="option.id" :value="option.id">{{ option.label }}</option>
+                    </select>
+                  </label>
+
+                  <label class="block">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Por pagina</span>
+                    <select v-model.number="orderPageSize" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+                      <option v-for="size in orderPageSizeOptions" :key="size" :value="size">{{ size }}</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <button v-if="hasOrderFilters" type="button" class="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-black text-slate-500 hover:border-brand-500 hover:text-brand-600" @click="clearOrderFilters">LIMPIAR</button>
+                  <button type="button" class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-black text-white" @click="refreshData({ silent: true })">RECARGAR</button>
+                </div>
+              </div>
+
+              <div class="mt-4 flex flex-col gap-2 text-xs font-bold text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+                <p>Mostrando {{ orderPageStart }}-{{ orderPageEnd }} de {{ orderPaginationTotal }} pedidos</p>
+                <p>{{ selectedTenantName }} · {{ lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : 'Sin sincronizar' }}</p>
+              </div>
             </div>
             <div class="overflow-x-auto">
               <table class="min-w-[1100px] w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">ID / Local</th><th class="p-4">Cliente</th><th class="p-4">Pedido</th><th class="p-4">Total</th><th class="p-4">Estado</th><th class="p-4">Delivery</th><th class="p-4 pr-6 text-right">Acciones</th></tr></thead>
                 <tbody class="text-sm">
-                  <tr v-for="order in filteredOrders" :key="`${order.tenantId}-${order.id}`" class="border-b border-slate-50 hover:bg-slate-50/50">
+                  <tr v-for="order in paginatedOrders" :key="`${order.tenantId}-${order.id}`" class="border-b border-slate-50 hover:bg-slate-50/50">
                     <td class="p-4 pl-6"><p class="font-black text-slate-800">{{ order.id }}</p><p class="text-[10px] font-bold text-slate-400">{{ order.tenantName }}</p></td>
                     <td class="p-4"><p class="font-bold text-slate-700">{{ order.customerName }}</p><p class="mt-1 text-xs text-slate-400">{{ order.customerPhone }}</p></td>
                     <td class="p-4"><p class="max-w-[260px] text-xs font-bold text-slate-500">{{ order.itemSummary }}</p></td>
@@ -450,6 +564,14 @@ onBeforeUnmount(() => {
                   <tr v-if="filteredOrders.length === 0"><td colspan="7" class="p-12 text-center"><p class="text-sm font-bold text-slate-400">No hay pedidos registrados en este local.</p></td></tr>
                 </tbody>
               </table>
+            </div>
+            <div v-if="filteredOrders.length > 0" class="flex flex-col gap-3 border-t border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <p class="text-xs font-bold text-slate-400">Pagina {{ orderPage }} de {{ orderTotalPages }}</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-500 disabled:cursor-not-allowed disabled:opacity-40" :disabled="orderPage <= 1" @click="goToOrderPage(orderPage - 1)">Anterior</button>
+                <button v-for="page in visibleOrderPages" :key="page" type="button" class="rounded-lg border px-3 py-2 text-xs font-black transition" :class="page === orderPage ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-200 text-slate-500 hover:border-brand-500 hover:text-brand-600'" @click="goToOrderPage(page)">{{ page }}</button>
+                <button type="button" class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-black text-slate-500 disabled:cursor-not-allowed disabled:opacity-40" :disabled="orderPage >= orderTotalPages" @click="goToOrderPage(orderPage + 1)">Siguiente</button>
+              </div>
             </div>
           </section>
 
