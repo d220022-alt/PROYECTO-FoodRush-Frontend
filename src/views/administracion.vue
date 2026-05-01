@@ -82,6 +82,7 @@ const isPendingOrder = (order = {}) => orderStatusKey(order) === 'pendiente';
 const isPreparingOrder = (order = {}) => orderStatusKey(order) === 'preparando';
 const isInTransitOrder = (order = {}) => orderStatusKey(order) === 'en camino';
 const isFinalOrder = (order = {}) => isDeliveredOrder(order) || isCancelledOrder(order);
+const hasAssignedDriver = (order = {}) => Boolean(order.driverName || order.driverEmail || order.deliveryAssignment?.driverName || order.deliveryAssignment?.driverId || order.deliveryAssignment?.driverEmail);
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
 const formatDate = (value) => value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
 
@@ -122,13 +123,12 @@ const filteredOrders = computed(() => {
   const term = normalize(search.value.orders);
   return scopedOrders.value.filter((order) => {
     const statusKey = orderStatusKey(order);
-    const hasAssignedDriver = Boolean(order.driverName || order.deliveryAssignment?.driverName || order.deliveryAssignment?.driverId);
     const matchesSearch = !term || normalize(`${order.id} ${order.tenantName} ${order.customerName} ${order.customerPhone} ${order.customerEmail} ${order.address} ${order.itemSummary} ${order.driverName} ${order.deliveryAssignment?.driverName} ${order.statusLabel} ${statusKey}`).includes(term);
     const matchesStatus = orderStatusFilter.value === 'all' || statusKey === orderStatusFilter.value;
     const matchesDelivery =
       orderDeliveryFilter.value === 'all' ||
-      (orderDeliveryFilter.value === 'assigned' && hasAssignedDriver) ||
-      (orderDeliveryFilter.value === 'unassigned' && !hasAssignedDriver);
+      (orderDeliveryFilter.value === 'assigned' && hasAssignedDriver(order)) ||
+      (orderDeliveryFilter.value === 'unassigned' && !hasAssignedDriver(order));
     return matchesSearch && matchesStatus && matchesDelivery;
   });
 });
@@ -192,6 +192,9 @@ const franchiseCards = computed(() => filteredFranchises.value.map((franchise) =
 }));
 
 const totalSales = computed(() => scopedOrders.value.filter(isDeliveredOrder).reduce((sum, order) => sum + Number(order.totalValue || 0), 0));
+const totalOrdersCount = computed(() => scopedOrders.value.length);
+const deliveredOrdersCount = computed(() => scopedOrders.value.filter(isDeliveredOrder).length);
+const cancelledOrdersCount = computed(() => scopedOrders.value.filter(isCancelledOrder).length);
 const pendingOrdersCount = computed(() => scopedOrders.value.filter((order) => !isFinalOrder(order)).length);
 const activeDriversCount = computed(() => {
   const deliveryUsers = scopedUsers.value.filter((user) => {
@@ -200,6 +203,55 @@ const activeDriversCount = computed(() => {
   });
   return deliveryUsers.length > 0 ? deliveryUsers.length : connectedUsers.value.length;
 });
+const assignedDeliveryOrders = computed(() => scopedOrders.value.filter(hasAssignedDriver));
+const deliveryAssignedOrdersCount = computed(() => assignedDeliveryOrders.value.length);
+const activeDeliveryOrdersCount = computed(() => assignedDeliveryOrders.value.filter((order) => isPreparingOrder(order) || isInTransitOrder(order)).length);
+const readyForDeliveryCount = computed(() => scopedOrders.value.filter((order) => isPreparingOrder(order) && !hasAssignedDriver(order)).length);
+const averageTicket = computed(() => (deliveredOrdersCount.value > 0 ? totalSales.value / deliveredOrdersCount.value : 0));
+const completionRate = computed(() => (totalOrdersCount.value > 0 ? Math.round((deliveredOrdersCount.value / totalOrdersCount.value) * 100) : 0));
+const cancellationRate = computed(() => (totalOrdersCount.value > 0 ? Math.round((cancelledOrdersCount.value / totalOrdersCount.value) * 100) : 0));
+
+const dashboardKpis = computed(() => [
+  { label: 'Ventas entregadas', value: formatCurrency(totalSales.value), detail: `${deliveredOrdersCount.value} pedidos completados`, icon: 'fa-solid fa-sack-dollar', tone: 'bg-orange-50 text-brand-600' },
+  { label: 'Pedidos activos', value: pendingOrdersCount.value, detail: `${readyForDeliveryCount.value} listos para delivery`, icon: 'fa-solid fa-bell-concierge', tone: 'bg-blue-50 text-blue-600' },
+  { label: 'Delivery activo', value: activeDeliveryOrdersCount.value, detail: `${deliveryAssignedOrdersCount.value} pedidos asignados`, icon: 'fa-solid fa-motorcycle', tone: 'bg-emerald-50 text-emerald-600' },
+  { label: 'Ticket promedio', value: formatCurrency(averageTicket.value), detail: `${completionRate.value}% completados`, icon: 'fa-solid fa-receipt', tone: 'bg-slate-100 text-slate-700' },
+]);
+
+const orderStatusSummary = computed(() => statusOptions.map((status) => {
+  const orders = scopedOrders.value.filter((order) => orderStatusKey(order) === status.id);
+  const amount = orders.reduce((sum, order) => sum + Number(order.totalValue || 0), 0);
+  const percent = totalOrdersCount.value > 0 ? Math.round((orders.length / totalOrdersCount.value) * 100) : 0;
+  return { ...status, count: orders.length, amount, percent };
+}));
+
+const deliveryOpsSummary = computed(() => [
+  { label: 'Con repartidor', value: deliveryAssignedOrdersCount.value, detail: `${activeDeliveryOrdersCount.value} activos en cocina/ruta`, icon: 'fa-solid fa-id-badge', tone: 'bg-emerald-50 text-emerald-600' },
+  { label: 'Sin asignar', value: readyForDeliveryCount.value, detail: 'Pedidos preparando sin delivery', icon: 'fa-solid fa-user-plus', tone: 'bg-amber-50 text-amber-600' },
+  { label: 'Flota registrada', value: activeDriversCount.value, detail: `${connectedSessionsCount.value} sesiones activas`, icon: 'fa-solid fa-users-gear', tone: 'bg-blue-50 text-blue-600' },
+  { label: 'Cancelacion', value: `${cancellationRate.value}%`, detail: `${cancelledOrdersCount.value} pedidos cancelados`, icon: 'fa-solid fa-triangle-exclamation', tone: 'bg-red-50 text-red-600' },
+]);
+
+const maxFranchiseSales = computed(() => Math.max(...franchiseCards.value.map((franchise) => franchise.sales), 1));
+const franchisePerformanceRows = computed(() => franchiseCards.value
+  .map((franchise) => {
+    const orders = allOrders.value.filter((order) => String(order.tenantId) === String(franchise.id));
+    const delivered = orders.filter(isDeliveredOrder);
+    const active = orders.filter((order) => !isFinalOrder(order));
+    const assigned = orders.filter(hasAssignedDriver);
+    const cancelled = orders.filter(isCancelledOrder);
+    return {
+      ...franchise,
+      deliveredCount: delivered.length,
+      activeCount: active.length,
+      assignedCount: assigned.length,
+      cancelledCount: cancelled.length,
+      averageTicket: delivered.length > 0 ? franchise.sales / delivered.length : 0,
+      barWidth: `${Math.max(8, (franchise.sales / maxFranchiseSales.value) * 100)}%`,
+    };
+  })
+  .sort((left, right) => right.sales - left.sales || right.ordersCount - left.ordersCount || left.name.localeCompare(right.name))
+  .slice(0, 6));
 
 const weeklySales = computed(() => {
   const fmt = new Intl.DateTimeFormat('es-DO', { weekday: 'short' });
@@ -471,14 +523,20 @@ onBeforeUnmount(() => {
         <template v-else>
           <section v-show="currentView === 'dashboard'" class="space-y-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase tracking-wider text-slate-400">Ventas Totales</p><p class="mt-2 text-2xl font-black text-slate-800">{{ formatCurrency(totalSales) }}</p></div>
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase tracking-wider text-slate-400">Pedidos Activos</p><p class="mt-2 text-2xl font-black text-slate-800">{{ pendingOrdersCount }}</p></div>
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase tracking-wider text-slate-400">Flota Activa</p><p class="mt-2 text-2xl font-black text-slate-800">{{ activeDriversCount }}</p></div>
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-xs font-bold uppercase tracking-wider text-slate-400">Alertas</p><p class="mt-2 text-2xl font-black text-slate-800">{{ systemAlerts.length }}</p></div>
+              <div v-for="card in dashboardKpis" :key="card.label" class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="mb-4 flex items-start justify-between gap-3">
+                  <p class="text-xs font-black uppercase tracking-wider text-slate-400">{{ card.label }}</p>
+                  <span :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base', card.tone]">
+                    <i :class="card.icon"></i>
+                  </span>
+                </div>
+                <p class="text-2xl font-black leading-none text-slate-800">{{ card.value }}</p>
+                <p class="mt-2 text-xs font-bold text-slate-500">{{ card.detail }}</p>
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm lg:col-span-2">
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-7">
                 <h3 class="mb-4 text-sm font-black text-slate-800">Rendimiento Semanal (Ventas)</h3>
                 <div class="flex h-64 items-end gap-3 rounded-2xl bg-slate-50 p-4">
                   <div v-for="day in weeklySales" :key="day.key" class="flex flex-1 flex-col items-center gap-2">
@@ -488,11 +546,90 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
               </div>
-              <div class="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-                <h3 class="mb-4 text-sm font-black text-slate-800">Alertas del Sistema</h3>
-                <div v-if="systemAlerts.length === 0" class="py-10 text-center text-sm font-bold text-slate-400">Todo funciona correctamente.</div>
-                <ul v-else class="space-y-3"><li v-for="(alert, index) in systemAlerts" :key="`${index}-${alert}`" class="rounded-lg border border-red-100 bg-red-50 p-3 text-xs font-bold text-red-600">{{ alert }}</li></ul>
+
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-5">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-black text-slate-800">Pedidos por Estado</h3>
+                    <p class="mt-1 text-xs font-bold text-slate-400">{{ totalOrdersCount }} pedidos en {{ selectedTenantName }}</p>
+                  </div>
+                  <span class="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase text-slate-500">{{ completionRate }}% entregados</span>
+                </div>
+                <div class="space-y-3">
+                  <div v-for="status in orderStatusSummary" :key="status.id" class="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-xs font-black text-slate-800">{{ status.label }}</p>
+                        <p class="text-[10px] font-bold text-slate-400">{{ formatCurrency(status.amount) }}</p>
+                      </div>
+                      <p class="shrink-0 text-sm font-black text-slate-800">{{ status.count }}</p>
+                    </div>
+                    <div class="h-2 overflow-hidden rounded-full bg-white">
+                      <div class="h-full rounded-full bg-brand-500" :style="{ width: `${Math.max(status.percent, status.count > 0 ? 8 : 0)}%` }"></div>
+                    </div>
+                  </div>
+                </div>
               </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-5">
+                <h3 class="mb-4 text-sm font-black text-slate-800">Operacion Delivery</h3>
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div v-for="item in deliveryOpsSummary" :key="item.label" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-2">
+                      <span :class="['flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm', item.tone]">
+                        <i :class="item.icon"></i>
+                      </span>
+                      <p class="text-xl font-black text-slate-800">{{ item.value }}</p>
+                    </div>
+                    <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">{{ item.label }}</p>
+                    <p class="mt-1 text-xs font-bold text-slate-500">{{ item.detail }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-7">
+                <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 class="text-sm font-black text-slate-800">Rendimiento por Franquicia</h3>
+                    <p class="text-xs font-bold text-slate-400">Ventas, pedidos activos y delivery asignado.</p>
+                  </div>
+                  <p class="text-[10px] font-black uppercase tracking-wider text-brand-600">{{ franchisePerformanceRows.length }} locales destacados</p>
+                </div>
+
+                <div class="space-y-3">
+                  <div v-for="franchise in franchisePerformanceRows" :key="franchise.id" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <div class="mb-3 flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-black text-slate-800">{{ franchise.name }}</p>
+                        <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">
+                          {{ franchise.ordersCount }} pedidos - {{ franchise.activeCount }} activos - {{ franchise.assignedCount }} con delivery
+                        </p>
+                      </div>
+                      <div class="shrink-0 text-right">
+                        <p class="text-sm font-black text-slate-800">{{ formatCurrency(franchise.sales) }}</p>
+                        <p class="mt-1 text-[10px] font-bold text-slate-400">{{ formatCurrency(franchise.averageTicket) }} prom.</p>
+                      </div>
+                    </div>
+                    <div class="h-2 overflow-hidden rounded-full bg-white">
+                      <div class="h-full rounded-full bg-gradient-to-r from-brand-500 to-brand-600" :style="{ width: franchise.barWidth }"></div>
+                    </div>
+                  </div>
+
+                  <div v-if="franchisePerformanceRows.length === 0" class="rounded-xl border border-slate-100 bg-slate-50 p-8 text-center text-sm font-bold text-slate-400">
+                    No hay rendimiento disponible para el filtro actual.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+              <h3 class="mb-4 text-sm font-black text-slate-800">Alertas del Sistema</h3>
+              <div v-if="systemAlerts.length === 0" class="rounded-xl border border-emerald-100 bg-emerald-50 p-5 text-sm font-bold text-emerald-700">Todo funciona correctamente.</div>
+              <ul v-else class="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <li v-for="(alert, index) in systemAlerts" :key="`${index}-${alert}`" class="rounded-lg border border-red-100 bg-red-50 p-3 text-xs font-bold text-red-600">{{ alert }}</li>
+              </ul>
             </div>
           </section>
 
