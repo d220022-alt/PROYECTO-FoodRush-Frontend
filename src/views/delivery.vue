@@ -13,6 +13,8 @@ const TUTORIAL_KEY = 'FoodRush_Tutorial_Final';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
+const AUTO_REFRESH_INTERVAL_MS = 60000;
+const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -87,6 +89,7 @@ let routeAbortController = null;
 let realtimeRefreshTimer = null;
 let realtimeConnections = [];
 let lastLocationReportKey = '';
+let refreshPromise = null;
 const scheduledTimeouts = [];
 
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
@@ -368,7 +371,12 @@ const finishOnboarding = () => {
 };
 
 const checkOnboarding = () => {
-    if (!localStorage.getItem(TUTORIAL_KEY)) showTutorial();
+    if (!localStorage.getItem(TUTORIAL_KEY)) {
+        localStorage.setItem(TUTORIAL_KEY, 'available');
+        queueTimeout(() => {
+            showToast('Guia disponible en Perfil > Centro de Ayuda.', 'info');
+        }, 1000);
+    }
 };
 
 const checkAbsence = () => {
@@ -562,27 +570,40 @@ const syncOrdersFromBackend = () => {
 };
 
 const refreshData = async ({ silent = false } = {}) => {
-    if (silent) isRefreshing.value = true;
-    else {
-        isLoading.value = true;
-        errorMessage.value = '';
-    }
+    if (silent && document.visibilityState === 'hidden') return null;
+    if (refreshPromise) return refreshPromise;
 
-    try {
-        data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
-        if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
-            state.tenant = 'Global';
+    const task = (async () => {
+        if (silent) isRefreshing.value = true;
+        else {
+            isLoading.value = true;
+            errorMessage.value = '';
         }
-        lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-        syncOrdersFromBackend();
-    } catch (error) {
-        console.error('No se pudo cargar delivery', error);
-        errorMessage.value = error.message || 'No se pudo cargar la vista de delivery.';
-        if (!silent) showToast(errorMessage.value, 'error');
-    } finally {
-        isLoading.value = false;
-        isRefreshing.value = false;
-    }
+
+        try {
+            data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
+            if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
+                state.tenant = 'Global';
+            }
+            lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+            syncOrdersFromBackend();
+            return data.value;
+        } catch (error) {
+            console.error('No se pudo cargar delivery', error);
+            errorMessage.value = error.message || 'No se pudo cargar la vista de delivery.';
+            if (!silent) showToast(errorMessage.value, 'error');
+            return null;
+        } finally {
+            isLoading.value = false;
+            isRefreshing.value = false;
+        }
+    })();
+
+    refreshPromise = task;
+    task.finally(() => {
+        if (refreshPromise === task) refreshPromise = null;
+    });
+    return task;
 };
 
 const queueRealtimeRefresh = () => {
@@ -590,7 +611,7 @@ const queueRealtimeRefresh = () => {
     realtimeRefreshTimer = window.setTimeout(() => {
         realtimeRefreshTimer = null;
         void refreshData({ silent: true });
-    }, 500);
+    }, REALTIME_REFRESH_DEBOUNCE_MS);
 };
 
 const closeRealtimeConnections = () => {
@@ -901,7 +922,7 @@ onMounted(async () => {
 
     refreshTimer = window.setInterval(() => {
         void refreshData({ silent: true });
-    }, 15000);
+    }, AUTO_REFRESH_INTERVAL_MS);
 });
 
 onBeforeUnmount(() => {

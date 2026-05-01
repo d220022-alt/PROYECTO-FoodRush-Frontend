@@ -19,6 +19,8 @@ const savingOrderId = ref('');
 const errorMessage = ref('');
 const lastUpdatedAt = ref('');
 const data = ref({ tenants: [], orders: [], products: [], users: [], connectedUsers: [], sessions: [], warnings: [] });
+const AUTO_REFRESH_INTERVAL_MS = 60000;
+const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const menuGroups = [
   { name: 'SISTEMA GLOBAL', items: [{ id: 'dashboard', name: 'Dashboard Principal', icon: 'fa-solid fa-chart-pie' }] },
@@ -51,6 +53,7 @@ const statusOptions = [
 let refreshTimer = null;
 let realtimeRefreshTimer = null;
 let realtimeConnections = [];
+let refreshPromise = null;
 
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
 const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
@@ -214,20 +217,33 @@ const getMenuBadge = (id) => {
 };
 
 const refreshData = async ({ silent = false } = {}) => {
-  if (silent) isRefreshing.value = true;
-  else isLoading.value = true;
+  if (silent && document.visibilityState === 'hidden') return null;
+  if (refreshPromise) return refreshPromise;
 
-  errorMessage.value = '';
-  try {
-    data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: true });
-    lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-  } catch (error) {
-    console.error('No se pudo cargar administracion', error);
-    errorMessage.value = error.message || 'No se pudo cargar la vista de administracion.';
-  } finally {
-    isLoading.value = false;
-    isRefreshing.value = false;
-  }
+  const task = (async () => {
+    if (silent) isRefreshing.value = true;
+    else isLoading.value = true;
+
+    errorMessage.value = '';
+    try {
+      data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: true });
+      lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+      return data.value;
+    } catch (error) {
+      console.error('No se pudo cargar administracion', error);
+      errorMessage.value = error.message || 'No se pudo cargar la vista de administracion.';
+      return null;
+    } finally {
+      isLoading.value = false;
+      isRefreshing.value = false;
+    }
+  })();
+
+  refreshPromise = task;
+  task.finally(() => {
+    if (refreshPromise === task) refreshPromise = null;
+  });
+  return task;
 };
 
 const updateOrderStatus = async (order, nextStatusId) => {
@@ -256,7 +272,7 @@ const queueRealtimeRefresh = () => {
   realtimeRefreshTimer = window.setTimeout(() => {
     realtimeRefreshTimer = null;
     void refreshData({ silent: true });
-  }, 500);
+  }, REALTIME_REFRESH_DEBOUNCE_MS);
 };
 
 const closeRealtimeConnections = () => {
@@ -295,7 +311,7 @@ onMounted(async () => {
   }
   await refreshData();
   setupRealtimeConnections();
-  refreshTimer = window.setInterval(() => { void refreshData({ silent: true }); }, 15000);
+  refreshTimer = window.setInterval(() => { void refreshData({ silent: true }); }, AUTO_REFRESH_INTERVAL_MS);
 });
 
 onBeforeUnmount(() => {

@@ -14,6 +14,8 @@ const order = ref(null);
 const warnings = ref([]);
 const errorMessage = ref('');
 const isLoading = ref(true);
+const AUTO_REFRESH_INTERVAL_MS = 60000;
+const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const steps = [
     { label: 'Solicitado', icon: 'fa-solid fa-clipboard-check' },
@@ -26,6 +28,7 @@ let refreshTimer = null;
 let realtimeConnection = null;
 let realtimeTenantId = '';
 let realtimeRefreshTimer = null;
+let fetchOrderPromise = null;
 
 const orderId = computed(() => route.params.id);
 const currentUserEmail = computed(() => session.userEmail || '');
@@ -84,50 +87,63 @@ const normalizeCachedOrder = (cachedOrder) => {
     };
 };
 
-const fetchOrder = async () => {
-    warnings.value = [];
-    errorMessage.value = '';
-    const cachedOrder = normalizeCachedOrder(getCachedOrderById(orderId.value, currentUserEmail.value));
-    if (cachedOrder) {
-        order.value = cachedOrder;
-        if (cachedOrder.source === 'local') {
-            isLoading.value = false;
-            return;
-        }
-    }
+const fetchOrder = async ({ silent = false } = {}) => {
+    if (silent && document.visibilityState === 'hidden') return null;
+    if (fetchOrderPromise) return fetchOrderPromise;
 
-    try {
-        isLoading.value = true;
-        const selectedTenantId = String(route.query.tenant || cachedOrder?.tenantId || 'Global');
-
-        const dataset = await fetchOperationalDataset({
-            selectedTenantId,
-            includeSessions: false,
-        });
-
-        const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
-        if (remoteOrder) {
-            order.value = {
-                ...remoteOrder,
-                driverLocation: order.value?.driverLocation || null,
-            };
-            warnings.value = [];
-        } else if (!cachedOrder) {
-            warnings.value = dataset.warnings || [];
-        }
-    } catch (error) {
-        console.error('Error fetching order', error);
-        if (!order.value) {
-            errorMessage.value = error.message || 'No se pudo cargar el pedido.';
-        }
-    } finally {
-        if (!order.value) {
+    const task = (async () => {
+        warnings.value = [];
+        if (!silent) errorMessage.value = '';
+        const cachedOrder = normalizeCachedOrder(getCachedOrderById(orderId.value, currentUserEmail.value));
+        if (cachedOrder) {
             order.value = cachedOrder;
+            if (cachedOrder.source === 'local') {
+                isLoading.value = false;
+                return order.value;
+            }
         }
 
-        isLoading.value = false;
-        setupRealtimeConnection();
-    }
+        try {
+            if (!silent) isLoading.value = true;
+            const selectedTenantId = String(route.query.tenant || cachedOrder?.tenantId || 'Global');
+
+            const dataset = await fetchOperationalDataset({
+                selectedTenantId,
+                includeSessions: false,
+            });
+
+            const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
+            if (remoteOrder) {
+                order.value = {
+                    ...remoteOrder,
+                    driverLocation: order.value?.driverLocation || null,
+                };
+                warnings.value = [];
+            } else if (!cachedOrder) {
+                warnings.value = dataset.warnings || [];
+            }
+            return order.value;
+        } catch (error) {
+            console.error('Error fetching order', error);
+            if (!order.value) {
+                errorMessage.value = error.message || 'No se pudo cargar el pedido.';
+            }
+            return null;
+        } finally {
+            if (!order.value) {
+                order.value = cachedOrder;
+            }
+
+            isLoading.value = false;
+            setupRealtimeConnection();
+        }
+    })();
+
+    fetchOrderPromise = task;
+    task.finally(() => {
+        if (fetchOrderPromise === task) fetchOrderPromise = null;
+    });
+    return task;
 };
 
 const closeRealtimeConnection = () => {
@@ -140,8 +156,8 @@ const queueRealtimeOrderRefresh = () => {
     if (realtimeRefreshTimer) return;
     realtimeRefreshTimer = window.setTimeout(() => {
         realtimeRefreshTimer = null;
-        void fetchOrder();
-    }, 500);
+        void fetchOrder({ silent: true });
+    }, REALTIME_REFRESH_DEBOUNCE_MS);
 };
 
 const setupRealtimeConnection = () => {
@@ -183,8 +199,8 @@ const setupRealtimeConnection = () => {
 onMounted(async () => {
     await fetchOrder();
     refreshTimer = window.setInterval(() => {
-        void fetchOrder();
-    }, 15000);
+        void fetchOrder({ silent: true });
+    }, AUTO_REFRESH_INTERVAL_MS);
 });
 
 onUnmounted(() => {
