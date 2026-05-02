@@ -1,3 +1,4 @@
+import { api } from './api';
 import { getSession } from './storage';
 
 const STORAGE_PREFIX = 'foodrush_admin_phase2';
@@ -59,6 +60,7 @@ export const DEFAULT_OPERATION_ZONES = [
 ];
 
 const hasWindow = () => typeof window !== 'undefined';
+const canUseRemote = () => hasWindow() && Boolean(window.localStorage.getItem('auth_token'));
 
 const safeText = (value = '', fallback = '') => String(value || fallback || '').trim();
 
@@ -90,6 +92,12 @@ const readJson = (bucket, fallback) => {
 const writeJson = (bucket, value) => {
   if (!hasWindow()) return;
   window.localStorage.setItem(storageKey(bucket), JSON.stringify(value));
+};
+
+const syncLocalState = ({ zones, closures, audit } = {}) => {
+  if (Array.isArray(zones)) writeJson('zones', zones.map(normalizeZone));
+  if (Array.isArray(closures)) writeJson('closures', closures);
+  if (Array.isArray(audit)) writeJson('audit', audit);
 };
 
 const normalizeZone = (zone = {}, index = 0) => {
@@ -129,6 +137,42 @@ export const getAdminZones = () => {
   return zones.map(normalizeZone);
 };
 
+export const loadAdminPhaseTwoState = async () => {
+  const localState = {
+    zones: getAdminZones(),
+    closures: getClosureRecords(),
+    audit: getAuditLog(),
+    remote: false,
+  };
+
+  if (!canUseRemote()) return localState;
+
+  try {
+    const response = await api.getAdminOperationsState();
+    const remoteState = response?.data || {};
+    const zones = Array.isArray(remoteState.zones) && remoteState.zones.length > 0
+      ? remoteState.zones.map(normalizeZone)
+      : localState.zones;
+    const closures = Array.isArray(remoteState.closures) ? remoteState.closures : localState.closures;
+    const audit = Array.isArray(remoteState.audit) ? remoteState.audit : localState.audit;
+
+    syncLocalState({ zones, closures, audit });
+
+    return {
+      zones,
+      closures,
+      audit,
+      remote: true,
+    };
+  } catch (error) {
+    console.warn('Operaciones admin remotas no disponibles, usando respaldo local.', error);
+    return {
+      ...localState,
+      error,
+    };
+  }
+};
+
 export const saveAdminZone = (zone) => {
   const zones = getAdminZones();
   const normalized = normalizeZone({ ...zone, updatedAt: new Date().toISOString() });
@@ -140,11 +184,45 @@ export const saveAdminZone = (zone) => {
   return normalized;
 };
 
+export const saveAdminZoneRemote = async (zone) => {
+  const localZone = saveAdminZone(zone);
+
+  if (!canUseRemote()) return localZone;
+
+  try {
+    const response = await api.upsertAdminOperationZone(localZone);
+    const remoteZone = normalizeZone(response?.data || localZone);
+    saveAdminZone(remoteZone);
+    return remoteZone;
+  } catch (error) {
+    console.warn('No se pudo guardar la zona en el backend, quedo como respaldo local.', error);
+    return localZone;
+  }
+};
+
 export const getClosureRecords = () => readJson('closures', []);
 
 export const getAuditLog = () => readJson('audit', []);
 
-export const appendAuditLog = ({ action, detail, tenantId = '', tenantName = '', tone = 'info', metadata = {} } = {}) => {
+const persistAuditEntry = async (entry) => {
+  if (!canUseRemote()) return null;
+
+  try {
+    const response = await api.createAdminOperationAudit(entry);
+    const remoteEntry = response?.data || entry;
+    const nextEntries = [
+      remoteEntry,
+      ...getAuditLog().filter((item) => item.id !== entry.id && item.id !== remoteEntry.id),
+    ].slice(0, MAX_AUDIT_ENTRIES);
+    writeJson('audit', nextEntries);
+    return remoteEntry;
+  } catch (error) {
+    console.warn('No se pudo guardar auditoria en backend, queda local.', error);
+    return null;
+  }
+};
+
+export const appendAuditLog = ({ action, detail, tenantId = '', tenantName = '', tone = 'info', metadata = {} } = {}, options = {}) => {
   const session = getSession();
   const entry = {
     id: `audit-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
@@ -161,6 +239,11 @@ export const appendAuditLog = ({ action, detail, tenantId = '', tenantName = '',
 
   const nextEntries = [entry, ...getAuditLog()].slice(0, MAX_AUDIT_ENTRIES);
   writeJson('audit', nextEntries);
+
+  if (options.syncRemote !== false) {
+    void persistAuditEntry(entry);
+  }
+
   return entry;
 };
 
@@ -203,4 +286,24 @@ export const createClosureRecord = (snapshot) => {
   const nextRecords = [record, ...getClosureRecords()].slice(0, 60);
   writeJson('closures', nextRecords);
   return record;
+};
+
+export const createClosureRecordRemote = async (snapshot) => {
+  const localRecord = createClosureRecord(snapshot);
+
+  if (!canUseRemote()) return localRecord;
+
+  try {
+    const response = await api.createAdminOperationClosure(localRecord);
+    const remoteRecord = response?.data || localRecord;
+    const nextRecords = [
+      remoteRecord,
+      ...getClosureRecords().filter((item) => item.id !== localRecord.id && item.id !== remoteRecord.id),
+    ].slice(0, 60);
+    writeJson('closures', nextRecords);
+    return remoteRecord;
+  } catch (error) {
+    console.warn('No se pudo guardar el cierre en backend, queda local.', error);
+    return localRecord;
+  }
 };

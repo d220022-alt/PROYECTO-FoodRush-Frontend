@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import AdminZonesMap from '../components/AdminZonesMap.vue';
 import { api } from '../services/api';
-import { appendAuditLog, buildClosureSnapshot, createClosureRecord, getAdminZones, getAuditLog, getClosureRecords, saveAdminZone } from '../services/adminPhaseTwo';
+import { appendAuditLog, buildClosureSnapshot, createClosureRecordRemote, getAdminZones, getAuditLog, getClosureRecords, loadAdminPhaseTwoState, saveAdminZoneRemote } from '../services/adminPhaseTwo';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
@@ -432,10 +432,24 @@ const clearOrderFilters = () => {
   orderPage.value = 1;
 };
 
-const refreshPhaseTwoState = () => {
+const refreshPhaseTwoState = async ({ remote = true } = {}) => {
+  if (remote) {
+    const state = await loadAdminPhaseTwoState();
+    operationZones.value = state.zones;
+    closureRecords.value = state.closures;
+    auditEntries.value = state.audit;
+    return state;
+  }
+
   operationZones.value = getAdminZones();
   closureRecords.value = getClosureRecords();
   auditEntries.value = getAuditLog();
+  return {
+    zones: operationZones.value,
+    closures: closureRecords.value,
+    audit: auditEntries.value,
+    remote: false,
+  };
 };
 
 const selectZone = (zoneId) => {
@@ -446,9 +460,9 @@ const resetZoneDraft = () => {
   zoneDraft.value = toZoneDraft(selectedZone.value || {});
 };
 
-const saveZone = () => {
+const saveZone = async () => {
   const draft = zoneDraft.value;
-  const saved = saveAdminZone({
+  const saved = await saveAdminZoneRemote({
     ...draft,
     center: {
       lat: Number(draft.center?.lat),
@@ -469,13 +483,15 @@ const saveZone = () => {
     tenantName: selectedTenantName.value,
     tone: 'info',
     metadata: { zoneId: saved.id },
+  }, {
+    syncRemote: false,
   });
-  refreshPhaseTwoState();
+  await refreshPhaseTwoState({ remote: true });
   resetZoneDraft();
 };
 
-const generateDailyClosure = () => {
-  const record = createClosureRecord(closurePreview.value);
+const generateDailyClosure = async () => {
+  const record = await createClosureRecordRemote(closurePreview.value);
   appendAuditLog({
     action: 'Cierre operativo',
     detail: `${record.tenantName}: ${formatCurrency(record.grossSales)} en ${record.deliveredOrders} pedidos entregados.`,
@@ -483,9 +499,11 @@ const generateDailyClosure = () => {
     tenantName: record.tenantName,
     tone: 'success',
     metadata: { closureId: record.id },
+  }, {
+    syncRemote: false,
   });
   phaseTwoMessage.value = `Cierre operativo generado para ${record.tenantName}.`;
-  refreshPhaseTwoState();
+  await refreshPhaseTwoState({ remote: true });
 };
 
 const refreshData = async ({ silent = false } = {}) => {
@@ -535,7 +553,7 @@ const updateOrderStatus = async (order, nextStatusId) => {
       tone: statusKey === 'cancelado' ? 'danger' : statusKey === 'entregado' ? 'success' : 'info',
       metadata: { orderId: order.id, status: nextStatusId },
     });
-    auditEntries.value = getAuditLog();
+    await refreshPhaseTwoState({ remote: true });
     if (['pendiente', 'cancelado'].includes(statusKey)) {
       clearDeliveryAssignment(order.id);
     }
@@ -606,6 +624,7 @@ onMounted(async () => {
     return;
   }
   await refreshData();
+  await refreshPhaseTwoState({ remote: true });
   setupRealtimeConnections();
   refreshTimer = window.setInterval(() => { void refreshData({ silent: true }); }, AUTO_REFRESH_INTERVAL_MS);
 });

@@ -728,6 +728,56 @@ export const api = {
     };
   },
 
+  async getAdminOperationsState(headers = {}) {
+    return normalizeEntityResult(await this.request('/api/admin/operations/state', { headers }), ['data']);
+  },
+
+  async getAdminOperationZones(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/zones', { headers }), ['data', 'zones']);
+  },
+
+  async upsertAdminOperationZone(zone, headers = {}) {
+    const zoneId = encodeURIComponent(String(zone?.id || '').trim());
+    return normalizeEntityResult(
+      await this.request(`/api/admin/operations/zones/${zoneId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(zone),
+      }),
+      ['data', 'zone'],
+    );
+  },
+
+  async getAdminOperationClosures(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/closures', { headers }), ['data', 'closures']);
+  },
+
+  async createAdminOperationClosure(record, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/admin/operations/closures', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(record),
+      }),
+      ['data', 'closure'],
+    );
+  },
+
+  async getAdminOperationAudit(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/audit', { headers }), ['data', 'audit']);
+  },
+
+  async createAdminOperationAudit(entry, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/admin/operations/audit', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(entry),
+      }),
+      ['data', 'entry'],
+    );
+  },
+
   async createResource(resource, data, headers = {}) {
     return normalizeEntityResult(
       await this.request(normalizeResourcePath(resource), {
