@@ -1116,8 +1116,8 @@ const createCartItem = () => {
   };
 };
 
-const addToCart = async () => {
-  if (!selectedProduct.value) return;
+const addToCart = async ({ silent = false } = {}) => {
+  if (!selectedProduct.value) return false;
 
   const item = createCartItem();
 
@@ -1134,7 +1134,7 @@ const addToCart = async () => {
     });
 
     if (!result.isConfirmed) {
-      return;
+      return false;
     }
 
     clearCart();
@@ -1143,18 +1143,28 @@ const addToCart = async () => {
   addCartItem(item);
   updateCartBadge();
 
-  Swal.fire({
-    icon: 'success',
-    title: `${item.name} agregado`,
-    toast: true,
-    position: 'top-end',
-    timer: 1400,
-    showConfirmButton: false,
-    background: franchise.value.primary,
-    color: '#fff',
-  });
+  if (!silent) {
+    Swal.fire({
+      icon: 'success',
+      title: `${item.name} agregado`,
+      toast: true,
+      position: 'top-end',
+      timer: 1400,
+      showConfirmButton: false,
+      background: franchise.value.primary,
+      color: '#fff',
+    });
+  }
 
   closeDetail();
+  return true;
+};
+
+const buyNow = async () => {
+  const added = await addToCart({ silent: true });
+  if (added) {
+    router.push('/checkout');
+  }
 };
 
 const startSlideShow = () => {
@@ -1762,10 +1772,16 @@ onBeforeUnmount(() => {
                 <span class="studio-cta__price">${{ totalPrice }}</span>
               </div>
             </div>
-            <button @click="addToCart">
-              <span>Anadir al pedido</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
+            <div class="studio-cta__actions">
+              <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
+                <span>Anadir al pedido</span>
+                <i class="fa-solid fa-cart-arrow-down"></i>
+              </button>
+              <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
+                <span>Pagar ahora</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -3019,6 +3035,56 @@ onBeforeUnmount(() => {
 .studio-cta > button i {
   position: static !important;
   font-size: 20px;
+}
+
+.studio-cta .studio-cta__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.studio-cta__button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.studio-cta__button:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.05);
+}
+
+.studio-cta__button:active {
+  transform: scale(0.985);
+}
+
+.studio-cta__button--secondary {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand-primary-deep);
+}
+
+.studio-cta__button--primary {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 30px var(--brand-shadow);
+}
+
+@media (min-width: 640px) {
+  .studio-cta .studio-cta__actions {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .brand-footer {

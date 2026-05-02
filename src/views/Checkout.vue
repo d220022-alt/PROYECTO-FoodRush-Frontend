@@ -35,6 +35,8 @@ const goBack = () => {
 
 const mapEl = ref(null);
 const mapLoading = ref(true);
+const isLocatingUser = ref(false);
+const locationError = ref('');
 
 const currentMode = ref('delivery'); // 'delivery' | 'pickup'
 const deliveryType = ref('basic'); // 'basic' | 'scheduled'
@@ -350,7 +352,16 @@ const editAddress = async () => {
     inputValue: addressDetails.value,
     showCancelButton: true,
   });
-  if (value) addressDetails.value = value;
+  if (value) {
+    addressTitle.value = 'Direccion guardada';
+    addressDetails.value = value;
+    locationError.value = '';
+
+    if (mapInstance && currentMode.value === 'delivery') {
+      const location = getCustomerLocation({ id: 'checkout', address: value });
+      updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+    }
+  }
 };
 
 const editInstructions = async () => {
@@ -526,12 +537,19 @@ const processOrder = async () => {
           'paypal': 'PayPal (Pagado)'
       };
 
+      const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value;
+      const deliveryNotes = [
+          `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
+          `Instrucciones: ${instructionsText.value}`,
+          currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      ].filter(Boolean).join('. ');
+
       const orderPayload = {
           cliente_id: clientId,
           total: syncedTotal,
           tenant_id: resolveTenantId(),
-          direccion_entrega: currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value,
-          notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}. Instrucciones: ${instructionsText.value}`,
+          direccion_entrega: deliveryAddress,
+          notas: deliveryNotes,
           estado_id: 1, // Pendiente
           items: syncedItems,
           metodo_pago: paymentMethod.value
@@ -674,24 +692,38 @@ const updateMap = (lat, lng, label, isUser) => {
   }
 };
 
-const locateUser = () => {
+const formatLocationCoordinates = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+const applyCurrentLocation = (lat, lng) => {
+  cachedPos = { lat, lng };
+  addressTitle.value = 'Ubicacion actual';
+  addressDetails.value = formatLocationCoordinates(lat, lng);
+  locationError.value = '';
+  updateMap(lat, lng, 'Tu ubicacion actual', true);
+};
+
+const locateUser = ({ forceReal = false } = {}) => {
   if (!mapInstance) return;
 
   const savedAddress = addressDetails.value;
-  if (savedAddress && savedAddress !== 'Espere un momento') {
+  if (!forceReal && savedAddress && savedAddress !== 'Espere un momento') {
     const location = getCustomerLocation({ id: 'checkout', address: savedAddress });
     updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
     return;
   }
 
-  if (cachedPos) {
+  if (!forceReal && cachedPos) {
     updateMap(cachedPos.lat, cachedPos.lng, 'Tu Ubicación', true);
     return;
   }
 
   mapLoading.value = true;
+  isLocatingUser.value = true;
+  locationError.value = '';
 
   if (!navigator.geolocation) {
+    isLocatingUser.value = false;
+    locationError.value = 'Tu navegador no permite usar ubicacion real.';
     updateMap(19.4517, -70.697, 'Default', true);
     return;
   }
@@ -700,15 +732,34 @@ const locateUser = () => {
     (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      cachedPos = { lat, lng };
-      updateMap(lat, lng, 'Tu Ubicación', true);
-      addressTitle.value = 'Ubicación Actual';
-      addressDetails.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      isLocatingUser.value = false;
+      applyCurrentLocation(lat, lng);
     },
-    () => {
-      updateMap(19.4517, -70.697, 'Default', true);
+    (error) => {
+      isLocatingUser.value = false;
+      locationError.value = error?.code === 1
+        ? 'Permiso de ubicacion denegado. Puedes editar la direccion manualmente.'
+        : 'No se pudo obtener tu ubicacion real. Intenta de nuevo o edita la direccion.';
+      if (savedAddress && savedAddress !== 'Espere un momento') {
+        const location = getCustomerLocation({ id: 'checkout', address: savedAddress });
+        updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+      } else {
+        updateMap(19.4517, -70.697, 'Default', true);
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 12000,
+      maximumAge: 60000,
     }
   );
+};
+
+const requestRealLocation = () => {
+  if (currentMode.value !== 'delivery') {
+    setMode('delivery');
+  }
+  locateUser({ forceReal: true });
 };
 
 const showStoreLocation = () => {
@@ -862,6 +913,16 @@ onBeforeUnmount(() => {
             <div class="border border-slate-200/60 rounded-2xl p-1.5 mb-8 relative shadow-sm hover:shadow-lg hover:border-red-100 transition-all duration-500 bg-white/50 backdrop-blur-sm group">
               <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <div id="map" ref="mapEl" class="rounded-xl overflow-hidden shadow-inner h-[200px] z-10 relative"></div>
+              <button
+                v-show="currentMode === 'delivery'"
+                type="button"
+                class="absolute bottom-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-800 shadow-lg ring-1 ring-red-100 transition hover:-translate-y-0.5 hover:bg-red-600 hover:text-white disabled:cursor-wait disabled:opacity-80 disabled:hover:translate-y-0"
+                :disabled="isLocatingUser"
+                @click="requestRealLocation"
+              >
+                <i class="fa-solid" :class="isLocatingUser ? 'fa-circle-notch fa-spin' : 'fa-location-crosshairs'"></i>
+                {{ isLocatingUser ? 'Ubicando...' : 'Usar mi ubicacion real' }}
+              </button>
               <div
                 v-show="mapLoading"
                 id="map-loading"
@@ -873,6 +934,9 @@ onBeforeUnmount(() => {
                 </span>
               </div>
             </div>
+            <p v-if="locationError" class="-mt-5 mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-700">
+              {{ locationError }}
+            </p>
 
             <div class="space-y-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between border-b border-gray-100 pb-4">

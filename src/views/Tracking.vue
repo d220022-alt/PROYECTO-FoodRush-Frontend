@@ -209,6 +209,7 @@ onUnmounted(() => {
     closeRealtimeConnection();
 });
 
+const goHome = () => router.push('/');
 const goBack = () => router.push('/orders');
 </script>
 
@@ -219,7 +220,13 @@ const goBack = () => router.push('/orders');
                 <p class="text-[10px] font-black uppercase tracking-[0.25em] text-red-500">FoodRush Tracking</p>
                 <h1 class="break-words text-lg font-black text-slate-900 sm:text-xl">Seguimiento #{{ orderId }}</h1>
             </div>
-            <button @click="goBack" class="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-600 transition hover:bg-orange-100 sm:text-sm">Volver a Pedidos</button>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+                <button @click="goHome" class="rounded-full bg-slate-900 px-4 py-2 text-xs font-black text-white transition hover:bg-slate-700 sm:text-sm">
+                    <i class="fa-solid fa-house mr-1"></i>
+                    Inicio
+                </button>
+                <button @click="goBack" class="rounded-full bg-orange-50 px-4 py-2 text-xs font-black text-orange-600 transition hover:bg-orange-100 sm:text-sm">Volver a Pedidos</button>
+            </div>
         </header>
 
         <div v-if="errorMessage" class="mx-auto mt-6 max-w-lg rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">

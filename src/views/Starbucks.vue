@@ -601,13 +601,13 @@ const fetchProducts = async () => {
                 deduped.push(item);
             });
 
-            products.value = deduped;
+            products.value = deduped.length > 0 ? deduped : getDefaultProducts();
         } else {
             throw new Error(response.message || 'No se pudieron cargar los productos de Starbucks');
         }
     } catch (e) {
         console.error("Error fetching products", e);
-        products.value = [];
+        products.value = getDefaultProducts();
     } finally {
         isLoading.value = false;
     }
@@ -947,8 +947,8 @@ const createCartItem = () => {
     };
 };
 
-const addToCart = async () => {
-    if (!selectedProduct.value) return;
+const addToCart = async ({ silent = false } = {}) => {
+    if (!selectedProduct.value) return false;
     const cartItem = createCartItem();
 
     if (hasCartRestaurantConflict(cartItem)) {
@@ -964,7 +964,7 @@ const addToCart = async () => {
         });
 
         if (!result.isConfirmed) {
-            return;
+            return false;
         }
 
         clearCart();
@@ -972,13 +972,23 @@ const addToCart = async () => {
 
     addCartItem(cartItem);
     updateCartBadge();
-    Swal.fire({
-        icon: 'success', title: '¡Añadido!',
-        showConfirmButton: false, timer: 1000,
-        background: bgBrand, color: '#fff',
-        toast: true, position: 'top-end'
-    });
+    if (!silent) {
+        Swal.fire({
+            icon: 'success', title: '¡Añadido!',
+            showConfirmButton: false, timer: 1000,
+            background: bgBrand, color: '#fff',
+            toast: true, position: 'top-end'
+        });
+    }
     closeDetail();
+    return true;
+};
+
+const buyNow = async () => {
+    const added = await addToCart({ silent: true });
+    if (added) {
+        router.push('/checkout');
+    }
 };
 
 const goBackHome = () => {
@@ -1794,11 +1804,16 @@ onBeforeUnmount(() => {
                             <span class="text-4xl font-black text-[#1E3932] leading-none">{{ totalPrice }}</span>
                         </div>
                     </div>
-                    <button @click="addToCart" class="w-full bg-[#D4E9E2] hover:bg-[#b9d5cb] text-[#00704A] font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 text-lg transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden">
-                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                        <span class="relative z-10">Añadir al Pedido</span>
-                        <i class="fa-solid fa-cart-arrow-down relative z-10 text-xl group-hover:animate-bounce"></i>
-                    </button>
+                    <div class="studio-cta__actions">
+                        <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
+                            <span>Añadir al Pedido</span>
+                            <i class="fa-solid fa-cart-arrow-down"></i>
+                        </button>
+                        <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
+                            <span>Pagar ahora</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3394,6 +3409,56 @@ body { font-family: 'Inter', sans-serif; }
 .studio-cta > button i {
     position: static !important;
     font-size: 20px;
+}
+
+.studio-cta .studio-cta__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+.studio-cta__button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 14px 18px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    font-size: 16px;
+    font-weight: 900;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.studio-cta__button:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.05);
+}
+
+.studio-cta__button:active {
+    transform: scale(0.985);
+}
+
+.studio-cta__button--secondary {
+    background: linear-gradient(135deg, #D4E9E2 0%, #bddfd2 100%);
+    color: #0c4f38;
+    box-shadow: 0 14px 24px rgba(0, 112, 74, 0.14);
+}
+
+.studio-cta__button--primary {
+    background: linear-gradient(135deg, #00704A 0%, #0c4f38 100%);
+    color: #ffffff;
+    box-shadow: 0 18px 30px rgba(0, 112, 74, 0.22);
+}
+
+@media (min-width: 640px) {
+    .studio-cta .studio-cta__actions {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (min-width: 768px) {
