@@ -21,7 +21,7 @@ import {
   saveSavedPayPal,
   setLastClientId,
 } from '../services/storage';
-import { getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
+import { SANTIAGO_CENTER, getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
@@ -117,6 +117,21 @@ const subtotal = computed(() =>
 
 const deliveryFee = computed(() => (currentMode.value === 'delivery' ? 5 : 0));
 const total = computed(() => subtotal.value + deliveryFee.value);
+
+const DOMINICAN_BOUNDS = {
+  minLat: 17.35,
+  maxLat: 20.1,
+  minLng: -72.1,
+  maxLng: -68.25,
+};
+
+const isDominicanLocation = (lat, lng) =>
+  Number.isFinite(lat)
+  && Number.isFinite(lng)
+  && lat >= DOMINICAN_BOUNDS.minLat
+  && lat <= DOMINICAN_BOUNDS.maxLat
+  && lng >= DOMINICAN_BOUNDS.minLng
+  && lng <= DOMINICAN_BOUNDS.maxLng;
 
 const loadCart = () => {
   cartItems.value = getCart();
@@ -694,10 +709,62 @@ const updateMap = (lat, lng, label, isUser) => {
 
 const formatLocationCoordinates = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 
-const applyCurrentLocation = (lat, lng) => {
+const reverseGeocodeLocation = async (lat, lng) => {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&accept-language=es`;
+  const response = await fetch(url);
+  if (!response.ok) return '';
+  const data = await response.json();
+  return String(data?.display_name || '')
+    .split(',')
+    .slice(0, 4)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(', ');
+};
+
+const resolveSafeFallbackLocation = () => {
+  const session = getSession();
+  const candidates = [addressDetails.value, session.userAddress]
+    .map((value) => String(value || '').trim())
+    .filter((value) => value && value !== 'Espere un momento');
+
+  for (const address of candidates) {
+    const location = getCustomerLocation({ id: 'checkout', address });
+    if (isDominicanLocation(location.lat, location.lng)) {
+      return { location, address };
+    }
+  }
+
+  return {
+    location: { ...SANTIAGO_CENTER, label: 'Santiago de los Caballeros' },
+    address: '',
+  };
+};
+
+const applySavedLocationFallback = (message = '') => {
+  const { location, address } = resolveSafeFallbackLocation();
+
+  addressTitle.value = address ? 'Direccion guardada' : 'Direccion estimada';
+  addressDetails.value = address || location.label;
+
+  locationError.value = message;
+  mapLoading.value = false;
+  updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+};
+
+const applyCurrentLocation = async (lat, lng) => {
+  const coordsText = formatLocationCoordinates(lat, lng);
+  let addressLabel = '';
+
+  try {
+    addressLabel = await reverseGeocodeLocation(lat, lng);
+  } catch (error) {
+    console.warn('Reverse geocode checkout failed', error);
+  }
+
   cachedPos = { lat, lng };
   addressTitle.value = 'Ubicacion actual';
-  addressDetails.value = formatLocationCoordinates(lat, lng);
+  addressDetails.value = addressLabel ? `${addressLabel} - ${coordsText}` : coordsText;
   locationError.value = '';
   updateMap(lat, lng, 'Tu ubicacion actual', true);
 };
@@ -723,34 +790,37 @@ const locateUser = ({ forceReal = false } = {}) => {
 
   if (!navigator.geolocation) {
     isLocatingUser.value = false;
-    locationError.value = 'Tu navegador no permite usar ubicacion real.';
-    updateMap(19.4517, -70.697, 'Default', true);
+    applySavedLocationFallback('Tu navegador no permite usar ubicacion real. Mantuvimos tu direccion guardada.');
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       isLocatingUser.value = false;
-      applyCurrentLocation(lat, lng);
+
+      if (!isDominicanLocation(lat, lng)) {
+        applySavedLocationFallback(
+          'La ubicacion del navegador salio fuera de Republica Dominicana. Mantuvimos tu direccion guardada para evitar enviar el pedido a una zona incorrecta.'
+        );
+        return;
+      }
+
+      await applyCurrentLocation(lat, lng);
     },
     (error) => {
       isLocatingUser.value = false;
-      locationError.value = error?.code === 1
-        ? 'Permiso de ubicacion denegado. Puedes editar la direccion manualmente.'
-        : 'No se pudo obtener tu ubicacion real. Intenta de nuevo o edita la direccion.';
-      if (savedAddress && savedAddress !== 'Espere un momento') {
-        const location = getCustomerLocation({ id: 'checkout', address: savedAddress });
-        updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
-      } else {
-        updateMap(19.4517, -70.697, 'Default', true);
-      }
+      applySavedLocationFallback(
+        error?.code === 1
+          ? 'Permiso de ubicacion denegado. Puedes editar la direccion manualmente.'
+          : 'No se pudo obtener tu ubicacion real. Mantuvimos tu direccion guardada.'
+      );
     },
     {
       enableHighAccuracy: true,
       timeout: 12000,
-      maximumAge: 60000,
+      maximumAge: 0,
     }
   );
 };

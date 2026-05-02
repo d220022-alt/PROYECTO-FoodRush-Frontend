@@ -673,7 +673,17 @@ onBeforeUnmount(() => {
 
     <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
       <header class="flex min-h-16 flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <h2 class="text-xl font-black text-slate-800">{{ currentViewTitle }}</h2>
+        <div class="flex items-start justify-between gap-3">
+          <h2 class="text-xl font-black text-slate-800">{{ currentViewTitle }}</h2>
+          <button
+            type="button"
+            class="inline-flex shrink-0 items-center gap-2 rounded-full border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white lg:hidden"
+            @click="logout"
+          >
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Salir
+          </button>
+        </div>
         <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-6">
           <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
             <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Filtro de Datos</label>
