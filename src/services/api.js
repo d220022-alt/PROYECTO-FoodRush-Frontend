@@ -411,22 +411,28 @@ export const api = {
     return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'productos']);
   },
 
-  async login(email, password, headers = {}) {
+  async login(identifier, password, headers = {}) {
     const loginHeaders = { ...headers };
     if (!hasTenantHeader(loginHeaders)) {
       loginHeaders['X-Tenant-ID'] = DEFAULT_TENANT_ID;
     }
 
-    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const rawIdentifier = String(identifier || '').trim();
+    const normalizedIdentifier = rawIdentifier.includes('@')
+      ? rawIdentifier.toLowerCase()
+      : rawIdentifier;
 
     return normalizeAuthResult(
       await this.request('/api/usuarios/login', {
         method: 'POST',
         headers: loginHeaders,
         body: JSON.stringify({
-          email: normalizedEmail,
+          identifier: normalizedIdentifier,
+          usuario: normalizedIdentifier,
+          username: normalizedIdentifier,
+          email: normalizedIdentifier,
           password,
-          correo: normalizedEmail,
+          correo: normalizedIdentifier,
           contrasena: password,
         }),
       }),

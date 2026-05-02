@@ -58,7 +58,7 @@ const formatAuthError = (error) => {
     const status = Number.parseInt(error?.status, 10);
 
     if (code === 'AUTH_ERROR' || status === 401) {
-        return 'Correo o contraseña incorrectos. Revisa los datos de la cuenta que estás usando.';
+        return 'Usuario/correo o contraseña incorrectos. Revisa los datos de la cuenta que estás usando.';
     }
 
     if (code === 'USER_INACTIVE' || status === 403) {
@@ -159,28 +159,24 @@ const onRegisterPhoneInput = (event) => {
 
 const handleLogin = async () => {
     loginError.value = '';
-    const email = String(loginForm.value.email || '').trim().toLowerCase();
+    const identifier = String(loginForm.value.email || '').trim();
     const password = loginForm.value.password;
-    loginForm.value.email = email;
+    loginForm.value.email = identifier;
 
-    if (!email || !password) {
-        loginError.value = 'Por favor, ingresa correo y contraseña.';
-        return;
-    }
-
-    if (!validateEmail(email)) {
-        loginError.value = 'Ingresa un correo electrónico válido.';
+    if (!identifier || !password) {
+        loginError.value = 'Por favor, ingresa usuario/correo y contraseña.';
         return;
     }
 
     isSubmitting.value = true;
 
     try {
-        const response = await api.login(email, password);
+        const response = await api.login(identifier, password);
         if (response.success) {
-            const session = setSessionFromAuth({ ...response, email, userEmail: email });
+            const resolvedEmail = response.user?.correo || response.user?.email || identifier;
+            const session = setSessionFromAuth({ ...response, email: resolvedEmail, userEmail: resolvedEmail });
             await registerWebSession(session);
-            redirectToPortal(session.userEmail || email);
+            redirectToPortal(session.userEmail || resolvedEmail);
         } else {
             loginError.value = formatAuthError(response);
         }
@@ -290,7 +286,7 @@ const handleRegister = async () => {
                     <form @submit.prevent="handleLogin">
                         <div class="input-group">
                             <label for="login-email">Usuario o Correo</label>
-                            <input id="login-email" v-model="loginForm.email" type="text" placeholder="ejemplo@correo.com" aria-required="true">
+                            <input id="login-email" v-model="loginForm.email" type="text" placeholder="FoodRush o ejemplo@correo.com" aria-required="true">
                         </div>
                         
                         <div class="input-group">
