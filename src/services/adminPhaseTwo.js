@@ -3,6 +3,9 @@ import { getSession } from './storage';
 
 const STORAGE_PREFIX = 'foodrush_admin_phase2';
 const MAX_AUDIT_ENTRIES = 120;
+const ZONE_KIND = 'admin_operation_zone';
+const CLOSURE_ENTITY = 'admin_operation_closure';
+const AUDIT_ENTITY = 'admin_operation_audit';
 
 export const DEFAULT_OPERATION_ZONES = [
   {
@@ -77,6 +80,7 @@ const clone = (value) => JSON.parse(JSON.stringify(value));
 
 const safeJsonParse = (value, fallback) => {
   if (!value) return fallback;
+  if (typeof value === 'object') return value;
   try {
     return JSON.parse(value);
   } catch {
@@ -92,6 +96,103 @@ const readJson = (bucket, fallback) => {
 const writeJson = (bucket, value) => {
   if (!hasWindow()) return;
   window.localStorage.setItem(storageKey(bucket), JSON.stringify(value));
+};
+
+const buildZoneDescription = (zone) => JSON.stringify({
+  kind: ZONE_KIND,
+  zone,
+  updatedAt: new Date().toISOString(),
+});
+
+const parseZoneRoute = (route = {}, index = 0) => {
+  const payload = safeJsonParse(route.descripcion, {});
+  if (payload.kind !== ZONE_KIND && payload.zone?.kind !== ZONE_KIND) return null;
+  return {
+    ...normalizeZone(payload.zone || payload, index),
+    routeId: String(route.id || ''),
+    createdAt: route.creado_en || '',
+  };
+};
+
+const normalizeAuditEntry = (entry = {}) => ({
+  id: safeText(entry.id, `audit-${Date.now()}`),
+  action: safeText(entry.action, entry.accion || 'Accion registrada'),
+  detail: safeText(entry.detail, entry.detalle || entry.detalles || 'Sin detalle'),
+  tenantId: safeText(entry.tenantId),
+  tenantName: safeText(entry.tenantName, 'Vista Global'),
+  tone: safeText(entry.tone, 'info'),
+  userName: safeText(entry.userName, 'Admin FoodRush'),
+  userEmail: safeText(entry.userEmail),
+  createdAt: safeText(entry.createdAt, new Date().toISOString()),
+  metadata: entry.metadata && typeof entry.metadata === 'object' ? entry.metadata : {},
+});
+
+const parseAuditLogRow = (row = {}) => {
+  const payload = safeJsonParse(row.detalles, {});
+  return normalizeAuditEntry({
+    ...(payload.entry || payload),
+    id: payload.entry?.id || payload.id || row.entidad_id || `auditlog-${row.id}`,
+    action: payload.entry?.action || payload.action || row.accion,
+    createdAt: payload.entry?.createdAt || payload.createdAt || row.creado_en,
+  });
+};
+
+const normalizeClosureRecord = (record = {}) => ({
+  id: safeText(record.id, `closure-${Date.now()}`),
+  dateKey: safeText(record.dateKey, new Date().toISOString().slice(0, 10)),
+  tenantId: safeText(record.tenantId, 'Global'),
+  tenantName: safeText(record.tenantName, 'Vista Global'),
+  totalOrders: Number.parseInt(record.totalOrders || 0, 10) || 0,
+  deliveredOrders: Number.parseInt(record.deliveredOrders || 0, 10) || 0,
+  cancelledOrders: Number.parseInt(record.cancelledOrders || 0, 10) || 0,
+  activeOrders: Number.parseInt(record.activeOrders || 0, 10) || 0,
+  assignedOrders: Number.parseInt(record.assignedOrders || 0, 10) || 0,
+  grossSales: Number.parseFloat(record.grossSales || 0) || 0,
+  averageTicket: Number.parseFloat(record.averageTicket || 0) || 0,
+  activeZones: Number.parseInt(record.activeZones || 0, 10) || 0,
+  generatedAt: safeText(record.generatedAt, new Date().toISOString()),
+});
+
+const parseClosureRow = (row = {}) => {
+  const payload = safeJsonParse(row.detalles, {});
+  return normalizeClosureRecord(payload.record || payload);
+};
+
+const listGenericResource = async (resource) => {
+  const response = await api.request(`/api/${resource}`);
+  return Array.isArray(response?.data) ? response.data : [];
+};
+
+const loadGenericAdminState = async () => {
+  const [routes, auditLogs] = await Promise.all([
+    listGenericResource('rutas'),
+    listGenericResource('auditlogs'),
+  ]);
+
+  let zones = routes.map(parseZoneRoute).filter(Boolean);
+  if (zones.length === 0) {
+    const createdZones = await Promise.all(DEFAULT_OPERATION_ZONES.map((zone) => {
+      const normalized = normalizeZone({ ...zone, updatedAt: new Date().toISOString() });
+      return api.createResource('rutas', {
+        descripcion: buildZoneDescription(normalized),
+      }).then((response) => parseZoneRoute(response.data) || normalized);
+    }));
+    zones = createdZones.map((zone) => normalizeZone(zone));
+  }
+
+  return {
+    zones,
+    closures: auditLogs
+      .filter((row) => row.entidad === CLOSURE_ENTITY)
+      .map(parseClosureRow)
+      .slice(0, 60),
+    audit: auditLogs
+      .filter((row) => row.entidad === AUDIT_ENTITY)
+      .map(parseAuditLogRow)
+      .slice(0, MAX_AUDIT_ENTRIES),
+    remote: true,
+    generic: true,
+  };
 };
 
 const syncLocalState = ({ zones, closures, audit } = {}) => {
@@ -148,8 +249,15 @@ export const loadAdminPhaseTwoState = async () => {
   if (!canUseRemote()) return localState;
 
   try {
-    const response = await api.getAdminOperationsState();
-    const remoteState = response?.data || {};
+    let remoteState = {};
+    try {
+      const response = await api.getAdminOperationsState();
+      remoteState = response?.data || {};
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+      remoteState = await loadGenericAdminState();
+    }
+
     const zones = Array.isArray(remoteState.zones) && remoteState.zones.length > 0
       ? remoteState.zones.map(normalizeZone)
       : localState.zones;
@@ -190,8 +298,22 @@ export const saveAdminZoneRemote = async (zone) => {
   if (!canUseRemote()) return localZone;
 
   try {
-    const response = await api.upsertAdminOperationZone(localZone);
-    const remoteZone = normalizeZone(response?.data || localZone);
+    let response;
+    try {
+      response = await api.upsertAdminOperationZone(localZone);
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+
+      const routes = await listGenericResource('rutas');
+      const existing = routes
+        .map((route, index) => ({ route, zone: parseZoneRoute(route, index) }))
+        .find((item) => item.zone?.id === localZone.id);
+
+      response = existing?.route?.id
+        ? await api.updateResource('rutas', existing.route.id, { descripcion: buildZoneDescription(localZone) })
+        : await api.createResource('rutas', { descripcion: buildZoneDescription(localZone) });
+    }
+    const remoteZone = parseZoneRoute(response?.data) || normalizeZone(response?.data || localZone);
     saveAdminZone(remoteZone);
     return remoteZone;
   } catch (error) {
@@ -208,8 +330,21 @@ const persistAuditEntry = async (entry) => {
   if (!canUseRemote()) return null;
 
   try {
-    const response = await api.createAdminOperationAudit(entry);
-    const remoteEntry = response?.data || entry;
+    let response;
+    try {
+      response = await api.createAdminOperationAudit(entry);
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+      response = await api.createResource('auditlogs', {
+        accion: entry.action,
+        entidad: AUDIT_ENTITY,
+        entidad_id: entry.id,
+        detalles: JSON.stringify({ entry }),
+      });
+    }
+    const remoteEntry = response?.data?.detalles
+      ? parseAuditLogRow(response.data)
+      : normalizeAuditEntry(response?.data || entry);
     const nextEntries = [
       remoteEntry,
       ...getAuditLog().filter((item) => item.id !== entry.id && item.id !== remoteEntry.id),
@@ -294,8 +429,19 @@ export const createClosureRecordRemote = async (snapshot) => {
   if (!canUseRemote()) return localRecord;
 
   try {
-    const response = await api.createAdminOperationClosure(localRecord);
-    const remoteRecord = response?.data || localRecord;
+    let response;
+    try {
+      response = await api.createAdminOperationClosure(localRecord);
+    } catch (error) {
+      if (error?.status !== 404) throw error;
+      response = await api.createResource('auditlogs', {
+        accion: 'Cierre operativo',
+        entidad: CLOSURE_ENTITY,
+        entidad_id: localRecord.id,
+        detalles: JSON.stringify({ record: localRecord }),
+      });
+    }
+    const remoteRecord = response?.data?.detalles ? parseClosureRow(response.data) : response?.data || localRecord;
     const nextRecords = [
       remoteRecord,
       ...getClosureRecords().filter((item) => item.id !== localRecord.id && item.id !== remoteRecord.id),
