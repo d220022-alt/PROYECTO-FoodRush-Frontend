@@ -1,8 +1,14 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
+import {
+    countDominicanPhoneDigits,
+    formatDominicanPhone,
+    normalizeDominicanPhone,
+    validateDominicanPhone,
+} from '../utils/phoneValidation';
 import {
     APP_EVENTS,
     clearSession,
@@ -108,7 +114,7 @@ const openEditModal = () => {
     editForm.value = {
         name: user.value.name,
         email: user.value.email,
-        phone: user.value.phone,
+        phone: formatDominicanPhone(user.value.phone),
         address: user.value.address !== "Sin dirección registrada" ? user.value.address : '',
         zone: localStorage.getItem('user_zone') || ''
     };
@@ -116,9 +122,23 @@ const openEditModal = () => {
 };
 
 const closeEditModal = () => isEditModalOpen.value = false;
+const editPhoneDigitsCount = computed(() => countDominicanPhoneDigits(editForm.value.phone));
+const editPhoneValidation = computed(() => validateDominicanPhone(editForm.value.phone));
+
+const onEditPhoneInput = (event) => {
+    editForm.value.phone = formatDominicanPhone(event.target.value);
+};
 
 const saveProfile = async () => {
     let savedRemotely = false;
+    const phoneValidation = validateDominicanPhone(editForm.value.phone);
+
+    if (!phoneValidation.valid) {
+        Swal.fire('Telefono invalido', phoneValidation.message, 'error');
+        return;
+    }
+
+    editForm.value.phone = normalizeDominicanPhone(editForm.value.phone);
 
     try {
         const userId = localStorage.getItem('user_id');
@@ -326,7 +346,18 @@ const saveProfile = async () => {
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Teléfono</label>
-                    <input v-model="editForm.phone" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <input
+                        :value="editForm.phone"
+                        @input="onEditPhoneInput"
+                        type="tel"
+                        inputmode="numeric"
+                        autocomplete="tel"
+                        maxlength="12"
+                        class="w-full border rounded-lg p-3 outline-none focus:border-orange-500"
+                        :class="{ 'border-red-400 bg-red-50': editForm.phone && !editPhoneValidation.valid }"
+                    >
+                    <p v-if="editForm.phone && !editPhoneValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editPhoneValidation.message }}</p>
+                    <p v-else class="mt-1 text-xs font-bold text-gray-400">Digitos: {{ editPhoneDigitsCount }}/10</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Dirección</label>

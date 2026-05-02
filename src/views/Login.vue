@@ -4,6 +4,12 @@ import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 import { setSessionFromAuth } from '../services/storage';
 import { getPortalRouteByEmail } from '../utils/portalRouting';
+import {
+    countDominicanPhoneDigits,
+    formatDominicanPhone,
+    normalizeDominicanPhone,
+    validateDominicanPhone,
+} from '../utils/phoneValidation';
 
 const router = useRouter();
 
@@ -26,6 +32,10 @@ const detectedZone = computed(() => {
     if (!normalized.trim()) return null;
     return DELIVERY_ZONES.find((zone) => zone.keywords.some((kw) => normalized.includes(kw))) || null;
 });
+
+const registerPhoneDigitsCount = computed(() => countDominicanPhoneDigits(registerForm.value.phone));
+const registerPhoneValidation = computed(() => validateDominicanPhone(registerForm.value.phone));
+const shouldShowPhoneValidation = computed(() => Boolean(registerForm.value.phone || registerPhoneDigitsCount.value));
 
 const loginError = ref('');
 const registerError = ref('');
@@ -113,7 +123,7 @@ onMounted(() => {
             
             registerForm.value.email = data.email || '';
             registerForm.value.name = data.name || '';
-            registerForm.value.phone = data.phone || '';
+            registerForm.value.phone = formatDominicanPhone(data.phone || '');
             registerForm.value.password = data.password || '';
             registerForm.value.confirmPassword = data.confirmPassword || '';
             registerForm.value.address = data.address || '';
@@ -141,6 +151,10 @@ const togglePanel = (active) => {
     isRegisterActive.value = active; 
     loginError.value = '';
     registerError.value = '';
+};
+
+const onRegisterPhoneInput = (event) => {
+    registerForm.value.phone = formatDominicanPhone(event.target.value);
 };
 
 const handleLogin = async () => {
@@ -180,7 +194,18 @@ const handleLogin = async () => {
 
 const handleRegister = async () => {
     registerError.value = '';
-    const { email, name, phone, password, confirmPassword, address } = registerForm.value;
+    const email = String(registerForm.value.email || '').trim().toLowerCase();
+    const name = String(registerForm.value.name || '').trim();
+    const password = registerForm.value.password;
+    const confirmPassword = registerForm.value.confirmPassword;
+    const address = String(registerForm.value.address || '').trim();
+    const phoneValidation = validateDominicanPhone(registerForm.value.phone);
+    const phone = normalizeDominicanPhone(registerForm.value.phone);
+
+    registerForm.value.email = email;
+    registerForm.value.name = name;
+    registerForm.value.phone = phone;
+    registerForm.value.address = address;
 
     if (!email || !name || !phone || !password || !confirmPassword || !address) {
         registerError.value = 'Completa todos los campos obligatorios.';
@@ -192,6 +217,10 @@ const handleRegister = async () => {
     }
     if (!validateEmail(email)) {
         registerError.value = 'Ingresa un correo electrónico válido.';
+        return;
+    }
+    if (!phoneValidation.valid) {
+        registerError.value = phoneValidation.message;
         return;
     }
     if (password.length < 6) {
@@ -305,7 +334,20 @@ const handleRegister = async () => {
                             </div>
                             <div class="input-group">
                                 <label for="reg-phone">Teléfono</label>
-                                <input id="reg-phone" v-model="registerForm.phone" type="tel" placeholder="809-000-0000" aria-required="true">
+                                <input
+                                    id="reg-phone"
+                                    :value="registerForm.phone"
+                                    @input="onRegisterPhoneInput"
+                                    type="tel"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    maxlength="12"
+                                    placeholder="809-000-0000"
+                                    aria-required="true"
+                                    :class="{ 'invalid-input': shouldShowPhoneValidation && !registerPhoneValidation.valid }"
+                                >
+                                <span v-if="shouldShowPhoneValidation && !registerPhoneValidation.valid" class="error-msg">{{ registerPhoneValidation.message }}</span>
+                                <span v-else class="input-hint">Digitos: {{ registerPhoneDigitsCount }}/10</span>
                             </div>
                         </div>
                         
@@ -499,6 +541,7 @@ input:focus, select:focus {
 
 .invalid-input { border-color: #D90429 !important; background-color: #fff1f2; }
 .error-msg { color: #D90429; font-size: 12px; margin-top: 4px; display: block; font-weight: 700; }
+.input-hint { color: #94a3b8; font-size: 12px; margin-top: 4px; display: block; font-weight: 700; }
 .error-msg-global { color: #D90429; font-size: 13px; margin-top: 10px; text-align: center; font-weight: 700; background: #fff1f2; padding: 10px; border-radius: 8px; }
 .zone-hint { color: #047857; font-size: 12px; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; background: #ecfdf5; padding: 4px 10px; border-radius: 6px; }
 .zone-hint strong { font-weight: 800; }
