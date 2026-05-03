@@ -33,6 +33,14 @@ const closureRecords = ref(getClosureRecords());
 const auditEntries = ref(getAuditLog());
 const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
+const ADMIN_THEME_STORAGE_KEY = 'foodrush_admin_theme';
+
+const readAdminThemePreference = () => {
+  if (typeof window === 'undefined') return false;
+  return window.localStorage.getItem(ADMIN_THEME_STORAGE_KEY) === 'dark';
+};
+
+const isDarkMode = ref(readAdminThemePreference());
 
 const menuGroups = [
   { name: 'SISTEMA GLOBAL', items: [{ id: 'dashboard', name: 'Dashboard Principal', icon: 'fa-solid fa-chart-pie' }] },
@@ -111,6 +119,40 @@ const currentViewTitle = computed(() => {
   }
   return 'Panel';
 });
+
+const viewDescriptions = {
+  dashboard: 'Resumen ejecutivo de ventas, operaciones y alertas.',
+  orders: 'Recepcion, estados y seguimiento operativo de pedidos.',
+  menu: 'Catalogo, precios y disponibilidad por franquicia.',
+  franchises_list: 'Locales activos, ventas y rendimiento por franquicia.',
+  zones: 'Cobertura, rutas y reglas de entrega por zona.',
+  users_fleet: 'Personal conectado, roles y actividad operacional.',
+  support: 'Sesiones, alertas y soporte operativo.',
+  daily_close: 'Cierre diario, ventas y evidencia de auditoria.',
+  audit: 'Historial de eventos y acciones administrativas.',
+  settings: 'Configuracion visible del panel y sincronizacion.',
+};
+
+const currentViewDescription = computed(() => viewDescriptions[currentView.value] || 'Panel operativo de FoodRush.');
+
+const syncStatusLabel = computed(() => {
+  if (errorMessage.value) return 'Revisar alerta';
+  if (isRefreshing.value) return 'Sincronizando';
+  return 'Operacion estable';
+});
+
+const syncStatusClass = computed(() => {
+  if (errorMessage.value) return 'border-red-200 bg-red-50 text-red-600';
+  if (isRefreshing.value) return 'border-blue-200 bg-blue-50 text-blue-600';
+  return 'border-emerald-200 bg-emerald-50 text-emerald-700';
+});
+
+const toggleAdminTheme = () => {
+  isDarkMode.value = !isDarkMode.value;
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(ADMIN_THEME_STORAGE_KEY, isDarkMode.value ? 'dark' : 'light');
+  }
+};
 
 const franchises = computed(() => data.value.tenants || []);
 const allOrders = computed(() => data.value.orders || []);
@@ -649,44 +691,57 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="admin-enterprise flex min-h-screen w-full bg-slate-50 text-slate-800 antialiased">
-    <aside class="hide-scrollbar hidden w-72 shrink-0 flex-col overflow-y-auto bg-slate-900 text-white lg:flex">
-      <div class="sticky top-0 z-10 flex h-16 items-center border-b border-slate-800 bg-slate-900 px-6">
-        <div class="flex items-center gap-3 text-xl text-brand-500">
-          <i class="fa-solid fa-layer-group"></i>
+  <div class="admin-enterprise admin-shell flex min-h-screen w-full text-slate-800 antialiased" :class="{ 'admin-dark': isDarkMode }">
+    <aside class="admin-sidebar hide-scrollbar hidden w-72 shrink-0 flex-col overflow-y-auto text-white lg:flex">
+      <div class="admin-sidebar-header sticky top-0 z-10 flex h-16 items-center border-b px-6">
+        <div class="admin-brand-mark flex items-center gap-3 text-xl text-brand-500">
+          <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-lg shadow-brand-500/30">
+            <i class="fa-solid fa-layer-group"></i>
+          </span>
           <h1 class="font-black tracking-wide text-white">Food<span class="text-brand-500">Rush</span></h1>
         </div>
       </div>
 
       <div class="flex-1 p-4">
         <div v-for="group in menuGroups" :key="group.name" class="mb-6">
-          <p class="mb-3 px-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{{ group.name }}</p>
+          <p class="admin-menu-label mb-3 px-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{{ group.name }}</p>
           <nav class="space-y-1.5">
-            <button v-for="menu in group.items" :key="menu.id" type="button" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-bold transition-all" :class="currentView === menu.id ? 'bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" @click="currentView = menu.id">
-              <i :class="`${menu.icon} w-5 text-center text-lg`"></i>
-              {{ menu.name }}
+            <button v-for="menu in group.items" :key="menu.id" type="button" class="admin-menu-button flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-all" :class="currentView === menu.id ? 'admin-menu-active bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" @click="currentView = menu.id">
+              <span class="admin-menu-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
+                <i :class="`${menu.icon} text-base`"></i>
+              </span>
+              <span class="min-w-0 flex-1 truncate">{{ menu.name }}</span>
               <span v-if="getMenuBadge(menu.id) > 0" class="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-black text-white">{{ getMenuBadge(menu.id) }}</span>
             </button>
           </nav>
         </div>
       </div>
 
-      <div class="mt-auto border-t border-slate-800 bg-slate-900 p-4">
+      <div class="admin-sidebar-footer mt-auto border-t p-4">
         <div class="flex items-center gap-3">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold">{{ (session.userName || 'AD').slice(0, 2).toUpperCase() }}</div>
+          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold shadow-inner">{{ (session.userName || 'AD').slice(0, 2).toUpperCase() }}</div>
           <div class="min-w-0 flex-1">
             <p class="truncate text-sm font-bold text-white">{{ session.userName || 'Admin Principal' }}</p>
             <p class="truncate text-[10px] font-bold uppercase text-brand-500">{{ session.userEmail || 'Superusuario' }}</p>
           </div>
-          <button type="button" class="text-slate-400 hover:text-white" @click="logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Cerrar sesion" @click="logout"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
       </div>
     </aside>
 
     <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <header class="flex min-h-16 flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div class="flex items-start justify-between gap-3">
-          <h2 class="text-xl font-black text-slate-800">{{ currentViewTitle }}</h2>
+      <header class="admin-topbar flex min-h-16 flex-col gap-4 border-b px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
+        <div class="flex min-w-0 items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="mb-1 flex flex-wrap items-center gap-2">
+              <span class="rounded-full border border-brand-200 bg-brand-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-600">FoodRush Admin</span>
+              <span class="rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider" :class="syncStatusClass">
+                <i class="fa-solid fa-circle mr-1 text-[7px]"></i>{{ syncStatusLabel }}
+              </span>
+            </div>
+            <h2 class="truncate text-2xl font-black text-slate-900">{{ currentViewTitle }}</h2>
+            <p class="mt-1 max-w-2xl text-sm font-semibold text-slate-500">{{ currentViewDescription }}</p>
+          </div>
           <button
             type="button"
             class="inline-flex shrink-0 items-center gap-2 rounded-full border border-red-100 bg-red-50 px-3 py-2 text-xs font-black text-red-600 shadow-sm transition hover:bg-red-600 hover:text-white lg:hidden"
@@ -696,21 +751,25 @@ onBeforeUnmount(() => {
             Salir
           </button>
         </div>
-        <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-6">
-          <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+        <div class="admin-toolbar flex w-full flex-col gap-3 xl:w-auto xl:flex-row xl:items-center xl:gap-3">
+          <div class="admin-filter-control flex flex-col gap-1 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 shadow-sm sm:flex-row sm:items-center sm:gap-2">
             <label class="text-[10px] font-black uppercase tracking-wider text-slate-400">Filtro de Datos</label>
-            <select v-model="selectedTenant" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500 sm:w-auto">
+            <select v-model="selectedTenant" class="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-500 sm:w-auto">
               <option value="Global">Vista Global (Todo)</option>
               <option v-for="franchise in franchises" :key="franchise.id" :value="franchise.id">{{ franchise.name }}</option>
             </select>
           </div>
-          <button type="button" class="text-slate-400 hover:text-brand-500" @click="refreshData({ silent: true })">
+          <button type="button" class="admin-icon-action inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-500 shadow-sm hover:border-brand-200 hover:text-brand-600" @click="toggleAdminTheme" :aria-pressed="isDarkMode">
+            <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+            <span>{{ isDarkMode ? 'Claro' : 'Oscuro' }}</span>
+          </button>
+          <button type="button" class="admin-icon-action inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-slate-500 shadow-sm hover:border-brand-200 hover:text-brand-600" aria-label="Actualizar datos" @click="refreshData({ silent: true })">
             <i class="fa-solid fa-rotate-right text-xl" :class="{ 'fa-spin': isRefreshing }"></i>
           </button>
         </div>
       </header>
 
-      <div class="border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
+      <div class="admin-mobile-nav border-b border-slate-200 bg-white px-4 py-3 lg:hidden">
         <div class="hide-scrollbar flex gap-2 overflow-x-auto">
           <template v-for="group in menuGroups" :key="group.name">
             <button v-for="menu in group.items" :key="menu.id" type="button" class="flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-xs font-black transition" :class="currentView === menu.id ? 'border-brand-500 bg-brand-500 text-white shadow-md shadow-orange-500/20' : 'border-slate-200 bg-white text-slate-500'" @click="currentView = menu.id">
@@ -721,7 +780,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <main class="hide-scrollbar flex-1 overflow-y-auto bg-slate-50/50 p-4 sm:p-6">
+      <main class="admin-main hide-scrollbar flex-1 overflow-y-auto p-4 sm:p-6">
         <div v-if="errorMessage" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{{ errorMessage }}</div>
         <div v-if="phaseTwoMessage" class="mb-5 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
           <span><i class="fa-solid fa-circle-check mr-2"></i>{{ phaseTwoMessage }}</span>
@@ -1204,4 +1263,272 @@ onBeforeUnmount(() => {
 .bg-brand-600 { background-color: #ea580c; }
 .focus\:border-brand-500:focus { border-color: #f97316; }
 .focus\:ring-brand-500:focus { --tw-ring-color: rgb(249 115 22 / 0.5); }
+
+.admin-shell {
+  --admin-bg: #f6f7fb;
+  --admin-surface: rgba(255, 255, 255, 0.94);
+  --admin-surface-soft: #f8fafc;
+  --admin-line: rgba(226, 232, 240, 0.92);
+  --admin-text: #0f172a;
+  --admin-muted: #64748b;
+  --admin-sidebar: #0f172a;
+  --admin-sidebar-deep: #080f1f;
+  --admin-sidebar-line: rgba(148, 163, 184, 0.16);
+  --admin-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  --admin-shadow-soft: 0 10px 28px rgba(15, 23, 42, 0.06);
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.08), transparent 28rem),
+    radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.08), transparent 28rem),
+    var(--admin-bg);
+  color: var(--admin-text);
+}
+
+.admin-shell.admin-dark {
+  color-scheme: dark;
+  --admin-bg: #070b14;
+  --admin-surface: rgba(15, 23, 42, 0.94);
+  --admin-surface-soft: #111827;
+  --admin-line: rgba(71, 85, 105, 0.72);
+  --admin-text: #e5e7eb;
+  --admin-muted: #94a3b8;
+  --admin-sidebar: #050816;
+  --admin-sidebar-deep: #020617;
+  --admin-sidebar-line: rgba(148, 163, 184, 0.14);
+  --admin-shadow: 0 22px 55px rgba(0, 0, 0, 0.34);
+  --admin-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.26);
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.18), transparent 26rem),
+    radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.12), transparent 30rem),
+    var(--admin-bg);
+}
+
+.admin-sidebar {
+  background:
+    linear-gradient(180deg, var(--admin-sidebar), var(--admin-sidebar-deep)),
+    var(--admin-sidebar);
+  border-right: 1px solid var(--admin-sidebar-line);
+  box-shadow: 18px 0 45px rgba(2, 6, 23, 0.18);
+}
+
+.admin-sidebar-header,
+.admin-sidebar-footer {
+  border-color: var(--admin-sidebar-line);
+  background: rgba(2, 6, 23, 0.32);
+  backdrop-filter: blur(16px);
+}
+
+.admin-brand-mark {
+  letter-spacing: 0;
+}
+
+.admin-menu-label {
+  color: rgba(148, 163, 184, 0.76);
+}
+
+.admin-menu-button {
+  position: relative;
+  overflow: hidden;
+  min-height: 46px;
+}
+
+.admin-menu-button::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent);
+  transition: opacity 180ms ease;
+}
+
+.admin-menu-button:hover::after,
+.admin-menu-active::after {
+  opacity: 1;
+}
+
+.admin-menu-button:hover {
+  transform: translateX(2px);
+}
+
+.admin-menu-icon {
+  background: rgba(148, 163, 184, 0.10);
+  color: currentColor;
+}
+
+.admin-menu-active .admin-menu-icon {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+.admin-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-color: var(--admin-line);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.admin-dark .admin-topbar {
+  background: rgba(15, 23, 42, 0.86);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.26);
+}
+
+.admin-mobile-nav {
+  position: sticky;
+  top: 0;
+  z-index: 25;
+  border-color: var(--admin-line);
+  background: var(--admin-surface);
+  backdrop-filter: blur(18px);
+}
+
+.admin-main {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32), transparent 12rem),
+    transparent;
+}
+
+.admin-filter-control,
+.admin-icon-action {
+  border-color: var(--admin-line);
+}
+
+.admin-enterprise :deep(.rounded-2xl.border.border-slate-100.bg-white),
+.admin-enterprise :deep(section.rounded-2xl.border.border-slate-100.bg-white) {
+  border-color: var(--admin-line);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-enterprise :deep(.rounded-2xl.border.border-slate-100.bg-white:hover) {
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-enterprise :deep(button),
+.admin-enterprise :deep(input),
+.admin-enterprise :deep(select),
+.admin-enterprise :deep(textarea) {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-enterprise :deep(button:not(:disabled):active) {
+  transform: translateY(1px);
+}
+
+.admin-enterprise :deep(thead tr) {
+  background: linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.92));
+}
+
+.admin-enterprise :deep(tbody tr) {
+  transition: background-color 150ms ease;
+}
+
+.admin-enterprise :deep(tbody tr:hover) {
+  background-color: rgba(249, 115, 22, 0.045);
+}
+
+.admin-enterprise :deep(.h-2.overflow-hidden.rounded-full.bg-white) {
+  background-color: rgba(226, 232, 240, 0.95);
+}
+
+.admin-dark :deep(.bg-white) {
+  background-color: var(--admin-surface) !important;
+}
+
+.admin-dark :deep(.bg-slate-50),
+.admin-dark :deep(.bg-slate-100) {
+  background-color: var(--admin-surface-soft) !important;
+}
+
+.admin-dark :deep(.bg-orange-50),
+.admin-dark :deep(.bg-brand-50) {
+  background-color: rgba(249, 115, 22, 0.14) !important;
+}
+
+.admin-dark :deep(.bg-emerald-50) {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+}
+
+.admin-dark :deep(.bg-blue-50) {
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+
+.admin-dark :deep(.bg-red-50) {
+  background-color: rgba(239, 68, 68, 0.14) !important;
+}
+
+.admin-dark :deep(.bg-amber-50) {
+  background-color: rgba(245, 158, 11, 0.14) !important;
+}
+
+.admin-dark :deep(.border-slate-100),
+.admin-dark :deep(.border-slate-200),
+.admin-dark :deep(.border-orange-200),
+.admin-dark :deep(.border-red-100),
+.admin-dark :deep(.border-emerald-100),
+.admin-dark :deep(.border-blue-100),
+.admin-dark :deep(.border-amber-200) {
+  border-color: var(--admin-line) !important;
+}
+
+.admin-dark :deep(.text-slate-900),
+.admin-dark :deep(.text-slate-800),
+.admin-dark :deep(.text-slate-700),
+.admin-dark :deep(.text-slate-600) {
+  color: var(--admin-text) !important;
+}
+
+.admin-dark :deep(.text-slate-500),
+.admin-dark :deep(.text-slate-400) {
+  color: var(--admin-muted) !important;
+}
+
+.admin-dark :deep(input),
+.admin-dark :deep(select),
+.admin-dark :deep(textarea) {
+  border-color: var(--admin-line) !important;
+  background-color: rgba(2, 6, 23, 0.42) !important;
+  color: var(--admin-text) !important;
+}
+
+.admin-dark :deep(input::placeholder),
+.admin-dark :deep(textarea::placeholder) {
+  color: rgba(148, 163, 184, 0.72);
+}
+
+.admin-dark :deep(option) {
+  background-color: #0f172a;
+  color: #e5e7eb;
+}
+
+.admin-dark :deep(thead tr) {
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.92)) !important;
+}
+
+.admin-dark :deep(tbody tr:hover) {
+  background-color: rgba(249, 115, 22, 0.10) !important;
+}
+
+.admin-dark :deep(.h-2.overflow-hidden.rounded-full.bg-white) {
+  background-color: rgba(51, 65, 85, 0.82) !important;
+}
+
+.admin-dark :deep(.leaflet-container) {
+  filter: saturate(0.86) brightness(0.88) contrast(1.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-enterprise *,
+  .admin-enterprise *::before,
+  .admin-enterprise *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
 </style>
