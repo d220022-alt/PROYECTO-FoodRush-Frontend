@@ -117,14 +117,22 @@ export const getStatusLabel = (order = {}) => {
   const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
   const explicit = safeText(order?.statusLabel || order?.status || order?.estado?.descripcion || order?.estado);
   const explicitKey = normalizeStatusKey(explicit);
+  const statusIdLabel = ORDER_STATUS_LABELS[statusId];
+  const statusIdKey = statusIdLabel ? normalizeStatusKey(statusIdLabel) : '';
 
   if (statusId === ORDER_STATUS_IDS.pending && explicitKey === 'pendiente') {
     return ORDER_STATUS_LABELS[ORDER_STATUS_IDS.pending];
   }
 
+  if (statusIdLabel && statusId !== ORDER_STATUS_IDS.pending) {
+    if (!explicit || explicitKey === 'pendiente' || explicitKey !== statusIdKey) {
+      return statusIdLabel;
+    }
+  }
+
   if (explicit) return explicit;
 
-  return ORDER_STATUS_LABELS[statusId] || 'Pendiente';
+  return statusIdLabel || 'Pendiente';
 };
 
 const getStatusKey = (label = '') => normalizeStatusKey(label || 'Pendiente');

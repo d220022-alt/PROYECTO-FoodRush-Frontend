@@ -1,7 +1,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { fetchOperationalDataset, getOrderProgressStep, normalizeStatusKey } from '../services/operations';
+import { api } from '../services/api';
+import { buildTenantHeaders, fetchOperationalDataset, getOrderProgressStep, getStatusLabel, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
 import { resolveDeliveryCode } from '../utils/deliveryCode';
@@ -35,6 +36,15 @@ let fetchOrderPromise = null;
 
 const orderId = computed(() => route.params.id);
 const currentUserEmail = computed(() => getSession().userEmail || session.userEmail || localStorage.getItem('user_email') || '');
+const safeText = (value, fallback = '') => {
+    if (value === null || value === undefined) return fallback;
+    const normalized = String(value).trim();
+    return normalized || fallback;
+};
+const toNumber = (value, fallback = 0) => {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+};
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
 const currentStatusKey = computed(() => normalizeStatusKey(rawStatusLabel.value));
@@ -95,6 +105,63 @@ const normalizeCachedOrder = (cachedOrder) => {
     };
 };
 
+const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta = {}) => {
+    const mergedOrder = { ...baseOrder, ...remoteOrder };
+    const id = safeText(remoteOrder.id || baseOrder.id || orderId.value);
+    const tenantId = safeText(remoteOrder.tenant_id || remoteOrder.tenantId || baseOrder.tenantId || tenantMeta.id || route.query.tenant);
+    const statusId = Number.parseInt(remoteOrder.estado_id ?? remoteOrder.estado?.id ?? baseOrder.statusId, 10) || 1;
+    const statusLabel = getStatusLabel({
+        ...mergedOrder,
+        estado_id: statusId,
+        estado: remoteOrder.estado || baseOrder.estado,
+        statusLabel: remoteOrder.statusLabel,
+    });
+    const statusKey = normalizeStatusKey(remoteOrder.estado?.codigo || statusLabel);
+    const rawItems = Array.isArray(remoteOrder.items) ? remoteOrder.items : [];
+    const itemsDetailed = rawItems.length
+        ? rawItems.map((item, index) => {
+            const quantity = toNumber(item.cantidad ?? item.qty, 1);
+            const unitPrice = toNumber(item.precio_unitario ?? item.price ?? item.producto?.precio ?? item.product?.price, 0);
+
+            return {
+                id: safeText(item.id, `${id}-item-${index + 1}`),
+                productId: safeText(item.producto_id || item.productoId || item.producto?.id),
+                name: safeText(item.nombre || item.name || item.producto?.nombre || item.product?.name, 'Producto'),
+                quantity,
+                unitPrice,
+                subtotal: toNumber(item.subtotal, quantity * unitPrice),
+            };
+        })
+        : baseOrder.itemsDetailed || [];
+
+    return {
+        ...mergedOrder,
+        id,
+        tenantId,
+        tenantName: safeText(baseOrder.tenantName || tenantMeta.name || remoteOrder.tenant?.nombre, 'FoodRush'),
+        customerName: safeText(remoteOrder.cliente?.nombre || baseOrder.customerName || remoteOrder.user_name, 'Cliente FoodRush'),
+        customerPhone: safeText(remoteOrder.cliente?.telefono || baseOrder.customerPhone || remoteOrder.telefono),
+        customerEmail: safeText(remoteOrder.cliente?.correo || baseOrder.customerEmail || remoteOrder.user_email),
+        address: safeText(remoteOrder.direccion_entrega || baseOrder.address || remoteOrder.address, 'Recogida en tienda'),
+        totalValue: toNumber(remoteOrder.total ?? baseOrder.totalValue ?? baseOrder.total),
+        createdAt: safeText(remoteOrder.actualizado_en || remoteOrder.creado_en || baseOrder.createdAt, new Date().toISOString()),
+        statusId,
+        statusLabel,
+        statusKey,
+        progressStep: getOrderProgressStep(statusLabel),
+        securityCode: resolveDeliveryCode(mergedOrder, id),
+        driverName: safeText(remoteOrder.repartidor?.nombre || remoteOrder.repartidor_nombre || baseOrder.driverName),
+        driverEmail: safeText(remoteOrder.repartidor_email || baseOrder.driverEmail),
+        deliveryAssignment: baseOrder.deliveryAssignment,
+        driverLocation: baseOrder.driverLocation || null,
+        itemsDetailed,
+        itemSummary: itemsDetailed.length
+            ? itemsDetailed.map((item) => `${item.quantity}x ${item.name}`).join(', ')
+            : baseOrder.itemSummary || 'Sin detalle del pedido.',
+        source: 'remote',
+    };
+};
+
 const fetchOrder = async ({ silent = false } = {}) => {
     if (silent && document.visibilityState === 'hidden') return null;
     if (fetchOrderPromise) return fetchOrderPromise;
@@ -121,22 +188,39 @@ const fetchOrder = async ({ silent = false } = {}) => {
             });
 
             const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
-            if (remoteOrder) {
-                const ownerEmail = remoteOrder.customerEmail || cachedOrder?.user_email || currentUserEmail.value;
+            const tenantMeta = (dataset.tenants || []).find((tenant) => String(tenant.id) === String(selectedTenantId)) || {};
+            let authoritativeOrder = remoteOrder;
+
+            if (selectedTenantId && selectedTenantId !== 'Global' && !String(orderId.value || '').toLowerCase().startsWith('local-')) {
+                try {
+                    const detailResponse = await api.getOrder(orderId.value, buildTenantHeaders(selectedTenantId));
+                    if (detailResponse?.data) {
+                        authoritativeOrder = normalizeRemoteOrderDetail(detailResponse.data, remoteOrder || cachedOrder || {}, tenantMeta);
+                    }
+                } catch (detailError) {
+                    if (!remoteOrder) {
+                        throw detailError;
+                    }
+                    console.warn('No se pudo cargar el detalle autoritativo del pedido', detailError);
+                }
+            }
+
+            if (authoritativeOrder) {
+                const ownerEmail = authoritativeOrder.customerEmail || cachedOrder?.user_email || currentUserEmail.value;
                 if (ownerEmail) {
                     saveCachedOrder(
                         {
-                            ...remoteOrder,
-                            tenant_id: remoteOrder.tenantId || remoteOrder.tenant_id,
+                            ...authoritativeOrder,
+                            tenant_id: authoritativeOrder.tenantId || authoritativeOrder.tenant_id,
                             user_email: ownerEmail,
-                            user_name: remoteOrder.customerName,
+                            user_name: authoritativeOrder.customerName,
                             source: 'remote',
                         },
                         ownerEmail,
                     );
                 }
                 order.value = {
-                    ...remoteOrder,
+                    ...authoritativeOrder,
                     driverLocation: order.value?.driverLocation || null,
                 };
                 warnings.value = [];
@@ -219,7 +303,7 @@ const setupRealtimeConnection = () => {
         },
         onError(error) {
             console.warn('Realtime tracking no disponible', error);
-            realtimeWarning.value = 'Actualizacion en vivo no disponible. Seguimos revisando el pedido automaticamente cada minuto.';
+            realtimeWarning.value = 'Actualizacion en vivo no disponible. Seguimos revisando el pedido automaticamente cada 20 segundos.';
         },
     });
 };

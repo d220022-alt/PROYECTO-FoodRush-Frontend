@@ -811,7 +811,7 @@ const setupRealtimeConnections = () => {
             },
             onError(error) {
                 console.warn('Realtime delivery no disponible', error);
-                realtimeWarning.value = 'Actualizacion en vivo no disponible. Usa el boton de actualizar para revisar pedidos mientras se restablece.';
+                realtimeWarning.value = 'Actualizacion en vivo no disponible. Seguimos revisando pedidos automaticamente cada 20 segundos.';
             },
         }),
     );
