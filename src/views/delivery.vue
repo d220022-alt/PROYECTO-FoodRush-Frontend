@@ -3,9 +3,11 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
+import { getQaOrderStatusPatch, isQaOrder, setQaOrderOverride } from '../data/qaOperationalDataset';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
+import { useTheme } from '../services/theme';
 import { normalizeDeliveryCodeInput, resolveDeliveryCode } from '../utils/deliveryCode';
 import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
@@ -53,6 +55,7 @@ const defaultState = () => ({
 
 const session = getSession();
 const router = useRouter();
+const { isDarkMode, toggleTheme } = useTheme();
 const state = reactive(defaultState());
 const data = ref({ tenants: [], orders: [], warnings: [], connectedUsers: [], sessions: [] });
 const currentView = ref('orders');
@@ -145,6 +148,30 @@ const driverIdentity = () => ({
 
 const syncDeliveryAssignment = async (order, stage, status = stage) => {
     const identity = driverIdentity();
+    if (isQaOrder(order)) {
+        const assignment = {
+            orderId: order.id,
+            pedido_id: order.id,
+            tenantId: order.tenantId,
+            tenant_id: order.tenantId,
+            driverId: session.userId || 'qa-delivery-driver',
+            repartidor_id: session.userId || 'qa-delivery-driver',
+            stage,
+            status,
+            assignedAt: order.deliveryAssignment?.assignedAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...identity,
+        };
+
+        setDeliveryAssignment(order.id, assignment);
+        setQaOrderOverride(order.id, {
+            deliveryAssignment: assignment,
+            driverName: identity.driverName,
+            driverEmail: identity.driverEmail,
+        });
+        return assignment;
+    }
+
     const response = await api.upsertDeliveryAssignment({
         orderId: order.id,
         pedido_id: order.id,
@@ -177,6 +204,8 @@ const reportDriverLocation = async (point, stage = '') => {
 
     if (key === lastLocationReportKey) return;
     lastLocationReportKey = key;
+
+    if (isQaOrder(state.activeOrder)) return;
 
     try {
         await api.recordDriverLocation({
@@ -229,6 +258,11 @@ const buildOrderView = (order = {}, status = 'pending') => {
         descripcionDetallada: buildOrderDescription(order),
     };
 };
+
+const buildQaOrderWithStatus = (order = {}, nextStatus) => ({
+    ...order,
+    ...getQaOrderStatusPatch(nextStatus),
+});
 
 const tenantOptions = computed(() => [
     { value: 'Global', label: '🍽️ Ver todas las tiendas' },
@@ -876,6 +910,26 @@ const acceptOrder = async (id) => {
     isAdvancing.value = true;
     try {
         const identity = driverIdentity();
+        if (isQaOrder(order)) {
+            await syncDeliveryAssignment(order, 'accepted', 'accepted');
+            const updatedOrder = buildQaOrderWithStatus(order, ORDER_STATUS_CODES.preparing);
+            setQaOrderOverride(order.id, {
+                ...getQaOrderStatusPatch(ORDER_STATUS_CODES.preparing),
+                driverName: identity.driverName,
+                driverEmail: identity.driverEmail,
+            });
+            state.activeOrderId = String(order.id);
+            state.activeStage = 'accepted';
+            state.activeOrder = buildOrderView(updatedOrder, 'accepted');
+            state.lastWorkDate = Date.now();
+            state.dismissedOrderIds = state.dismissedOrderIds.filter((candidate) => String(candidate) !== String(order.id));
+            currentTab.value = 'active';
+            saveState();
+            await refreshData({ silent: true });
+            showToast('Pedido QA aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
+            return;
+        }
+
         const response = await api.updateOrder(order.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(order.tenantId));
         await syncDeliveryAssignment(order, 'accepted', 'accepted');
         updateCachedOrderStatus(order.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing, null, {
@@ -940,6 +994,22 @@ const updateOrderStatus = async (status) => {
         isAdvancing.value = true;
         try {
             const identity = driverIdentity();
+            if (isQaOrder(state.activeOrder)) {
+                const updatedOrder = buildQaOrderWithStatus(state.activeOrder, ORDER_STATUS_CODES.inTransit);
+                setQaOrderOverride(state.activeOrder.id, {
+                    ...getQaOrderStatusPatch(ORDER_STATUS_CODES.inTransit),
+                    driverName: identity.driverName,
+                    driverEmail: identity.driverEmail,
+                });
+                await syncDeliveryAssignment(updatedOrder, 'picked', 'picked');
+                state.activeStage = 'picked';
+                state.activeOrder = buildOrderView(updatedOrder, 'picked');
+                saveState();
+                await refreshData({ silent: true });
+                showToast('Comida QA recibida. Ruta activada hacia el cliente.');
+                return;
+            }
+
             const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
             await syncDeliveryAssignment(state.activeOrder, 'picked', 'picked');
             updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.inTransit, null, {
@@ -981,9 +1051,14 @@ const cancelOrder = async () => {
     const releasedOrder = state.activeOrder;
 
     try {
-        const response = await api.updateOrder(releasedOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(releasedOrder.tenantId));
-        await syncDeliveryAssignment(releasedOrder, 'released', 'released');
-        updateCachedOrderStatus(releasedOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
+        if (isQaOrder(releasedOrder)) {
+            setQaOrderOverride(releasedOrder.id, getQaOrderStatusPatch(ORDER_STATUS_CODES.preparing));
+            await syncDeliveryAssignment(releasedOrder, 'released', 'released');
+        } else {
+            const response = await api.updateOrder(releasedOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(releasedOrder.tenantId));
+            await syncDeliveryAssignment(releasedOrder, 'released', 'released');
+            updateCachedOrderStatus(releasedOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
+        }
     } catch (error) {
         console.warn('No se pudo devolver el pedido a preparacion', error);
     }
@@ -1056,15 +1131,26 @@ const completeDelivery = async () => {
     try {
         const deliveredOrder = state.activeOrder;
         const identity = driverIdentity();
-        const response = await api.updateOrder(deliveredOrder.id, {
-            estado_id: ORDER_STATUS_CODES.delivered,
-            nota: `Entrega confirmada con codigo ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
-        }, buildTenantHeaders(deliveredOrder.tenantId));
-        await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
-        updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
-            repartidor_nombre: identity.driverName,
-            repartidor_email: identity.driverEmail,
-        });
+        if (isQaOrder(deliveredOrder)) {
+            setQaOrderOverride(deliveredOrder.id, {
+                ...getQaOrderStatusPatch(ORDER_STATUS_CODES.delivered),
+                driverName: identity.driverName,
+                driverEmail: identity.driverEmail,
+                deliveryProof: deliveryProofFile.value?.name || 'foto',
+                confirmedCode: normalizedDeliveryCode.value,
+            });
+            await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
+        } else {
+            const response = await api.updateOrder(deliveredOrder.id, {
+                estado_id: ORDER_STATUS_CODES.delivered,
+                nota: `Entrega confirmada con codigo ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
+            }, buildTenantHeaders(deliveredOrder.tenantId));
+            await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
+            updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
+                repartidor_nombre: identity.driverName,
+                repartidor_email: identity.driverEmail,
+            });
+        }
         const payment = Number(deliveredOrder.price || 0);
         state.earnings += payment;
         state.trips += 1;
@@ -1224,7 +1310,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700">
+    <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700" :class="{ 'delivery-dark': isDarkMode }">
         <div
             v-if="onboardingVisible"
             :class="[
@@ -1297,13 +1383,23 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <button
-                type="button"
-                class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-[#f97316] shadow-sm transition active:bg-orange-100"
-                @click="refreshData({ silent: true })"
-            >
-                <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': isRefreshing }"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg text-slate-600 shadow-sm transition active:bg-slate-200"
+                    :aria-label="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
+                    @click="toggleTheme"
+                >
+                    <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+                </button>
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-[#f97316] shadow-sm transition active:bg-orange-100"
+                    @click="refreshData({ silent: true })"
+                >
+                    <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': isRefreshing }"></i>
+                </button>
+            </div>
         </header>
 
         <main class="hide-scrollbar relative mx-auto w-full max-w-md flex-1 overflow-y-auto pb-20">

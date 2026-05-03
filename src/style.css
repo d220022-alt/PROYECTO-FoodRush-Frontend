@@ -16,7 +16,12 @@ body,
   overflow-x: hidden;
 }
 
-body { font-family: 'Poppins', sans-serif; background-color: #FFFBE6; }
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #FFFBE6;
+  color: #111827;
+  transition: background-color 180ms ease, color 180ms ease;
+}
 
 img,
 video,
@@ -96,5 +101,285 @@ textarea {
 
   table {
     min-width: 640px;
+  }
+}
+
+/* FoodRush theme system */
+:root {
+  --fr-bg: #fffbe6;
+  --fr-surface: #ffffff;
+  --fr-surface-soft: #fff7ed;
+  --fr-panel: #f8fafc;
+  --fr-border: rgba(15, 23, 42, 0.1);
+  --fr-text: #111827;
+  --fr-muted: #64748b;
+  --fr-brand: #f97316;
+  --fr-danger: #ef4444;
+  --fr-success: #22c55e;
+  --fr-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}
+
+html.foodrush-dark {
+  --fr-bg: #070b14;
+  --fr-surface: #101827;
+  --fr-surface-soft: #172033;
+  --fr-panel: #0d1424;
+  --fr-border: rgba(148, 163, 184, 0.22);
+  --fr-text: #f8fafc;
+  --fr-muted: #9aa8bd;
+  --fr-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
+}
+
+html.foodrush-dark body {
+  background: radial-gradient(circle at 20% 0%, rgba(249, 115, 22, 0.1), transparent 28%), var(--fr-bg);
+  color: var(--fr-text);
+}
+
+.foodrush-theme-toggle {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 1200;
+  display: inline-flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(249, 115, 22, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #f97316;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(16px);
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.foodrush-theme-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 50px rgba(15, 23, 42, 0.22);
+}
+
+html.foodrush-dark .foodrush-theme-toggle {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(249, 115, 22, 0.42);
+  color: #fdba74;
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.5);
+}
+
+html.foodrush-dark .bg-cream,
+html.foodrush-dark .bg-\[\#FAFAF5\],
+html.foodrush-dark .bg-gray-50,
+html.foodrush-dark .bg-slate-50 {
+  background-color: var(--fr-bg) !important;
+}
+
+html.foodrush-dark .bg-white {
+  background-color: var(--fr-surface) !important;
+}
+
+html.foodrush-dark .bg-slate-100,
+html.foodrush-dark .bg-gray-100,
+html.foodrush-dark .bg-orange-50,
+html.foodrush-dark .bg-red-50,
+html.foodrush-dark .bg-amber-50,
+html.foodrush-dark .bg-emerald-50,
+html.foodrush-dark .bg-blue-50,
+html.foodrush-dark .bg-purple-50,
+html.foodrush-dark .bg-pink-50 {
+  background-color: var(--fr-surface-soft) !important;
+}
+
+html.foodrush-dark .text-dark,
+html.foodrush-dark .text-slate-950,
+html.foodrush-dark .text-slate-900,
+html.foodrush-dark .text-slate-800,
+html.foodrush-dark .text-gray-900,
+html.foodrush-dark .text-gray-800 {
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .text-slate-700,
+html.foodrush-dark .text-slate-600,
+html.foodrush-dark .text-gray-700,
+html.foodrush-dark .text-gray-600 {
+  color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .text-slate-500,
+html.foodrush-dark .text-slate-400,
+html.foodrush-dark .text-gray-500,
+html.foodrush-dark .text-gray-400 {
+  color: var(--fr-muted) !important;
+}
+
+html.foodrush-dark .border-slate-50,
+html.foodrush-dark .border-slate-100,
+html.foodrush-dark .border-slate-200,
+html.foodrush-dark .border-gray-100,
+html.foodrush-dark .border-gray-200,
+html.foodrush-dark .border-orange-100,
+html.foodrush-dark .border-orange-200,
+html.foodrush-dark .border-red-100,
+html.foodrush-dark .border-emerald-100,
+html.foodrush-dark .border-blue-100,
+html.foodrush-dark .border-amber-200 {
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark input,
+html.foodrush-dark select,
+html.foodrush-dark textarea {
+  background-color: #0d1424 !important;
+  border-color: var(--fr-border) !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark input::placeholder,
+html.foodrush-dark textarea::placeholder {
+  color: #6b7a90 !important;
+}
+
+html.foodrush-dark option {
+  background: #0d1424;
+  color: var(--fr-text);
+}
+
+html.foodrush-dark table {
+  color: var(--fr-text);
+}
+
+html.foodrush-dark .shadow-sm,
+html.foodrush-dark .shadow-md,
+html.foodrush-dark .shadow-lg,
+html.foodrush-dark .shadow-xl,
+html.foodrush-dark .shadow-2xl {
+  box-shadow: var(--fr-shadow) !important;
+}
+
+html.foodrush-dark .leaflet-container {
+  background: #0f172a !important;
+  filter: brightness(0.78) contrast(1.1) saturate(0.86);
+}
+
+html.foodrush-dark .leaflet-control,
+html.foodrush-dark .leaflet-popup-content-wrapper,
+html.foodrush-dark .leaflet-popup-tip {
+  background: #101827 !important;
+  color: var(--fr-text) !important;
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark .swal2-popup {
+  background: #101827 !important;
+  color: var(--fr-text) !important;
+  border: 1px solid var(--fr-border) !important;
+}
+
+html.foodrush-dark .swal2-title {
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .swal2-html-container {
+  color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .swal2-input,
+html.foodrush-dark .swal2-textarea,
+html.foodrush-dark .swal2-select {
+  background: #0d1424 !important;
+  color: var(--fr-text) !important;
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark .clean-search,
+html.foodrush-dark .filter-action-bar,
+html.foodrush-dark .offer-card,
+html.foodrush-dark .card-franchise,
+html.foodrush-dark .franchise-logo-frame,
+html.foodrush-dark .order-card,
+html.foodrush-dark .cart-card,
+html.foodrush-dark .checkout-card,
+html.foodrush-dark .tracking-card {
+  background: linear-gradient(180deg, rgba(16, 24, 39, 0.98), rgba(12, 18, 31, 0.98)) !important;
+  border-color: var(--fr-border) !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .filter-btn,
+html.foodrush-dark .modal-chip,
+html.foodrush-dark .franchise-category,
+html.foodrush-dark .category-pill,
+html.foodrush-dark .category-btn {
+  background: rgba(15, 23, 42, 0.86) !important;
+  border-color: var(--fr-border) !important;
+  color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .filter-btn.active,
+html.foodrush-dark .modal-chip.active,
+html.foodrush-dark .category-btn.active {
+  background: linear-gradient(135deg, #e11d48, #f97316) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+html.foodrush-dark .bg-dark {
+  background-color: #080d19 !important;
+}
+
+html.foodrush-dark .login-body,
+html.foodrush-dark .auth-page {
+  background:
+    radial-gradient(circle at 10% 5%, rgba(249, 115, 22, 0.18), transparent 26%),
+    radial-gradient(circle at 90% 20%, rgba(225, 29, 72, 0.12), transparent 28%),
+    #070b14 !important;
+}
+
+html.foodrush-dark .login-body .card,
+html.foodrush-dark .login-body .form-panel,
+html.foodrush-dark .login-body .header,
+html.foodrush-dark .login-body .form-container,
+html.foodrush-dark .login-body .input-group input,
+html.foodrush-dark .login-body .social-btn {
+  background-color: rgba(16, 24, 39, 0.96) !important;
+  border-color: var(--fr-border) !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .login-body .subtitle,
+html.foodrush-dark .login-body label,
+html.foodrush-dark .login-body .separator,
+html.foodrush-dark .login-body .terms,
+html.foodrush-dark .login-body .toggle-text {
+  color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .delivery-pro {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(249, 115, 22, 0.12), transparent 32%),
+    #070b14 !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .delivery-pro header,
+html.foodrush-dark .delivery-pro nav,
+html.foodrush-dark .delivery-pro .view > div,
+html.foodrush-dark .delivery-pro .rounded-2xl,
+html.foodrush-dark .delivery-onboarding {
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark .delivery-pro nav {
+  background: rgba(8, 13, 25, 0.96) !important;
+}
+
+html.foodrush-dark .delivery-onboarding .hide-scrollbar {
+  background: #070b14 !important;
+}
+
+@media (min-width: 768px) {
+  .foodrush-theme-toggle {
+    top: 1.25rem;
+    bottom: auto;
   }
 }

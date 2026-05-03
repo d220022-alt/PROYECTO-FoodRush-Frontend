@@ -5,9 +5,11 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import AdminZonesMap from '../components/AdminZonesMap.vue';
 import { api } from '../services/api';
 import { appendAuditLog, buildClosureSnapshot, createClosureRecordRemote, getAdminZones, getAuditLog, getClosureRecords, loadAdminPhaseTwoState, saveAdminZoneRemote } from '../services/adminPhaseTwo';
+import { getQaOrderStatusPatch, isQaDatasetEnabled, isQaOrder, setQaDatasetEnabled, setQaOrderOverride } from '../data/qaOperationalDataset';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
+import { useTheme } from '../services/theme';
 
 const router = useRouter();
 const session = getSession();
@@ -26,6 +28,7 @@ const errorMessage = ref('');
 const phaseTwoMessage = ref('');
 const lastUpdatedAt = ref('');
 const data = ref({ tenants: [], orders: [], products: [], users: [], connectedUsers: [], sessions: [], warnings: [] });
+const qaDatasetEnabled = ref(isQaDatasetEnabled());
 const operationZones = ref(getAdminZones());
 const selectedZoneId = ref(operationZones.value[0]?.id || '');
 const zoneDraft = ref({});
@@ -33,14 +36,7 @@ const closureRecords = ref(getClosureRecords());
 const auditEntries = ref(getAuditLog());
 const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
-const ADMIN_THEME_STORAGE_KEY = 'foodrush_admin_theme';
-
-const readAdminThemePreference = () => {
-  if (typeof window === 'undefined') return false;
-  return window.localStorage.getItem(ADMIN_THEME_STORAGE_KEY) === 'dark';
-};
-
-const isDarkMode = ref(readAdminThemePreference());
+const { isDarkMode, toggleTheme } = useTheme();
 
 const menuGroups = [
   { name: 'SISTEMA GLOBAL', items: [{ id: 'dashboard', name: 'Dashboard Principal', icon: 'fa-solid fa-chart-pie' }] },
@@ -147,11 +143,16 @@ const syncStatusClass = computed(() => {
   return 'border-emerald-200 bg-emerald-50 text-emerald-700';
 });
 
-const toggleAdminTheme = () => {
-  isDarkMode.value = !isDarkMode.value;
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(ADMIN_THEME_STORAGE_KEY, isDarkMode.value ? 'dark' : 'light');
-  }
+const toggleAdminTheme = () => toggleTheme();
+
+const toggleQaDatasetMode = () => {
+  const nextValue = !qaDatasetEnabled.value;
+  qaDatasetEnabled.value = nextValue;
+  setQaDatasetEnabled(nextValue);
+  phaseTwoMessage.value = nextValue
+    ? 'Datos QA activados para probar dashboards, pedidos y delivery.'
+    : 'Datos QA ocultos. Solo se muestran datos reales del backend.';
+  void refreshData({ silent: true });
 };
 
 const franchises = computed(() => data.value.tenants || []);
@@ -559,6 +560,7 @@ const refreshData = async ({ silent = false } = {}) => {
     errorMessage.value = '';
     try {
       data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: true });
+      qaDatasetEnabled.value = data.value?.qaEnabled !== false;
       lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
       return data.value;
     } catch (error) {
@@ -584,6 +586,25 @@ const updateOrderStatus = async (order, nextStatusId) => {
 
   savingOrderId.value = String(order.id);
   try {
+    if (isQaOrder(order)) {
+      setQaOrderOverride(order.id, getQaOrderStatusPatch(nextStatusId));
+      appendAuditLog({
+        action: 'Estado de pedido QA',
+        detail: `Pedido #${order.id} paso a ${nextStatusId}.`,
+        tenantId: order.tenantId,
+        tenantName: order.tenantName,
+        tone: statusKey === 'cancelado' ? 'danger' : statusKey === 'entregado' ? 'success' : 'info',
+        metadata: { orderId: order.id, status: nextStatusId, source: 'qa' },
+      });
+      if (['pendiente', 'cancelado'].includes(statusKey)) {
+        clearDeliveryAssignment(order.id);
+      }
+      phaseTwoMessage.value = `Pedido QA #${order.id} actualizado localmente.`;
+      await refreshPhaseTwoState({ remote: false });
+      await refreshData({ silent: true });
+      return;
+    }
+
     const response = await api.updateOrder(order.id, { estado_id: nextStatusId }, buildTenantHeaders(order.tenantId));
     const resolvedStatusId = response?.data?.estado_id || response?.data?.estado?.id;
     updateCachedOrderStatus(order.id, resolvedStatusId || nextStatusId);
@@ -778,6 +799,10 @@ onBeforeUnmount(() => {
           <button type="button" class="admin-icon-action inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-500 shadow-sm hover:border-brand-200 hover:text-brand-600" @click="toggleAdminTheme" :aria-pressed="isDarkMode">
             <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
             <span>{{ isDarkMode ? 'Claro' : 'Oscuro' }}</span>
+          </button>
+          <button type="button" class="admin-icon-action inline-flex h-12 items-center justify-center gap-2 rounded-2xl border px-4 text-sm font-black shadow-sm" :class="qaDatasetEnabled ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:border-emerald-300' : 'border-slate-200 bg-white text-slate-500 hover:border-brand-200 hover:text-brand-600'" @click="toggleQaDatasetMode" :aria-pressed="qaDatasetEnabled">
+            <i class="fa-solid fa-flask"></i>
+            <span>{{ qaDatasetEnabled ? 'Datos QA' : 'QA off' }}</span>
           </button>
           <button type="button" class="admin-icon-action inline-flex h-12 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-slate-500 shadow-sm hover:border-brand-200 hover:text-brand-600" aria-label="Actualizar datos" @click="refreshData({ silent: true })">
             <i class="fa-solid fa-rotate-right text-xl" :class="{ 'fa-spin': isRefreshing }"></i>

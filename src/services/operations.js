@@ -1,5 +1,6 @@
 import { api } from './api';
 import { getDeliveryAssignment, getSession } from './storage';
+import { enrichOperationalDatasetWithQaData } from '../data/qaOperationalDataset';
 import { franchiseConfigs } from '../views/franchiseConfigs';
 import { resolveDeliveryCode } from '../utils/deliveryCode';
 
@@ -112,6 +113,19 @@ const dedupeBy = (items = [], getKey) => {
 
 export const buildTenantHeaders = (tenantId) =>
   tenantId ? { 'X-Tenant-ID': String(tenantId) } : {};
+
+const buildFallbackTenantsFromConfigs = () =>
+  Object.values(franchiseConfigs).map((config, index) =>
+    normalizeTenant(
+      {
+        id: config.tenantId || index + 1,
+        codigo: config.slug || `tenant-${index + 1}`,
+        nombre: config.name || `Franquicia ${index + 1}`,
+        activo: true,
+      },
+      index,
+    ),
+  );
 
 export const getStatusLabel = (order = {}) => {
   const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
@@ -420,8 +434,15 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
 
 export async function fetchOperationalDataset({ selectedTenantId = 'Global', includeSessions = true } = {}) {
   const warnings = [];
-  const tenantsResponse = await api.getFranchises();
-  const tenants = (tenantsResponse?.data || []).map((tenant, index) => normalizeTenant(tenant, index));
+  let tenants = [];
+
+  try {
+    const tenantsResponse = await api.getFranchises();
+    tenants = (tenantsResponse?.data || []).map((tenant, index) => normalizeTenant(tenant, index));
+  } catch (error) {
+    warnings.push(`Franquicias: ${error.message || 'No disponible'}`);
+    tenants = buildFallbackTenantsFromConfigs();
+  }
   const sessionTenantId = safeText(getSession().tenantId);
   const requestedTenantId = safeText(selectedTenantId, 'Global');
   const effectiveTenantId =
@@ -494,14 +515,16 @@ export async function fetchOperationalDataset({ selectedTenantId = 'Global', inc
     (session) => `${session.tenantId}:${session.userId}:${session.id}`,
   );
 
-  return {
+  return enrichOperationalDatasetWithQaData({
     tenants,
     scopedTenants,
+    requestedTenantId,
+    effectiveTenantId,
     orders,
     products,
     users,
     connectedUsers,
     sessions: uniqueSessions,
     warnings: dedupeBy(warnings.filter(Boolean), (warning) => warning),
-  };
+  });
 }
