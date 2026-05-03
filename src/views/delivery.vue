@@ -1060,9 +1060,8 @@ const changeTenant = () => {
 
 const logout = () => {
     if (window.confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión para entrar al panel de delivery.')) {
+        saveState();
         clearSession();
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TUTORIAL_KEY);
         router.replace('/login');
     }
 };

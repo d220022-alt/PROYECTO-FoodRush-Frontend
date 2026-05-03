@@ -374,6 +374,7 @@ const editAddress = async () => {
 
     if (mapInstance && currentMode.value === 'delivery') {
       const location = getCustomerLocation({ id: 'checkout', address: value });
+      cachedPos = { lat: location.lat, lng: location.lng };
       updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
     }
   }
@@ -476,6 +477,85 @@ const resolveRemoteOrderItems = async () => {
   });
 };
 
+const normalizeOrderItemForPayload = (item = {}) => {
+  const quantity = Number(item.qty || item.cantidad || item.quantity || 1);
+  const price = Number(item.price || item.precio || item.unitPrice || 0);
+
+  return {
+    ...item,
+    id: item.id || item.productId || item.producto_id,
+    producto_id: item.producto_id || item.productId || item.id,
+    name: item.name || item.nombre || 'Producto',
+    nombre: item.nombre || item.name || 'Producto',
+    qty: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+    cantidad: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+    price: Number.isFinite(price) ? price : 0,
+    precio_unitario: Number.isFinite(price) ? price : 0,
+    subtotal: Number(item.subtotal) || ((Number.isFinite(price) ? price : 0) * (Number.isFinite(quantity) && quantity > 0 ? quantity : 1)),
+    tenant_id: item.tenant_id || item.tenantId || resolveTenantId(),
+    tenantId: item.tenantId || item.tenant_id || resolveTenantId(),
+  };
+};
+
+const resolveOrderLocationPayload = () => {
+  if (currentMode.value === 'pickup') {
+    const storeLocation = getStoreLocation({ tenant_id: resolveTenantId() });
+    return { lat: storeLocation.lat, lng: storeLocation.lng };
+  }
+
+  if (cachedPos) {
+    return { lat: cachedPos.lat, lng: cachedPos.lng };
+  }
+
+  const { location } = resolveSafeFallbackLocation();
+  cachedPos = { lat: location.lat, lng: location.lng };
+  return { lat: location.lat, lng: location.lng };
+};
+
+const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.value } = {}) => {
+  const methodMap = {
+      'cash': 'Efectivo',
+      'card': 'Tarjeta (Pagado)',
+      'paypal': 'PayPal (Pagado)'
+  };
+  const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value;
+  const deliveryLocation = resolveOrderLocationPayload();
+  const deliveryNotes = [
+      `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
+      `Instrucciones: ${instructionsText.value}`,
+      currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      deliveryType.value === 'scheduled' && scheduleDate.value ? `Programado para: ${scheduleDate.value}` : '',
+  ].filter(Boolean).join('. ');
+
+  return {
+      cliente_id: clientId,
+      total: orderTotal,
+      tenant_id: resolveTenantId(),
+      direccion_entrega: deliveryAddress,
+      notas: deliveryNotes,
+      estado_id: 'pendiente',
+      items: items.map(normalizeOrderItemForPayload),
+      metodo_pago: paymentMethod.value,
+      tipo_entrega: currentMode.value,
+      lat: deliveryLocation?.lat,
+      lng: deliveryLocation?.lng,
+  };
+};
+
+const buildTrackingRoute = (order = {}, payload = {}) => {
+  const tenantId = order.tenantId || order.tenant_id || payload.tenant_id || resolveTenantId();
+  return {
+    path: `/tracking/${order.id}`,
+    query: tenantId ? { tenant: String(tenantId) } : {},
+  };
+};
+
+const buildTrackingPath = (order = {}, payload = {}) => {
+  const route = buildTrackingRoute(order, payload);
+  const tenantId = route.query.tenant;
+  return `${route.path}${tenantId ? `?tenant=${encodeURIComponent(tenantId)}` : ''}`;
+};
+
 const processOrder = async () => {
   if (cartItems.value.length === 0) {
       return Swal.fire('Error', 'El carrito está vacío.', 'error');
@@ -538,42 +618,29 @@ const processOrder = async () => {
       }
 
       const identity = resolveUserIdentity();
-      const clientId = (await resolveClientId(identity)) || 1;
-      const syncedItems = await resolveRemoteOrderItems();
-      const syncedSubtotal = syncedItems.reduce(
-        (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
-        0,
-      );
-      const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
-
-      const methodMap = {
-          'cash': 'Efectivo',
-          'card': 'Tarjeta (Pagado)',
-          'paypal': 'PayPal (Pagado)'
-      };
-
-      const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value;
-      const deliveryNotes = [
-          `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
-          `Instrucciones: ${instructionsText.value}`,
-          currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
-      ].filter(Boolean).join('. ');
-
-      const orderPayload = {
-          cliente_id: clientId,
-          total: syncedTotal,
-          tenant_id: resolveTenantId(),
-          direccion_entrega: deliveryAddress,
-          notas: deliveryNotes,
-          estado_id: 1, // Pendiente
-          items: syncedItems,
-          metodo_pago: paymentMethod.value
-      };
-
+      let clientId = null;
+      let orderPayload = null;
       let finalOrder = null;
       let usedLocalFallback = false;
 
       try {
+          clientId = await resolveClientId(identity);
+          if (!clientId) {
+              throw new Error('No se pudo crear o recuperar el cliente para este pedido.');
+          }
+
+          const syncedItems = await resolveRemoteOrderItems();
+          const syncedSubtotal = syncedItems.reduce(
+            (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+            0,
+          );
+          const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
+          orderPayload = buildOrderPayload({
+            clientId,
+            items: syncedItems,
+            orderTotal: syncedTotal,
+          });
+
           const orderParams = await api.createOrder(orderPayload, resolveTenantHeaders());
           if (orderParams.success && orderParams.data) {
               finalOrder = saveCachedOrder(
@@ -583,6 +650,7 @@ const processOrder = async () => {
                   items: orderParams.data.items || orderPayload.items,
                   user_email: identity.email,
                   user_name: identity.name,
+                  tipo_entrega: orderParams.data.tipo_entrega || orderPayload.tipo_entrega,
                   source: 'remote'
                 },
                 identity.email
@@ -593,6 +661,11 @@ const processOrder = async () => {
       } catch (serverError) {
           console.warn('Falling back to local order storage', serverError);
           usedLocalFallback = true;
+          orderPayload = orderPayload || buildOrderPayload({
+            clientId,
+            items: cartItems.value.map(normalizeOrderItemForPayload),
+            orderTotal: total.value,
+          });
           finalOrder = saveCachedOrder(
             buildLocalOrder({
               orderPayload,
@@ -607,6 +680,8 @@ const processOrder = async () => {
       }
 
       if (finalOrder) {
+          const trackingRoute = buildTrackingRoute(finalOrder, orderPayload);
+          const trackingPath = buildTrackingPath(finalOrder, orderPayload);
           const notificationTitle = usedLocalFallback
             ? `Pedido #${finalOrder.id} pendiente`
             : `Pedido #${finalOrder.id} enviado`;
@@ -628,7 +703,7 @@ const processOrder = async () => {
               title: notificationTitle,
               message: notificationMessage,
               icon: 'fa-solid fa-receipt',
-              route: `/tracking/${finalOrder.id}`,
+              route: trackingPath,
               order_id: finalOrder.id,
             },
             identity.email,
@@ -642,7 +717,7 @@ const processOrder = async () => {
               allowOutsideClick: false
           }).then(() => {
               clearCart();
-              router.push(`/tracking/${finalOrder.id}`);
+              router.push(trackingRoute);
           });
       } else {
           throw new Error('No se pudo registrar el pedido.');
@@ -749,6 +824,7 @@ const applySavedLocationFallback = (message = '') => {
 
   locationError.value = message;
   mapLoading.value = false;
+  cachedPos = { lat: location.lat, lng: location.lng };
   updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
 };
 

@@ -3,7 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
-import { getCachedOrderById, getSession } from '../services/storage';
+import { getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
 
 const route = useRoute();
@@ -31,7 +31,7 @@ let realtimeRefreshTimer = null;
 let fetchOrderPromise = null;
 
 const orderId = computed(() => route.params.id);
-const currentUserEmail = computed(() => session.userEmail || '');
+const currentUserEmail = computed(() => getSession().userEmail || session.userEmail || localStorage.getItem('user_email') || '');
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
 const currentStatusLabel = computed(() => {
@@ -114,6 +114,19 @@ const fetchOrder = async ({ silent = false } = {}) => {
 
             const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
             if (remoteOrder) {
+                const ownerEmail = remoteOrder.customerEmail || cachedOrder?.user_email || currentUserEmail.value;
+                if (ownerEmail) {
+                    saveCachedOrder(
+                        {
+                            ...remoteOrder,
+                            tenant_id: remoteOrder.tenantId || remoteOrder.tenant_id,
+                            user_email: ownerEmail,
+                            user_name: remoteOrder.customerName,
+                            source: 'remote',
+                        },
+                        ownerEmail,
+                    );
+                }
                 order.value = {
                     ...remoteOrder,
                     driverLocation: order.value?.driverLocation || null,

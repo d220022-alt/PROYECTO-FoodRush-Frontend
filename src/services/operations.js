@@ -20,7 +20,7 @@ export const ORDER_STATUS_CODES = {
 };
 
 export const ORDER_STATUS_LABELS = {
-  1: 'Pedido recibido',
+  1: 'Pendiente de confirmacion',
   2: 'Pedido confirmado por el restaurante',
   3: 'Pedido en preparación',
   4: 'Pedido en camino',
@@ -85,8 +85,8 @@ export const normalizeStatusKey = (value = '') => {
   if (normalized.includes('cancel')) return 'cancelado';
   if (normalized.includes('entreg')) return 'entregado';
   if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
-  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
   if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
   return normalized;
 };
 
@@ -275,9 +275,19 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
   const id = safeText(order.id);
   const statusLabel = getStatusLabel(order);
   const statusKey = getStatusKey(order.estado?.codigo || order.statusKey || order.status_key || statusLabel);
-  const relatedItems = (itemsByOrderId.get(id) || []).map((item, index) => {
+  const explicitItems = Array.isArray(order.items) ? order.items : [];
+  const itemCandidates = dedupeBy(
+    [...(itemsByOrderId.get(id) || []), ...explicitItems],
+    (item, index) => safeText(item.id, `${safeText(item.producto_id || item.productId || item.producto?.id)}:${index}`),
+  );
+
+  const relatedItems = itemCandidates.map((item, index) => {
     const productId = safeText(item.producto_id || item.productoId);
-    const product = productsMap.get(productId);
+    const product = productsMap.get(productId) || {
+      id: productId,
+      name: safeText(item.producto?.nombre || item.product?.name),
+      price: toNumber(item.producto?.precio ?? item.product?.price),
+    };
     const quantity = toNumber(item.cantidad ?? item.qty, 1);
     const unitPrice = toNumber(item.precio_unitario ?? item.price ?? product?.price, 0);
 

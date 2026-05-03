@@ -28,7 +28,7 @@ export const APP_EVENTS = {
 };
 
 const STATUS_LABELS = {
-  1: 'Pedido recibido',
+  1: 'Pendiente de confirmacion',
   2: 'Pedido confirmado por el restaurante',
   3: 'Pedido en preparación',
   4: 'Pedido en camino',
@@ -37,7 +37,7 @@ const STATUS_LABELS = {
 };
 
 const STATUS_LABELS_BY_KEY = {
-  pendiente: 'Pedido recibido',
+  pendiente: 'Pendiente de confirmacion',
   preparando: 'Pedido en preparación',
   en_transito: 'Pedido en camino',
   'en camino': 'Pedido en camino',
@@ -60,8 +60,8 @@ const getStatusLabel = (statusId, fallback = 'Actualizado') => {
   if (key.includes('cancel')) return STATUS_LABELS_BY_KEY.cancelado;
   if (key.includes('entreg')) return STATUS_LABELS_BY_KEY.entregado;
   if (key.includes('transito') || key.includes('camino')) return STATUS_LABELS_BY_KEY.en_transito;
-  if (key.includes('prepar') || key.includes('confirm')) return STATUS_LABELS_BY_KEY.preparando;
   if (key.includes('pend') || key.includes('recib') || key.includes('solicit')) return STATUS_LABELS_BY_KEY.pendiente;
+  if (key.includes('prepar') || key.includes('confirm')) return STATUS_LABELS_BY_KEY.preparando;
 
   return fallback;
 };
@@ -296,15 +296,15 @@ const buildCartLineKey = (item = {}) =>
 const normalizeCartItem = (item = {}) => {
   const normalized = {
     ...item,
-    id: safeString(item.id, `item-${Date.now()}`),
-    name: safeString(item.name, 'Producto'),
+    id: safeString(item.productId || item.producto_id || item.id, `item-${Date.now()}`),
+    name: safeString(item.name || item.nombre || item.producto?.nombre, 'Producto'),
     img: safeString(item.img),
-    price: Math.max(0, toNumber(item.price, 0)),
-    qty: Math.max(1, toInteger(item.qty, 1)),
+    price: Math.max(0, toNumber(item.price ?? item.precio_unitario ?? item.precio ?? item.unitPrice, 0)),
+    qty: Math.max(1, toInteger(item.qty ?? item.cantidad ?? item.quantity, 1)),
     details: safeString(item.details, 'Sin adicionales'),
     place: safeString(item.place),
     franchiseSlug: safeString(item.franchiseSlug),
-    tenantId: safeString(item.tenantId) || null,
+    tenantId: safeString(item.tenantId || item.tenant_id) || null,
   };
 
   normalized.lineKey = safeString(item.lineKey) || buildCartLineKey(normalized);
@@ -652,17 +652,30 @@ export const clearPreferredPaymentMethod = (email) => {
 };
 
 const normalizeOrder = (order = {}, fallbackEmail = '') => {
-  const statusId = Math.max(1, toInteger(order.estado_id ?? order.estado?.id, 1));
+  const statusId = Math.max(1, toInteger(order.estado_id ?? order.statusId ?? order.estado?.id, 1));
   const statusLabel =
-    safeString(order.estado?.descripcion || order.status || order.estado) ||
+    safeString(order.estado?.descripcion || order.statusLabel || order.status || order.estado) ||
     STATUS_LABELS[statusId] ||
     STATUS_LABELS[1];
+  const rawItems = Array.isArray(order.items)
+    ? order.items
+    : Array.isArray(order.itemsDetailed)
+      ? order.itemsDetailed.map((item) => ({
+          id: item.productId || item.producto_id || item.id,
+          name: item.name || item.nombre,
+          qty: item.quantity || item.cantidad,
+          price: item.unitPrice || item.precio_unitario || item.price,
+          subtotal: item.subtotal,
+          tenantId: order.tenantId || order.tenant_id,
+        }))
+      : [];
+  const orderId = safeString(order.id, `local-${Date.now()}`);
 
   return {
     ...order,
-    id: safeString(order.id, `local-${Date.now()}`),
-    cliente_id: order.cliente_id ?? order.client_id ?? null,
-    total: Math.max(0, toNumber(order.total, 0)),
+    id: orderId,
+    cliente_id: order.cliente_id ?? order.client_id ?? order.customerId ?? null,
+    total: Math.max(0, toNumber(order.total ?? order.totalValue, 0)),
     direccion_entrega: safeString(order.direccion_entrega || order.address, 'Recogida en tienda'),
     notas: safeString(order.notas || order.notes),
     metodo_pago: safeString(order.metodo_pago || order.paymentMethod),
@@ -672,12 +685,12 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
       ...(typeof order.estado === 'object' ? order.estado : {}),
       descripcion: statusLabel,
     },
-    items: Array.isArray(order.items) ? order.items.map(normalizeCartItem) : [],
-    user_email: normalizeEmailKey(order.user_email || fallbackEmail),
-    user_name: safeString(order.user_name || order.userName || order.nombre),
+    items: rawItems.map(normalizeCartItem),
+    user_email: normalizeEmailKey(order.user_email || order.customerEmail || order.cliente?.correo || fallbackEmail),
+    user_name: safeString(order.user_name || order.userName || order.customerName || order.cliente?.nombre || order.nombre),
     repartidor_nombre: safeString(order.repartidor_nombre || order.driverName || order.repartidor?.nombre),
     repartidor_email: normalizeEmailKey(order.repartidor_email || order.driverEmail),
-    source: safeString(order.source, 'local'),
+    source: safeString(order.source, String(orderId).startsWith('local-') ? 'local' : 'remote'),
   };
 };
 
@@ -884,7 +897,14 @@ export const getCachedOrders = (email) => {
 
 export const getCachedOrderById = (orderId, email) => {
   const directBucket = email ? getCachedOrders(email) : getCachedOrders();
-  return directBucket.find((order) => String(order.id) === String(orderId)) || null;
+  const directMatch = directBucket.find((order) => String(order.id) === String(orderId));
+  if (directMatch) return directMatch;
+
+  if (email) {
+    return getCachedOrders().find((order) => String(order.id) === String(orderId)) || null;
+  }
+
+  return null;
 };
 
 export const saveCachedOrder = (order, email) => {
@@ -939,7 +959,7 @@ export const updateCachedOrderStatus = (orderId, statusId, email, patch = {}) =>
         title: `Pedido #${updatedOrder.id} actualizado`,
         message: `Estado actual: ${updatedOrder.estado?.descripcion || getStatusLabel(statusId)}.`,
         icon: 'fa-solid fa-motorcycle',
-        route: `/tracking/${updatedOrder.id}`,
+        route: `/tracking/${updatedOrder.id}${updatedOrder.tenantId || updatedOrder.tenant_id ? `?tenant=${encodeURIComponent(updatedOrder.tenantId || updatedOrder.tenant_id)}` : ''}`,
         order_id: updatedOrder.id,
       },
       updatedOrder.user_email,
