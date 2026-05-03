@@ -13,6 +13,7 @@ const session = getSession();
 const order = ref(null);
 const warnings = ref([]);
 const errorMessage = ref('');
+const realtimeWarning = ref('');
 const isLoading = ref(true);
 const AUTO_REFRESH_INTERVAL_MS = 60000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
@@ -187,6 +188,7 @@ const setupRealtimeConnection = () => {
             if (String(messageOrderId) !== String(orderId.value)) return;
 
             if (message.event === 'driver-location') {
+                realtimeWarning.value = '';
                 order.value = {
                     ...order.value,
                     driverLocation: {
@@ -200,11 +202,13 @@ const setupRealtimeConnection = () => {
             }
 
             if (['order-updated', 'order-cancelled', 'delivery-assigned'].includes(message.event)) {
+                realtimeWarning.value = '';
                 queueRealtimeOrderRefresh();
             }
         },
         onError(error) {
             console.warn('Realtime tracking no disponible', error);
+            realtimeWarning.value = 'Actualizacion en vivo no disponible. Seguimos revisando el pedido automaticamente cada minuto.';
         },
     });
 };
@@ -248,6 +252,16 @@ const goBack = () => router.push('/orders');
 
         <div v-if="warnings.length > 0" class="mx-auto mt-4 max-w-lg rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700">
             {{ warnings[0] }}
+        </div>
+
+        <div v-if="realtimeWarning" class="mx-auto mt-4 flex max-w-lg items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-bold text-amber-700" role="status" aria-live="polite">
+            <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+            <div>
+                <p>{{ realtimeWarning }}</p>
+                <button type="button" class="mt-2 text-[11px] font-black uppercase text-amber-800 underline" @click="fetchOrder({ silent: false })">
+                    Actualizar ahora
+                </button>
+            </div>
         </div>
 
         <div v-if="order" class="mx-auto grid max-w-6xl gap-4 p-3 sm:gap-6 sm:p-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:p-8">

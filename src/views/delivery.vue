@@ -66,12 +66,17 @@ const reportId = ref('');
 const reportEvidence = ref(null);
 const reportFileName = ref('Toca para subir captura de pantalla');
 const reportFileLoaded = ref(false);
+const deliveryConfirmCode = ref('');
+const deliveryProofFile = ref(null);
+const deliveryProofFileName = ref('Toca para tomar foto de entrega');
+const deliveryProofAccepted = ref(false);
 const isWithdrawing = ref(false);
 const isSubmittingReport = ref(false);
 const isLoading = ref(true);
 const isRefreshing = ref(false);
 const isAdvancing = ref(false);
 const errorMessage = ref('');
+const realtimeWarning = ref('');
 const lastUpdatedAt = ref('');
 const mapEl = ref(null);
 const cameraInput = ref(null);
@@ -190,6 +195,10 @@ const reportDriverLocation = async (point, stage = '') => {
 
 const deriveActiveStage = (order = {}) => {
     if (state.activeStage) return state.activeStage;
+    const assignmentStage = normalize(order.deliveryAssignment?.stage || order.deliveryAssignment?.status || order.assignmentStage || order.assignmentStatus);
+    if (assignmentStage.includes('arrived_customer') || assignmentStage.includes('arrived customer')) return 'arrived_customer';
+    if (assignmentStage.includes('picked') || assignmentStage.includes('en camino')) return 'picked';
+    if (assignmentStage.includes('arrived')) return 'arrived';
     return orderStatusKey(order) === 'en camino' ? 'picked' : 'accepted';
 };
 
@@ -253,14 +262,29 @@ const showMapWrapper = computed(() => Boolean(state.activeOrder));
 const isReportModalOpen = computed(() => activeModal.value === 'modal-report');
 const isWithdrawModalOpen = computed(() => activeModal.value === 'modal-withdraw');
 const isAbsenceModalOpen = computed(() => activeModal.value === 'modal-absence');
-const supportWarnings = computed(() => dedupeMessages([errorMessage.value, ...(data.value.warnings || [])]));
+const isDeliveryConfirmModalOpen = computed(() => activeModal.value === 'modal-delivery-confirm');
+const supportWarnings = computed(() => dedupeMessages([errorMessage.value, realtimeWarning.value, ...(data.value.warnings || [])]));
 const activeOrderMeta = computed(() => {
     if (!state.activeOrder) return null;
-    if (state.activeOrder.status === 'accepted') return { title: 'HACIA EL LOCAL', emoji: '🏪', buttonClass: 'bg-[#f97316] text-white', buttonLabel: 'LLEGUÉ AL LOCAL' };
-    if (state.activeOrder.status === 'arrived') return { title: 'ESPERANDO PEDIDO', emoji: '⏳', buttonClass: 'bg-[#eab308] text-slate-900', buttonLabel: '¡RECIBÍ COMIDA!' };
-    return { title: 'ENTREGANDO AL CLIENTE', emoji: '🏠', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'TOMAR FOTO DE ENTREGA' };
+    if (state.activeOrder.status === 'accepted') return { title: 'HACIA EL LOCAL', emoji: '🏪', buttonClass: 'bg-[#f97316] text-white', buttonLabel: 'LLEGUE AL LOCAL' };
+    if (state.activeOrder.status === 'arrived') return { title: 'ESPERANDO PEDIDO', emoji: '⏳', buttonClass: 'bg-[#eab308] text-slate-900', buttonLabel: 'RECIBI COMIDA' };
+    if (state.activeOrder.status === 'picked') return { title: 'RUMBO AL CLIENTE', emoji: '🏠', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'LLEGUE AL DESTINO' };
+    return { title: 'EN EL DESTINO', emoji: '✅', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'CONFIRMAR ENTREGA' };
 });
-const activeOrderAddress = computed(() => (state.activeOrder ? (state.activeOrder.status === 'picked' ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
+const activeOrderAddress = computed(() => (state.activeOrder ? (['picked', 'arrived_customer'].includes(state.activeOrder.status) ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
+const expectedDeliveryCode = computed(() => String(state.activeOrder?.codigoDelivery || '').trim().toUpperCase());
+const normalizedDeliveryCode = computed(() => deliveryConfirmCode.value.replace(/\s+/g, '').toUpperCase());
+const deliveryCodeMatches = computed(() => {
+    if (!expectedDeliveryCode.value) return false;
+    return normalizedDeliveryCode.value === expectedDeliveryCode.value || normalizedDeliveryCode.value === expectedDeliveryCode.value.slice(-4);
+});
+const canSubmitDeliveryConfirmation = computed(() => (
+    Boolean(state.activeOrder)
+    && deliveryCodeMatches.value
+    && Boolean(deliveryProofFile.value)
+    && deliveryProofAccepted.value
+    && !isAdvancing.value
+));
 
 const isAssignedToCurrentDriver = (order = {}) => {
     const currentDriverEmail = normalize(session.userEmail);
@@ -572,21 +596,23 @@ const resolveActiveRoute = () => {
 
     const store = getStoreLocation(state.activeOrder);
     const customer = getCustomerLocation(state.activeOrder);
-    const origin = state.activeOrder.status === 'picked' ? store : SANTIAGO_CENTER;
-    const target = state.activeOrder.status === 'picked' ? customer : store;
+    const isCustomerRoute = ['picked', 'arrived_customer'].includes(state.activeOrder.status);
+    const origin = isCustomerRoute ? store : SANTIAGO_CENTER;
+    const target = isCustomerRoute ? customer : store;
     const progressByStage = {
         accepted: 0.2,
         arrived: 0.95,
         picked: 0.42,
+        arrived_customer: 0.95,
     };
 
     return {
-        type: state.activeOrder.status === 'picked' ? 'customer' : 'restaurant',
+        type: isCustomerRoute ? 'customer' : 'restaurant',
         origin,
         target,
         progress: progressByStage[state.activeOrder.status] ?? 0.2,
-        color: state.activeOrder.status === 'picked' ? '#22c55e' : '#f97316',
-        emoji: state.activeOrder.status === 'picked' ? '🏠' : '🏪',
+        color: isCustomerRoute ? '#22c55e' : '#f97316',
+        emoji: isCustomerRoute ? '🏠' : '🏪',
     };
 };
 
@@ -773,11 +799,13 @@ const setupRealtimeConnections = () => {
             tenantId: tenant.id,
             onEvent(message) {
                 if (['order-created', 'order-updated', 'order-cancelled', 'delivery-assigned'].includes(message.event)) {
+                    realtimeWarning.value = '';
                     queueRealtimeRefresh();
                 }
             },
             onError(error) {
                 console.warn('Realtime delivery no disponible', error);
+                realtimeWarning.value = 'Actualizacion en vivo no disponible. Usa el boton de actualizar para revisar pedidos mientras se restablece.';
             },
         }),
     );
@@ -871,6 +899,23 @@ const rejectOrder = (id) => {
     saveState();
 };
 
+const handleActiveOrderPrimaryAction = () => {
+    if (!state.activeOrder) return;
+    if (state.activeOrder.status === 'accepted') {
+        void updateOrderStatus('arrived');
+        return;
+    }
+    if (state.activeOrder.status === 'arrived') {
+        void updateOrderStatus('picked');
+        return;
+    }
+    if (state.activeOrder.status === 'picked') {
+        void updateOrderStatus('arrived_customer');
+        return;
+    }
+    openDeliveryConfirmation();
+};
+
 const updateOrderStatus = async (status) => {
     if (!state.activeOrder) return;
     if (status === 'arrived') {
@@ -907,12 +952,23 @@ const updateOrderStatus = async (status) => {
             isAdvancing.value = false;
         }
     }
+
+    if (status === 'arrived_customer') {
+        state.activeStage = 'arrived_customer';
+        state.activeOrder = buildOrderView(state.activeOrder, 'arrived_customer');
+        void syncDeliveryAssignment(state.activeOrder, 'arrived_customer', 'arrived_customer').catch((error) => {
+            console.warn('No se pudo sincronizar llegada al cliente', error);
+        });
+        saveState();
+        syncRouteFromState();
+        showToast('Llegaste al destino. Pide el codigo al cliente para confirmar.');
+    }
 };
 
 const cancelOrder = async () => {
     if (!state.activeOrder) return;
-    if (state.activeStage === 'picked') {
-        showToast('No puedes cancelar después de recoger la comida.', 'error');
+    if (['picked', 'arrived_customer'].includes(state.activeStage)) {
+        showToast('No puedes cancelar despues de recoger la comida. Reporta el problema a soporte.', 'error');
         return;
     }
 
@@ -945,21 +1001,59 @@ const cancelOrder = async () => {
     showToast('Pedido liberado.');
 };
 
-const triggerCamera = () => {
+const resetDeliveryConfirmation = () => {
+    deliveryConfirmCode.value = '';
+    deliveryProofFile.value = null;
+    deliveryProofFileName.value = 'Toca para tomar foto de entrega';
+    deliveryProofAccepted.value = false;
+    if (cameraInput.value) cameraInput.value.value = '';
+};
+
+const openDeliveryConfirmation = () => {
+    if (!state.activeOrder) return;
+    if (state.activeOrder.status !== 'arrived_customer') {
+        showToast('Primero marca que llegaste al destino.', 'error');
+        return;
+    }
+    resetDeliveryConfirmation();
+    openModal('modal-delivery-confirm');
+};
+
+const triggerDeliveryProof = () => {
     cameraInput.value?.click();
 };
 
-const handleDeliveryPhoto = async (event) => {
+const handleDeliveryPhoto = (event) => {
     const file = event.target.files?.[0];
-    if (!file || !state.activeOrder) return;
+    if (!file) return;
+    deliveryProofFile.value = file;
+    deliveryProofFileName.value = file.name ? `${file.name} cargada` : 'Foto de entrega cargada';
+};
 
+const completeDelivery = async () => {
+    if (!state.activeOrder) return;
+    if (!deliveryCodeMatches.value) {
+        showToast('Codigo de entrega incorrecto.', 'error');
+        return;
+    }
+    if (!deliveryProofFile.value) {
+        showToast('Toma o sube una foto de entrega.', 'error');
+        return;
+    }
+    if (!deliveryProofAccepted.value) {
+        showToast('Confirma que entregaste el pedido al cliente correcto.', 'error');
+        return;
+    }
     isAdvancing.value = true;
     showToast('Registrando entrega...', 'info');
 
     try {
         const deliveredOrder = state.activeOrder;
         const identity = driverIdentity();
-        const response = await api.updateOrder(deliveredOrder.id, { estado_id: ORDER_STATUS_CODES.delivered }, buildTenantHeaders(deliveredOrder.tenantId));
+        const response = await api.updateOrder(deliveredOrder.id, {
+            estado_id: ORDER_STATUS_CODES.delivered,
+            nota: `Entrega confirmada con codigo ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
+        }, buildTenantHeaders(deliveredOrder.tenantId));
         await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
         updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
             repartidor_nombre: identity.driverName,
@@ -975,12 +1069,15 @@ const handleDeliveryPhoto = async (event) => {
             status: 'Entregado',
             amount: payment,
             address: deliveredOrder.dropoff,
+            proof: deliveryProofFile.value?.name || 'foto de entrega',
+            confirmationCode: normalizedDeliveryCode.value,
         });
         state.history.push({ emoji: deliveredOrder.franchise.emoji, desc: `Entrega ${deliveredOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         state.activeOrder = null;
         state.activeOrderId = '';
         state.activeStage = '';
         currentTab.value = 'available';
+        closeModal('modal-delivery-confirm');
         clearRoute();
         saveState();
         await refreshData({ silent: true });
@@ -989,7 +1086,7 @@ const handleDeliveryPhoto = async (event) => {
         console.error('No se pudo completar la entrega', error);
         showToast(error.message || 'No se pudo marcar la entrega.', 'error');
     } finally {
-        if (cameraInput.value) cameraInput.value.value = '';
+        resetDeliveryConfirmation();
         isAdvancing.value = false;
     }
 };
@@ -1206,6 +1303,18 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
+                <div v-if="realtimeWarning" class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-700 shadow-sm" role="status" aria-live="polite">
+                    <div class="flex gap-2">
+                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                        <div>
+                            <p>{{ realtimeWarning }}</p>
+                            <button type="button" class="mt-2 text-[11px] font-black uppercase text-amber-800 underline" @click="refreshData({ silent: false })">
+                                Actualizar pedidos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
                     <button
                         type="button"
@@ -1346,12 +1455,13 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <button
-                                    v-if="state.activeOrder.status !== 'picked'"
+                                    v-if="state.activeOrder.status !== 'arrived_customer'"
                                     type="button"
-                                    :class="['w-full rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
+                                    :class="['flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
                                     :disabled="isAdvancing"
-                                    @click="updateOrderStatus(state.activeOrder.status === 'accepted' ? 'arrived' : 'picked')"
+                                    @click="handleActiveOrderPrimaryAction"
                                 >
+                                    <i class="fa-solid fa-location-arrow"></i>
                                     {{ activeOrderMeta?.buttonLabel }}
                                 </button>
 
@@ -1360,9 +1470,9 @@ onBeforeUnmount(() => {
                                     type="button"
                                     :class="['flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
                                     :disabled="isAdvancing"
-                                    @click="triggerCamera"
+                                    @click="openDeliveryConfirmation"
                                 >
-                                    <i class="fa-solid fa-camera"></i>
+                                    <i class="fa-solid fa-check-double"></i>
                                     {{ activeOrderMeta?.buttonLabel }}
                                 </button>
 
@@ -1716,6 +1826,66 @@ onBeforeUnmount(() => {
                     <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Solo queria descansar unos dias</button>
                     <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Problemas con mi vehiculo</button>
                     <button type="button" class="w-full rounded-xl bg-slate-100 py-3 font-bold text-slate-700 active:bg-slate-200" @click="reportAbsence">Tuve problemas con la App</button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            :class="[
+                'fixed inset-0 z-[100] flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm transition-opacity',
+                isDeliveryConfirmModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+            ]"
+        >
+            <div :class="['mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300', isDeliveryConfirmModalOpen ? 'translate-y-0' : 'translate-y-full']">
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-[#f97316]">Entrega segura</p>
+                        <h3 class="text-lg font-black text-slate-800">Confirmar entrega</h3>
+                    </div>
+                    <button type="button" class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500" @click="closeModal('modal-delivery-confirm')">X</button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="rounded-2xl border border-orange-100 bg-orange-50 p-3 text-xs font-bold text-slate-600">
+                        Pide al cliente el codigo del pedido, toma una evidencia y confirma solo cuando el pedido ya este en sus manos.
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-[11px] font-black uppercase tracking-wide text-slate-500">Codigo del cliente</label>
+                        <input
+                            v-model="deliveryConfirmCode"
+                            type="text"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="Ej. 001234"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xl font-black tracking-[0.25em] text-slate-800 outline-none focus:border-[#f97316] focus:bg-white"
+                        >
+                        <p v-if="deliveryConfirmCode && !deliveryCodeMatches" class="mt-2 text-[11px] font-bold text-red-500">
+                            Ese codigo no coincide con el pedido activo.
+                        </p>
+                    </div>
+
+                    <button type="button" class="w-full rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center transition active:bg-slate-100" @click="triggerDeliveryProof">
+                        <i class="fa-solid fa-camera mb-2 text-2xl text-[#f97316]"></i>
+                        <p :class="['text-xs font-black', deliveryProofFile ? 'text-[#22c55e]' : 'text-slate-500']">
+                            {{ deliveryProofFileName }}
+                        </p>
+                    </button>
+
+                    <label class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-xs font-bold text-slate-600 shadow-sm">
+                        <input v-model="deliveryProofAccepted" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#22c55e]">
+                        <span>Confirmo que entregue el pedido al cliente correcto y que la evidencia corresponde a esta entrega.</span>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="w-full rounded-xl bg-[#22c55e] py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                        :disabled="!canSubmitDeliveryConfirmation"
+                        @click="completeDelivery"
+                    >
+                        <span v-if="isAdvancing"><i class="fa-solid fa-spinner fa-spin"></i> CONFIRMANDO...</span>
+                        <span v-else>CONFIRMAR ENTREGA</span>
+                    </button>
                 </div>
             </div>
         </div>
