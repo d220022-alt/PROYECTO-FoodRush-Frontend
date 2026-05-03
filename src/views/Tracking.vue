@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
@@ -14,6 +14,7 @@ const order = ref(null);
 const warnings = ref([]);
 const errorMessage = ref('');
 const realtimeWarning = ref('');
+const isDeliveryCodeConfirmed = ref(false);
 const isLoading = ref(true);
 const AUTO_REFRESH_INTERVAL_MS = 60000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
@@ -50,6 +51,11 @@ const currentProgress = computed(() => getOrderProgressStep(rawStatusLabel.value
 const currentStep = computed(() => Math.max(0, currentProgress.value - 1));
 const isCancelled = computed(() => String(currentStatusLabel.value || '').toLowerCase().includes('cancelado'));
 const overlayIcon = computed(() => (isCancelled.value ? 'fa-solid fa-ban' : steps[currentStep.value]?.icon || steps[0].icon));
+const deliverySecurityCode = computed(() => {
+    const provided = String(order.value?.securityCode || order.value?.codigo_seguridad || order.value?.codigoDelivery || '').trim().toUpperCase();
+    if (provided) return provided;
+    return String(orderId.value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+});
 
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
 const formatDate = (value) => {
@@ -84,6 +90,7 @@ const normalizeCachedOrder = (cachedOrder) => {
         tenantId: cachedOrder.tenantId || cachedOrder.tenant_id || cachedOrder.items?.[0]?.tenantId || cachedOrder.items?.[0]?.tenant_id || '',
         tenantName: cachedOrder.tenantName || 'FoodRush',
         driverName: cachedOrder.repartidor_nombre || '',
+        securityCode: cachedOrder.securityCode || cachedOrder.codigo_seguridad || '',
         source: cachedOrder.source || 'local',
     };
 };
@@ -173,6 +180,10 @@ const queueRealtimeOrderRefresh = () => {
         void fetchOrder({ silent: true });
     }, REALTIME_REFRESH_DEBOUNCE_MS);
 };
+
+watch(orderId, () => {
+    isDeliveryCodeConfirmed.value = false;
+});
 
 const setupRealtimeConnection = () => {
     const tenantId = order.value?.tenantId || route.query.tenant;
@@ -280,6 +291,27 @@ const goBack = () => router.push('/orders');
                                 Este pedido esta guardado localmente. Todavia no esta confirmado por el servidor.
                             </p>
                         </div>
+                    </div>
+                </div>
+
+                <div class="rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500">Codigo de entrega</p>
+                            <p class="mt-2 text-3xl font-black tracking-[0.2em] text-slate-900">{{ deliverySecurityCode }}</p>
+                            <p class="mt-2 text-sm font-bold text-slate-500">
+                                Comparte este codigo con el repartidor solamente cuando tengas el pedido en tus manos.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            class="rounded-2xl px-4 py-3 text-xs font-black transition"
+                            :class="isDeliveryCodeConfirmed ? 'bg-green-100 text-green-700' : 'bg-slate-900 text-white hover:bg-slate-700'"
+                            @click="isDeliveryCodeConfirmed = true"
+                        >
+                            <i class="fa-solid mr-2" :class="isDeliveryCodeConfirmed ? 'fa-circle-check' : 'fa-check'"></i>
+                            {{ isDeliveryCodeConfirmed ? 'Codigo confirmado' : 'Confirmar codigo' }}
+                        </button>
                     </div>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { ensureLeaflet, SANTIAGO_CENTER } from '../utils/deliveryMap';
 
 const props = defineProps({
@@ -16,9 +16,24 @@ const props = defineProps({
 const emit = defineEmits(['select-zone']);
 
 const mapEl = ref(null);
+const mapError = ref('');
 let leaflet = null;
 let map = null;
 let zoneLayer = null;
+let resizeObserver = null;
+let invalidateTimer = null;
+
+const invalidateMapSize = () => {
+  if (!map || !mapEl.value) return;
+  if (invalidateTimer) window.clearTimeout(invalidateTimer);
+
+  invalidateTimer = window.setTimeout(() => {
+    const { width, height } = mapEl.value.getBoundingClientRect();
+    if (width <= 0 || height <= 0) return;
+    map.invalidateSize();
+    renderZones();
+  }, 80);
+};
 
 const renderZones = () => {
   if (!leaflet || !map || !zoneLayer) return;
@@ -79,14 +94,25 @@ const initMap = async () => {
   }).addTo(map);
   leaflet.control.zoom({ position: 'bottomright' }).addTo(map);
   zoneLayer = leaflet.layerGroup().addTo(map);
-  renderZones();
+  await nextTick();
+  invalidateMapSize();
 };
 
 onMounted(() => {
-  void initMap();
+  void initMap().catch((error) => {
+    console.error('No se pudo cargar el mapa de zonas', error);
+    mapError.value = 'No se pudo cargar el mapa ahora mismo.';
+  });
+
+  if (window.ResizeObserver && mapEl.value) {
+    resizeObserver = new ResizeObserver(() => invalidateMapSize());
+    resizeObserver.observe(mapEl.value);
+  }
 });
 
 onBeforeUnmount(() => {
+  if (invalidateTimer) window.clearTimeout(invalidateTimer);
+  resizeObserver?.disconnect();
   if (map) map.remove();
   map = null;
   zoneLayer = null;
@@ -95,28 +121,34 @@ onBeforeUnmount(() => {
 watch(
   () => [props.zones, props.selectedZoneId],
   () => {
-    renderZones();
+    invalidateMapSize();
   },
   { deep: true },
 );
 </script>
 
 <template>
-  <div ref="mapEl" class="admin-zones-map"></div>
+  <div class="relative h-full min-h-[420px] overflow-hidden bg-slate-100">
+    <div ref="mapEl" class="admin-zones-map"></div>
+    <div v-if="mapError" class="absolute inset-0 flex items-center justify-center bg-slate-50 p-6 text-center text-sm font-bold text-slate-500">
+      {{ mapError }}
+    </div>
+  </div>
 </template>
 
 <style scoped>
 .admin-zones-map {
-  min-height: 360px;
+  min-height: 420px;
   height: 100%;
   width: 100%;
 }
 
 :deep(.leaflet-container) {
-  min-height: 360px;
+  min-height: 420px;
   height: 100%;
   width: 100%;
   font-family: inherit;
+  z-index: 0;
 }
 
 :deep(.leaflet-control-attribution) {
