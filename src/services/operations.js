@@ -113,10 +113,16 @@ export const buildTenantHeaders = (tenantId) =>
   tenantId ? { 'X-Tenant-ID': String(tenantId) } : {};
 
 export const getStatusLabel = (order = {}) => {
-  const explicit = safeText(order?.estado?.descripcion || order?.status || order?.estado);
+  const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
+  const explicit = safeText(order?.statusLabel || order?.status || order?.estado?.descripcion || order?.estado);
+  const explicitKey = normalizeStatusKey(explicit);
+
+  if (statusId === ORDER_STATUS_IDS.pending && explicitKey === 'pendiente') {
+    return ORDER_STATUS_LABELS[ORDER_STATUS_IDS.pending];
+  }
+
   if (explicit) return explicit;
 
-  const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
   return ORDER_STATUS_LABELS[statusId] || 'Pendiente';
 };
 

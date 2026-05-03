@@ -653,10 +653,11 @@ export const clearPreferredPaymentMethod = (email) => {
 
 const normalizeOrder = (order = {}, fallbackEmail = '') => {
   const statusId = Math.max(1, toInteger(order.estado_id ?? order.statusId ?? order.estado?.id, 1));
-  const statusLabel =
-    safeString(order.estado?.descripcion || order.statusLabel || order.status || order.estado) ||
-    STATUS_LABELS[statusId] ||
-    STATUS_LABELS[1];
+  const explicitStatus = safeString(order.statusLabel || order.status || order.estado?.descripcion || order.estado);
+  const explicitStatusKey = normalizeStatusKey(explicitStatus).replace(/_/g, ' ');
+  const statusLabel = statusId === 1 && explicitStatusKey.includes('recib')
+    ? STATUS_LABELS[1]
+    : explicitStatus || STATUS_LABELS[statusId] || STATUS_LABELS[1];
   const rawItems = Array.isArray(order.items)
     ? order.items
     : Array.isArray(order.itemsDetailed)

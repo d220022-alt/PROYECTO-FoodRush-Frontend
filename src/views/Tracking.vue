@@ -41,7 +41,7 @@ const currentStatusLabel = computed(() => {
     if (label.includes('cancel')) return 'Pedido cancelado';
     if (label.includes('entreg')) return 'Pedido entregado';
     if (label.includes('camino')) return 'Repartidor en camino';
-    if (label.includes('prepar')) return 'Preparando en el local';
+    if (label.includes('prepar') || label.includes('confirm')) return 'Preparando en el local';
     if (source === 'local') return 'Pendiente de sincronizar';
     return 'Pendiente de confirmacion';
 });
@@ -62,7 +62,7 @@ const normalizeCachedOrder = (cachedOrder) => {
 
     return {
         ...cachedOrder,
-        statusLabel: cachedOrder.estado?.descripcion || 'Pendiente',
+        statusLabel: cachedOrder.statusLabel || cachedOrder.status || cachedOrder.estado?.descripcion || 'Pendiente',
         totalValue: cachedOrder.total,
         address: cachedOrder.direccion_entrega,
         createdAt: cachedOrder.creado_en,
