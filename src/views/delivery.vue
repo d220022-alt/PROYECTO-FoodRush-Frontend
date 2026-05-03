@@ -718,6 +718,10 @@ const syncOrdersFromBackend = () => {
         const activeStage = deriveActiveStage(activeSource);
         state.activeStage = activeStage;
         state.activeOrder = buildOrderView(activeSource, activeStage);
+    } else if (state.activeOrderId && state.activeOrder) {
+        const preservedStage = state.activeStage || state.activeOrder.status || 'accepted';
+        state.activeStage = preservedStage;
+        state.activeOrder = buildOrderView(state.activeOrder, preservedStage);
     } else {
         state.activeOrderId = '';
         state.activeStage = '';
