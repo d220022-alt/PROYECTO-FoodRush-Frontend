@@ -986,43 +986,17 @@ onBeforeUnmount(() => {
           </section>
 
           <section v-show="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm xl:col-span-7">
-              <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 class="font-black text-slate-800">Editor de Zonas y Rutas</h3>
-                  <p class="text-xs font-bold text-slate-500">Cobertura operativa de delivery sobre OpenStreetMap.</p>
-                </div>
-                <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
-              </div>
-              <div class="h-[420px]">
-                <AdminZonesMap :zones="operationZones" :selected-zone-id="selectedZoneId" @select-zone="selectZone" />
-              </div>
-            </div>
-
-            <div class="space-y-6 xl:col-span-5">
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="space-y-6 xl:col-span-7">
+              <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 class="text-sm font-black text-slate-800">Zonas activas</h3>
-                    <p class="text-xs font-bold text-slate-400">Pedidos detectados por direccion.</p>
+                    <h3 class="font-black text-slate-800">Editor de Zonas y Rutas</h3>
+                    <p class="text-xs font-bold text-slate-500">Cobertura operativa de delivery sobre OpenStreetMap.</p>
                   </div>
-                  <p class="text-2xl font-black text-slate-800">{{ operationZones.filter((zone) => zone.active).length }}</p>
+                  <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
                 </div>
-                <div class="space-y-3">
-                  <button v-for="zone in zoneCoverageRows" :key="zone.id" type="button" class="w-full rounded-xl border p-4 text-left transition" :class="selectedZoneId === zone.id ? 'border-brand-500 bg-orange-50' : 'border-slate-100 bg-slate-50 hover:border-orange-200'" @click="selectZone(zone.id)">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="min-w-0">
-                        <p class="truncate text-sm font-black text-slate-800">{{ zone.name }}</p>
-                        <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">{{ zone.radiusKm }} km - ETA {{ zone.etaMin }} min - {{ formatCurrency(zone.deliveryFee) }}</p>
-                      </div>
-                      <span class="rounded-full px-3 py-1 text-[10px] font-black" :class="zone.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">{{ zone.active ? 'Activa' : 'Pausada' }}</span>
-                    </div>
-                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Pedidos</p><p class="text-sm font-black text-slate-800">{{ zone.ordersCount }}</p></div>
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Activos</p><p class="text-sm font-black text-slate-800">{{ zone.activeCount }}</p></div>
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Ventas</p><p class="text-sm font-black text-slate-800">{{ formatCurrency(zone.revenue) }}</p></div>
-                    </div>
-                  </button>
+                <div class="h-[420px]">
+                  <AdminZonesMap :zones="operationZones" :selected-zone-id="selectedZoneId" @select-zone="selectZone" />
                 </div>
               </div>
 
@@ -1081,6 +1055,34 @@ onBeforeUnmount(() => {
                 <div class="mt-4 flex flex-wrap justify-end gap-2">
                   <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-black text-slate-500 hover:border-brand-500 hover:text-brand-600" @click="resetZoneDraft">REVERTIR</button>
                   <button type="button" class="rounded-lg bg-brand-500 px-5 py-2 text-xs font-black text-white" @click="saveZone">GUARDAR ZONA</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-6 xl:col-span-5">
+              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="mb-4 flex items-center justify-between gap-3">
+                  <div>
+                    <h3 class="text-sm font-black text-slate-800">Zonas activas</h3>
+                    <p class="text-xs font-bold text-slate-400">Pedidos detectados por direccion.</p>
+                  </div>
+                  <p class="text-2xl font-black text-slate-800">{{ operationZones.filter((zone) => zone.active).length }}</p>
+                </div>
+                <div class="space-y-3">
+                  <button v-for="zone in zoneCoverageRows" :key="zone.id" type="button" class="w-full rounded-xl border p-4 text-left transition" :class="selectedZoneId === zone.id ? 'border-brand-500 bg-orange-50' : 'border-slate-100 bg-slate-50 hover:border-orange-200'" @click="selectZone(zone.id)">
+                    <div class="flex items-start justify-between gap-3">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-black text-slate-800">{{ zone.name }}</p>
+                        <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">{{ zone.radiusKm }} km - ETA {{ zone.etaMin }} min - {{ formatCurrency(zone.deliveryFee) }}</p>
+                      </div>
+                      <span class="rounded-full px-3 py-1 text-[10px] font-black" :class="zone.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">{{ zone.active ? 'Activa' : 'Pausada' }}</span>
+                    </div>
+                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Pedidos</p><p class="text-sm font-black text-slate-800">{{ zone.ordersCount }}</p></div>
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Activos</p><p class="text-sm font-black text-slate-800">{{ zone.activeCount }}</p></div>
+                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Ventas</p><p class="text-sm font-black text-slate-800">{{ formatCurrency(zone.revenue) }}</p></div>
+                    </div>
+                  </button>
                 </div>
               </div>
             </div>
