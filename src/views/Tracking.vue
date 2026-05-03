@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
+import { fetchOperationalDataset, getOrderProgressStep, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
 import { getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
@@ -36,14 +36,15 @@ const orderId = computed(() => route.params.id);
 const currentUserEmail = computed(() => getSession().userEmail || session.userEmail || localStorage.getItem('user_email') || '');
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
+const currentStatusKey = computed(() => normalizeStatusKey(rawStatusLabel.value));
 const currentStatusLabel = computed(() => {
-    const label = String(rawStatusLabel.value || '').toLowerCase();
+    const statusKey = currentStatusKey.value;
     const source = String(order.value?.source || '').toLowerCase();
 
-    if (label.includes('cancel')) return 'Pedido cancelado';
-    if (label.includes('entreg')) return 'Pedido entregado';
-    if (label.includes('camino')) return 'Repartidor en camino';
-    if (label.includes('prepar') || label.includes('confirm')) return 'Preparando en el local';
+    if (statusKey === 'cancelado') return 'Pedido cancelado';
+    if (statusKey === 'entregado') return 'Pedido entregado';
+    if (statusKey === 'en camino') return 'Repartidor en camino';
+    if (statusKey === 'preparando') return 'Preparando en el local';
     if (source === 'local') return 'Pendiente de sincronizar';
     return 'Pendiente de confirmacion';
 });

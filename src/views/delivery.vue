@@ -212,6 +212,7 @@ const buildOrderDescription = (order = {}) => {
 
 const buildOrderView = (order = {}, status = 'pending') => {
     const presentation = resolveFranchisePresentation(order.tenantName);
+    const backendStatusKey = orderStatusKey(order);
     const compactItems = Array.isArray(order.itemsDetailed) && order.itemsDetailed.length > 0
         ? order.itemsDetailed.slice(0, 2).map((item) => `${item.quantity}x ${item.name}`).join(' • ')
         : order.itemSummary || 'Sin detalle';
@@ -223,6 +224,8 @@ const buildOrderView = (order = {}, status = 'pending') => {
         dropoff: order.address || 'Recogida en tienda',
         price: Number(order.totalValue || 0),
         status,
+        backendStatusKey,
+        canAccept: backendStatusKey === 'preparando',
         codigoDelivery: resolveSecurityCode(order),
         descripcionDetallada: buildOrderDescription(order),
     };
@@ -701,9 +704,9 @@ const initMap = () => {
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
     const currentDriverEmail = normalize(session.userEmail);
-    const dispatchableOrders = scopedOrders.filter((order) => orderStatusKey(order) === 'preparando');
-    const dispatchableIds = new Set(dispatchableOrders.map((order) => String(order.id)));
-    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => dispatchableIds.has(String(id)));
+    const visibleNewOrders = scopedOrders.filter((order) => ['pendiente', 'preparando'].includes(orderStatusKey(order)));
+    const visibleNewIds = new Set(visibleNewOrders.map((order) => String(order.id)));
+    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => visibleNewIds.has(String(id)));
 
     if (!state.activeOrderId && currentDriverEmail) {
         const claimedOrder = scopedOrders.find((order) => (
@@ -728,7 +731,7 @@ const syncOrdersFromBackend = () => {
         state.activeOrder = null;
     }
 
-    state.availableOrders = dispatchableOrders
+    state.availableOrders = visibleNewOrders
         .filter((order) => String(order.id) !== String(state.activeOrderId))
         .filter((order) => {
             const assignment = order.deliveryAssignment;
@@ -1048,6 +1051,12 @@ const completeDelivery = async () => {
         showToast('Confirma que entregaste el pedido al cliente correcto.', 'error');
         return;
     }
+    if (!order.canAccept) {
+        showToast('Este pedido todavia espera confirmacion del local.', 'info');
+        await refreshData({ silent: true });
+        return;
+    }
+
     isAdvancing.value = true;
     showToast('Registrando entrega...', 'info');
 
@@ -1393,6 +1402,14 @@ onBeforeUnmount(() => {
                             <p class="text-xs font-black text-slate-700">{{ order.dropoff }}</p>
                         </div>
 
+                        <div
+                            class="mb-3 rounded-xl px-3 py-2 text-[11px] font-black"
+                            :class="order.canAccept ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'"
+                        >
+                            <i class="fa-solid mr-1" :class="order.canAccept ? 'fa-circle-check' : 'fa-clock'"></i>
+                            {{ order.canAccept ? 'Listo para aceptar' : 'Esperando confirmacion del local' }}
+                        </div>
+
                         <div class="flex gap-2">
                             <button
                                 type="button"
@@ -1403,11 +1420,12 @@ onBeforeUnmount(() => {
                             </button>
                             <button
                                 type="button"
-                                class="h-10 flex-1 rounded-lg bg-[#f97316] text-xs font-black text-white shadow-md active:bg-[#ea580c]"
-                                :disabled="isAdvancing"
+                                class="h-10 flex-1 rounded-lg text-xs font-black text-white shadow-md transition"
+                                :class="order.canAccept ? 'bg-[#f97316] active:bg-[#ea580c]' : 'cursor-not-allowed bg-slate-300 text-slate-500 shadow-none'"
+                                :disabled="isAdvancing || !order.canAccept"
                                 @click="acceptOrder(order.id)"
                             >
-                                ACEPTAR VIAJE
+                                {{ order.canAccept ? 'ACEPTAR VIAJE' : 'ESPERANDO LOCAL' }}
                             </button>
                         </div>
                     </div>

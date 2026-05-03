@@ -184,6 +184,7 @@ export const getTrackingStage = (statusLabel = '', order = {}) => {
   if (normalized.includes('cancel')) return 'cancelled';
   if (normalized.includes('entreg')) return 'delivered';
   if (normalized.includes('camino') || normalized.includes('transit')) return 'transit';
+  if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pending';
   if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparing';
   if (source === 'local') return 'local';
   return 'pending';
