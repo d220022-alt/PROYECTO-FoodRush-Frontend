@@ -7,7 +7,7 @@ import { api } from '../services/api';
 import { appendAuditLog, buildClosureSnapshot, createClosureRecordRemote, getAdminZones, getAuditLog, getClosureRecords, loadAdminPhaseTwoState, saveAdminZoneRemote } from '../services/adminPhaseTwo';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
-import { clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
+import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
 
 const router = useRouter();
 const session = getSession();
@@ -31,7 +31,7 @@ const selectedZoneId = ref(operationZones.value[0]?.id || '');
 const zoneDraft = ref({});
 const closureRecords = ref(getClosureRecords());
 const auditEntries = ref(getAuditLog());
-const AUTO_REFRESH_INTERVAL_MS = 60000;
+const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const menuGroups = [
@@ -598,6 +598,12 @@ const setupRealtimeConnections = () => {
 
 const confirmOrder = (order) => updateOrderStatus(order, ORDER_STATUS_CODES.preparing);
 
+const refreshWhenVisible = () => {
+  if (document.visibilityState === 'visible') {
+    void refreshData({ silent: true });
+  }
+};
+
 const logout = () => {
   clearSession();
   router.replace('/login');
@@ -626,12 +632,18 @@ onMounted(async () => {
   await refreshData();
   await refreshPhaseTwoState({ remote: true });
   setupRealtimeConnections();
+  window.addEventListener('visibilitychange', refreshWhenVisible);
+  window.addEventListener('focus', refreshWhenVisible);
+  window.addEventListener(APP_EVENTS.ordersChanged, refreshWhenVisible);
   refreshTimer = window.setInterval(() => { void refreshData({ silent: true }); }, AUTO_REFRESH_INTERVAL_MS);
 });
 
 onBeforeUnmount(() => {
   if (refreshTimer) window.clearInterval(refreshTimer);
   if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+  window.removeEventListener('visibilitychange', refreshWhenVisible);
+  window.removeEventListener('focus', refreshWhenVisible);
+  window.removeEventListener(APP_EVENTS.ordersChanged, refreshWhenVisible);
   closeRealtimeConnections();
 });
 </script>

@@ -1,6 +1,7 @@
 import { api } from './api';
 import { getDeliveryAssignment, getSession } from './storage';
 import { franchiseConfigs } from '../views/franchiseConfigs';
+import { resolveDeliveryCode } from '../utils/deliveryCode';
 
 export const ORDER_STATUS_IDS = {
   pending: 1,
@@ -339,7 +340,7 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     statusKey,
     statusVariant: getStatusVariant(statusLabel),
     progressStep: getOrderProgressStep(statusLabel),
-    securityCode: safeText(order.codigo_seguridad || order.securityCode),
+    securityCode: resolveDeliveryCode(order, id),
     driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName || deliveryAssignment?.driverName),
     driverEmail: safeText(order.repartidor_email || order.driverEmail || deliveryAssignment?.driverEmail),
     deliveryAssignment,

@@ -1,3 +1,5 @@
+import { resolveDeliveryCode } from '../utils/deliveryCode';
+
 const STORAGE_KEYS = {
   authToken: 'auth_token',
   userId: 'user_id',
@@ -671,6 +673,7 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
         }))
       : [];
   const orderId = safeString(order.id, `local-${Date.now()}`);
+  const deliveryCode = resolveDeliveryCode(order, orderId);
 
   return {
     ...order,
@@ -691,6 +694,9 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
     user_name: safeString(order.user_name || order.userName || order.customerName || order.cliente?.nombre || order.nombre),
     repartidor_nombre: safeString(order.repartidor_nombre || order.driverName || order.repartidor?.nombre),
     repartidor_email: normalizeEmailKey(order.repartidor_email || order.driverEmail),
+    securityCode: deliveryCode,
+    codigo_seguridad: deliveryCode,
+    codigoDelivery: deliveryCode,
     source: safeString(order.source, String(orderId).startsWith('local-') ? 'local' : 'remote'),
   };
 };

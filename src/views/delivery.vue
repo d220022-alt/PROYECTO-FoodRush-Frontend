@@ -5,7 +5,8 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
-import { clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
+import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
+import { normalizeDeliveryCodeInput, resolveDeliveryCode } from '../utils/deliveryCode';
 import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
 const STORAGE_KEY = 'FoodRush_Delivery_Real_V2';
@@ -13,7 +14,7 @@ const TUTORIAL_KEY = 'FoodRush_Tutorial_Final';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
-const AUTO_REFRESH_INTERVAL_MS = 60000;
+const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const onboardingSteps = [
@@ -134,9 +135,7 @@ const resolveFranchisePresentation = (tenantName = '') => {
 };
 
 const resolveSecurityCode = (order = {}) => {
-    const provided = String(order.securityCode || '').trim().toUpperCase();
-    if (provided) return provided;
-    return String(order.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+    return resolveDeliveryCode(order, order.id);
 };
 
 const driverIdentity = () => ({
@@ -225,7 +224,7 @@ const buildOrderView = (order = {}, status = 'pending') => {
         price: Number(order.totalValue || 0),
         status,
         backendStatusKey,
-        canAccept: backendStatusKey === 'preparando',
+        canAccept: ['pendiente', 'preparando'].includes(backendStatusKey),
         codigoDelivery: resolveSecurityCode(order),
         descripcionDetallada: buildOrderDescription(order),
     };
@@ -276,7 +275,7 @@ const activeOrderMeta = computed(() => {
 });
 const activeOrderAddress = computed(() => (state.activeOrder ? (['picked', 'arrived_customer'].includes(state.activeOrder.status) ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
 const expectedDeliveryCode = computed(() => String(state.activeOrder?.codigoDelivery || '').trim().toUpperCase());
-const normalizedDeliveryCode = computed(() => deliveryConfirmCode.value.replace(/\s+/g, '').toUpperCase());
+const normalizedDeliveryCode = computed(() => normalizeDeliveryCodeInput(deliveryConfirmCode.value));
 const deliveryCodeMatches = computed(() => {
     if (!expectedDeliveryCode.value) return false;
     return normalizedDeliveryCode.value === expectedDeliveryCode.value || normalizedDeliveryCode.value === expectedDeliveryCode.value.slice(-4);
@@ -890,7 +889,7 @@ const acceptOrder = async (id) => {
         currentTab.value = 'active';
         saveState();
         await refreshData({ silent: true });
-        showToast(`Pedido aceptado. Código de seguridad: ${resolveSecurityCode(order)}`);
+        showToast('Pedido aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
     } catch (error) {
         console.error('No se pudo aceptar el pedido', error);
         showToast(error.message || 'No se pudo aceptar el pedido.', 'error');
@@ -1051,12 +1050,6 @@ const completeDelivery = async () => {
         showToast('Confirma que entregaste el pedido al cliente correcto.', 'error');
         return;
     }
-    if (!order.canAccept) {
-        showToast('Este pedido todavia espera confirmacion del local.', 'info');
-        await refreshData({ silent: true });
-        return;
-    }
-
     isAdvancing.value = true;
     showToast('Registrando entrega...', 'info');
 
@@ -1168,6 +1161,16 @@ const changeTenant = () => {
     saveState();
 };
 
+const refreshWhenVisible = () => {
+    if (document.visibilityState === 'visible') {
+        void refreshData({ silent: true });
+    }
+};
+
+const refreshFromStorageEvent = () => {
+    void refreshData({ silent: true });
+};
+
 const logout = () => {
     if (window.confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión para entrar al panel de delivery.')) {
         saveState();
@@ -1186,6 +1189,9 @@ onMounted(async () => {
     checkAbsence();
     await refreshData();
     setupRealtimeConnections();
+    window.addEventListener('visibilitychange', refreshWhenVisible);
+    window.addEventListener('focus', refreshWhenVisible);
+    window.addEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
 
     try {
         leaflet = await ensureLeaflet();
@@ -1206,6 +1212,9 @@ onBeforeUnmount(() => {
     clearScheduledTimeouts();
     if (refreshTimer) window.clearInterval(refreshTimer);
     if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+    window.removeEventListener('visibilitychange', refreshWhenVisible);
+    window.removeEventListener('focus', refreshWhenVisible);
+    window.removeEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
     closeRealtimeConnections();
     if (mapInstance) {
         mapInstance.remove();
@@ -1404,10 +1413,10 @@ onBeforeUnmount(() => {
 
                         <div
                             class="mb-3 rounded-xl px-3 py-2 text-[11px] font-black"
-                            :class="order.canAccept ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'"
+                            :class="order.backendStatusKey === 'preparando' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'"
                         >
                             <i class="fa-solid mr-1" :class="order.canAccept ? 'fa-circle-check' : 'fa-clock'"></i>
-                            {{ order.canAccept ? 'Listo para aceptar' : 'Esperando confirmacion del local' }}
+                            {{ order.backendStatusKey === 'preparando' ? 'Listo para aceptar' : 'Nuevo pedido: valida en el local' }}
                         </div>
 
                         <div class="flex gap-2">
@@ -1425,7 +1434,7 @@ onBeforeUnmount(() => {
                                 :disabled="isAdvancing || !order.canAccept"
                                 @click="acceptOrder(order.id)"
                             >
-                                {{ order.canAccept ? 'ACEPTAR VIAJE' : 'ESPERANDO LOCAL' }}
+                                {{ order.backendStatusKey === 'preparando' ? 'ACEPTAR VIAJE' : 'ACEPTAR Y VALIDAR' }}
                             </button>
                         </div>
                     </div>
@@ -1465,9 +1474,9 @@ onBeforeUnmount(() => {
 
                                 <div class="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 shadow-sm">
                                     <div class="mb-2 flex items-center justify-between border-b border-orange-200/50 pb-2">
-                                        <p class="text-[10px] font-bold uppercase text-slate-500">Código de Seguridad</p>
-                                        <p class="rounded-lg bg-white px-3 py-1 text-sm font-black tracking-widest text-[#f97316] shadow-sm">
-                                            {{ state.activeOrder.codigoDelivery }}
+                                        <p class="text-[10px] font-bold uppercase text-slate-500">Codigo de entrega</p>
+                                        <p class="rounded-lg bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#f97316] shadow-sm">
+                                            Pidelo al cliente
                                         </p>
                                     </div>
                                     <div>

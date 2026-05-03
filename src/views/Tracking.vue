@@ -3,7 +3,8 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
-import { getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
+import { APP_EVENTS, getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
+import { resolveDeliveryCode } from '../utils/deliveryCode';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
 
 const route = useRoute();
@@ -16,7 +17,7 @@ const errorMessage = ref('');
 const realtimeWarning = ref('');
 const isDeliveryCodeConfirmed = ref(false);
 const isLoading = ref(true);
-const AUTO_REFRESH_INTERVAL_MS = 60000;
+const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 
 const steps = [
@@ -53,9 +54,7 @@ const currentStep = computed(() => Math.max(0, currentProgress.value - 1));
 const isCancelled = computed(() => String(currentStatusLabel.value || '').toLowerCase().includes('cancelado'));
 const overlayIcon = computed(() => (isCancelled.value ? 'fa-solid fa-ban' : steps[currentStep.value]?.icon || steps[0].icon));
 const deliverySecurityCode = computed(() => {
-    const provided = String(order.value?.securityCode || order.value?.codigo_seguridad || order.value?.codigoDelivery || '').trim().toUpperCase();
-    if (provided) return provided;
-    return String(orderId.value || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+    return resolveDeliveryCode(order.value || {}, orderId.value);
 });
 
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
@@ -91,7 +90,7 @@ const normalizeCachedOrder = (cachedOrder) => {
         tenantId: cachedOrder.tenantId || cachedOrder.tenant_id || cachedOrder.items?.[0]?.tenantId || cachedOrder.items?.[0]?.tenant_id || '',
         tenantName: cachedOrder.tenantName || 'FoodRush',
         driverName: cachedOrder.repartidor_nombre || '',
-        securityCode: cachedOrder.securityCode || cachedOrder.codigo_seguridad || '',
+        securityCode: resolveDeliveryCode(cachedOrder, cachedOrder.id || orderId.value),
         source: cachedOrder.source || 'local',
     };
 };
@@ -225,8 +224,21 @@ const setupRealtimeConnection = () => {
     });
 };
 
+const refreshWhenVisible = () => {
+    if (document.visibilityState === 'visible') {
+        void fetchOrder({ silent: true });
+    }
+};
+
+const refreshFromStorageEvent = () => {
+    void fetchOrder({ silent: true });
+};
+
 onMounted(async () => {
     await fetchOrder();
+    window.addEventListener('visibilitychange', refreshWhenVisible);
+    window.addEventListener('focus', refreshWhenVisible);
+    window.addEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
     refreshTimer = window.setInterval(() => {
         void fetchOrder({ silent: true });
     }, AUTO_REFRESH_INTERVAL_MS);
@@ -235,6 +247,9 @@ onMounted(async () => {
 onUnmounted(() => {
     if (refreshTimer) clearInterval(refreshTimer);
     if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+    window.removeEventListener('visibilitychange', refreshWhenVisible);
+    window.removeEventListener('focus', refreshWhenVisible);
+    window.removeEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
     closeRealtimeConnection();
 });
 

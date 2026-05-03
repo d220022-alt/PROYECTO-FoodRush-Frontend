@@ -3,6 +3,13 @@ const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').
 const REQUEST_TIMEOUT_MS = 60000;
 const TENANT_HEADER_KEYS = ['X-Tenant-ID', 'x-tenant-id', 'tenant-id'];
 let cachedOrderStatusesPromise = null;
+const FALLBACK_ORDER_STATUS_IDS = {
+  pendiente: 1,
+  preparando: 3,
+  'en camino': 4,
+  entregado: 5,
+  cancelado: 6,
+};
 
 const inferPayloadData = (payload, preferredKeys = []) => {
   if (payload === null || payload === undefined) return null;
@@ -102,8 +109,8 @@ const getStatusSemanticKey = (value = '') => {
   if (normalized.includes('cancel')) return 'cancelado';
   if (normalized.includes('entreg')) return 'entregado';
   if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
-  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
   if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
   return normalized;
 };
 
@@ -114,6 +121,13 @@ const getStatusSearchValues = (status = {}) => [
   status.label,
   status.estado,
 ].map(getStatusSemanticKey).filter(Boolean);
+
+const getFallbackOrderStatusId = (value = '') => {
+  const requestedId = Number.parseInt(value, 10);
+  if (Number.isFinite(requestedId)) return requestedId;
+  const key = getStatusSemanticKey(value);
+  return FALLBACK_ORDER_STATUS_IDS[key] || null;
+};
 
 const sanitizeParams = (params = {}) =>
   Object.fromEntries(
@@ -309,18 +323,21 @@ const createApiError = (message, details = {}) => {
 
 export const api = {
   async resolveOrderStatusId(preferredId = null, headers = {}) {
+    const fallbackStatusId = getFallbackOrderStatusId(preferredId);
+
     if (!cachedOrderStatusesPromise) {
       cachedOrderStatusesPromise = this.request('/api/estadospedidos', { headers })
         .then((payload) => normalizeCollectionResult(payload, ['data']).data)
         .catch((error) => {
           cachedOrderStatusesPromise = null;
+          if (fallbackStatusId) return [];
           throw error;
         });
     }
 
     const statuses = await cachedOrderStatusesPromise;
     if (!Array.isArray(statuses) || statuses.length === 0) {
-      return null;
+      return fallbackStatusId;
     }
 
     const requestedId = Number.parseInt(preferredId, 10);
