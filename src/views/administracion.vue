@@ -691,22 +691,25 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="admin-enterprise admin-shell flex min-h-screen w-full text-slate-800 antialiased" :class="{ 'admin-dark': isDarkMode }">
-    <aside class="admin-sidebar hide-scrollbar hidden w-72 shrink-0 flex-col overflow-y-auto text-white lg:flex">
-      <div class="admin-sidebar-header sticky top-0 z-10 flex h-16 items-center border-b px-6">
+  <div class="admin-enterprise admin-shell flex min-h-dvh w-full text-slate-800 antialiased lg:h-dvh lg:max-h-dvh lg:overflow-hidden" :class="{ 'admin-dark': isDarkMode }">
+    <aside class="admin-sidebar hidden h-dvh max-h-dvh w-80 shrink-0 flex-col overflow-hidden text-white lg:flex">
+      <div class="admin-sidebar-header z-10 flex h-20 shrink-0 items-center border-b px-6">
         <div class="admin-brand-mark flex items-center gap-3 text-xl text-brand-500">
-          <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-lg shadow-brand-500/30">
+          <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 text-white shadow-lg shadow-brand-500/30">
             <i class="fa-solid fa-layer-group"></i>
           </span>
-          <h1 class="font-black tracking-wide text-white">Food<span class="text-brand-500">Rush</span></h1>
+          <div class="min-w-0">
+            <h1 class="font-black tracking-wide text-white">Food<span class="text-brand-500">Rush</span></h1>
+            <p class="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">Command Center</p>
+          </div>
         </div>
       </div>
 
-      <div class="flex-1 p-4">
+      <div class="admin-sidebar-scroll min-h-0 flex-1 overflow-y-auto p-5">
         <div v-for="group in menuGroups" :key="group.name" class="mb-6">
           <p class="admin-menu-label mb-3 px-2 text-[10px] font-black uppercase tracking-widest text-slate-500">{{ group.name }}</p>
           <nav class="space-y-1.5">
-            <button v-for="menu in group.items" :key="menu.id" type="button" class="admin-menu-button flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-bold transition-all" :class="currentView === menu.id ? 'admin-menu-active bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" @click="currentView = menu.id">
+            <button v-for="menu in group.items" :key="menu.id" type="button" class="admin-menu-button flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm font-bold transition-all" :class="currentView === menu.id ? 'admin-menu-active bg-brand-500 text-white shadow-md shadow-brand-500/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'" @click="currentView = menu.id">
               <span class="admin-menu-icon flex h-9 w-9 shrink-0 items-center justify-center rounded-xl">
                 <i :class="`${menu.icon} text-base`"></i>
               </span>
@@ -717,7 +720,17 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <div class="admin-sidebar-footer mt-auto border-t p-4">
+      <div class="admin-sidebar-footer shrink-0 border-t p-5">
+        <div class="mb-4 grid grid-cols-2 gap-2">
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+            <p class="text-[10px] font-black uppercase text-slate-500">Pedidos</p>
+            <p class="mt-1 text-lg font-black text-white">{{ pendingOrdersCount }}</p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+            <p class="text-[10px] font-black uppercase text-slate-500">Alertas</p>
+            <p class="mt-1 text-lg font-black text-white">{{ systemAlerts.length }}</p>
+          </div>
+        </div>
         <div class="flex items-center gap-3">
           <div class="flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-800 text-sm font-bold shadow-inner">{{ (session.userName || 'AD').slice(0, 2).toUpperCase() }}</div>
           <div class="min-w-0 flex-1">
@@ -729,7 +742,7 @@ onBeforeUnmount(() => {
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden lg:h-dvh lg:max-h-dvh">
       <header class="admin-topbar flex min-h-16 flex-col gap-4 border-b px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
         <div class="flex min-w-0 items-start justify-between gap-3">
           <div class="min-w-0">
@@ -738,8 +751,11 @@ onBeforeUnmount(() => {
               <span class="rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-wider" :class="syncStatusClass">
                 <i class="fa-solid fa-circle mr-1 text-[7px]"></i>{{ syncStatusLabel }}
               </span>
+              <span class="rounded-full border border-slate-200 bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wider text-slate-500">
+                {{ lastUpdatedAt ? `Sync ${lastUpdatedAt}` : 'Sync pendiente' }}
+              </span>
             </div>
-            <h2 class="truncate text-2xl font-black text-slate-900">{{ currentViewTitle }}</h2>
+            <h2 class="text-2xl font-black leading-tight tracking-tight text-slate-900 sm:text-3xl">{{ currentViewTitle }}</h2>
             <p class="mt-1 max-w-2xl text-sm font-semibold text-slate-500">{{ currentViewDescription }}</p>
           </div>
           <button
@@ -780,7 +796,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <main class="admin-main hide-scrollbar flex-1 overflow-y-auto p-4 sm:p-6">
+      <main class="admin-main min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
         <div v-if="errorMessage" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{{ errorMessage }}</div>
         <div v-if="phaseTwoMessage" class="mb-5 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
           <span><i class="fa-solid fa-circle-check mr-2"></i>{{ phaseTwoMessage }}</span>
@@ -792,9 +808,40 @@ onBeforeUnmount(() => {
         </div>
 
         <template v-else>
+          <div class="admin-command-strip mb-6 grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <button type="button" class="admin-command-tile text-left" @click="currentView = 'orders'">
+              <span class="admin-command-icon bg-amber-50 text-amber-600"><i class="fa-solid fa-receipt"></i></span>
+              <span class="min-w-0">
+                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Pendientes</span>
+                <span class="mt-1 block text-xl font-black text-slate-900">{{ pendingOrdersCount }}</span>
+              </span>
+            </button>
+            <button type="button" class="admin-command-tile text-left" @click="currentView = 'orders'; orderDeliveryFilter = 'unassigned'">
+              <span class="admin-command-icon bg-orange-50 text-brand-600"><i class="fa-solid fa-user-plus"></i></span>
+              <span class="min-w-0">
+                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Sin delivery</span>
+                <span class="mt-1 block text-xl font-black text-slate-900">{{ readyForDeliveryCount }}</span>
+              </span>
+            </button>
+            <button type="button" class="admin-command-tile text-left" @click="currentView = 'zones'">
+              <span class="admin-command-icon bg-emerald-50 text-emerald-600"><i class="fa-solid fa-route"></i></span>
+              <span class="min-w-0">
+                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Zonas activas</span>
+                <span class="mt-1 block text-xl font-black text-slate-900">{{ operationZones.filter((zone) => zone.active).length }}</span>
+              </span>
+            </button>
+            <button type="button" class="admin-command-tile text-left" @click="currentView = 'support'">
+              <span class="admin-command-icon bg-red-50 text-red-600"><i class="fa-solid fa-triangle-exclamation"></i></span>
+              <span class="min-w-0">
+                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Alertas</span>
+                <span class="mt-1 block text-xl font-black text-slate-900">{{ systemAlerts.length }}</span>
+              </span>
+            </button>
+          </div>
+
           <section v-show="currentView === 'dashboard'" class="space-y-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-              <div v-for="card in dashboardKpis" :key="card.label" class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <div v-for="card in dashboardKpis" :key="card.label" class="admin-kpi-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <div class="mb-4 flex items-start justify-between gap-3">
                   <p class="text-xs font-black uppercase tracking-wider text-slate-400">{{ card.label }}</p>
                   <span :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-base', card.tone]">
@@ -803,6 +850,22 @@ onBeforeUnmount(() => {
                 </div>
                 <p class="text-2xl font-black leading-none text-slate-800">{{ card.value }}</p>
                 <p class="mt-2 text-xs font-bold text-slate-500">{{ card.detail }}</p>
+              </div>
+            </div>
+
+            <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600">Acciones rapidas</p>
+                  <h3 class="mt-2 text-xl font-black text-slate-900">Mover la operacion sin perder contexto</h3>
+                  <p class="mt-1 text-sm font-bold text-slate-500">Accesos directos a los modulos donde normalmente hay que actuar primero.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+                  <button type="button" class="admin-quick-action" @click="currentView = 'orders'"><i class="fa-solid fa-receipt"></i> Pedidos</button>
+                  <button type="button" class="admin-quick-action" @click="currentView = 'zones'"><i class="fa-solid fa-route"></i> Zonas</button>
+                  <button type="button" class="admin-quick-action" @click="currentView = 'daily_close'"><i class="fa-solid fa-cash-register"></i> Cierre</button>
+                  <button type="button" class="admin-quick-action" @click="currentView = 'audit'"><i class="fa-solid fa-clipboard-list"></i> Auditoria</button>
+                </div>
               </div>
             </div>
 
@@ -946,7 +1009,46 @@ onBeforeUnmount(() => {
                 <p>{{ selectedTenantName }} · {{ lastUpdatedAt ? `Actualizado ${lastUpdatedAt}` : 'Sin sincronizar' }}</p>
               </div>
             </div>
-            <div class="overflow-x-auto">
+            <div class="space-y-3 p-4 md:hidden">
+              <article v-for="order in paginatedOrders" :key="`mobile-${order.tenantId}-${order.id}`" class="admin-order-card rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">{{ order.tenantName }}</p>
+                    <h3 class="mt-1 truncate text-lg font-black text-slate-900">Pedido #{{ order.id }}</h3>
+                    <p class="mt-1 truncate text-sm font-bold text-slate-500">{{ order.customerName }}</p>
+                  </div>
+                  <p class="shrink-0 rounded-2xl bg-slate-50 px-3 py-2 text-sm font-black text-slate-900">{{ formatCurrency(order.totalValue) }}</p>
+                </div>
+
+                <p class="mt-3 line-clamp-2 text-xs font-bold leading-5 text-slate-500">{{ order.itemSummary }}</p>
+
+                <div class="mt-4 grid grid-cols-2 gap-2">
+                  <div class="rounded-xl bg-slate-50 p-3">
+                    <p class="text-[10px] font-black uppercase text-slate-400">Delivery</p>
+                    <p class="mt-1 truncate text-xs font-black text-slate-800">{{ order.driverName || order.deliveryAssignment?.driverName || 'Sin asignar' }}</p>
+                  </div>
+                  <div class="rounded-xl bg-slate-50 p-3">
+                    <p class="text-[10px] font-black uppercase text-slate-400">Contacto</p>
+                    <p class="mt-1 truncate text-xs font-black text-slate-800">{{ order.customerPhone || 'Sin telefono' }}</p>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex flex-col gap-2">
+                  <select class="rounded-xl px-3 py-3 text-xs font-black outline-none" :class="getStatusBadgeClass(order.statusKey)" :disabled="savingOrderId === String(order.id)" :value="orderStatusKey(order)" @change="updateOrderStatus(order, $event.target.value)">
+                    <option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option>
+                  </select>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button v-if="isPendingOrder(order)" type="button" class="rounded-xl bg-orange-50 px-3 py-3 text-xs font-black text-orange-600 hover:bg-orange-100" :disabled="savingOrderId === String(order.id)" @click="confirmOrder(order)">CONFIRMAR</button>
+                    <button type="button" class="rounded-xl bg-slate-900 px-3 py-3 text-xs font-black text-white hover:bg-brand-600" :class="{ 'col-span-2': !isPendingOrder(order) }" @click="router.push({ path: `/tracking/${order.id}`, query: { tenant: order.tenantId } })">TRACKING</button>
+                  </div>
+                </div>
+              </article>
+              <div v-if="filteredOrders.length === 0" class="rounded-2xl border border-slate-100 bg-white p-10 text-center">
+                <p class="text-sm font-bold text-slate-400">No hay pedidos registrados en este local.</p>
+              </div>
+            </div>
+
+            <div class="hidden overflow-x-auto md:block">
               <table class="min-w-[1100px] w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">ID / Local</th><th class="p-4">Cliente</th><th class="p-4">Pedido</th><th class="p-4">Total</th><th class="p-4">Estado</th><th class="p-4">Delivery</th><th class="p-4 pr-6 text-right">Acciones</th></tr></thead>
                 <tbody class="text-sm">
@@ -983,44 +1085,81 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <section v-show="currentView === 'menu'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-slate-100 p-6">
-              <div><h3 class="font-black text-slate-800">Gestion de Productos</h3><p class="text-xs font-bold text-slate-500">Catalogo real cargado desde el backend.</p></div>
-              <input v-model="search.products" type="text" placeholder="Buscar producto..." class="w-72 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+          <section v-show="currentView === 'menu'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="admin-section-kicker">Catalogo operativo</p>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Productos</h3>
+                <p class="mt-1 text-xs font-bold text-slate-500">Catalogo real cargado desde el backend, con precio, stock y local visible.</p>
+              </div>
+              <input v-model="search.products" type="text" placeholder="Buscar producto..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
             </div>
-            <div class="space-y-4 p-6">
-              <div v-for="product in filteredProducts" :key="`${product.tenantId}-${product.id}`" class="flex flex-wrap items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div class="min-w-[200px] flex-1"><p class="font-black text-slate-800">{{ product.nombre || product.name || 'Producto' }}</p><p class="text-[10px] font-bold text-slate-400">ID: {{ product.id }}</p></div>
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700">{{ formatCurrency(product.priceValue) }}</div>
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600">Stock: {{ product.stock ?? product.existencias ?? product.inventario ?? 'N/D' }}</div>
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600">{{ product.categoryLabel }}</div>
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-bold text-slate-600">{{ product.tenantName }}</div>
+            <div class="grid grid-cols-1 gap-4 p-5 sm:p-6 xl:grid-cols-2">
+              <div v-for="product in filteredProducts" :key="`${product.tenantId}-${product.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div class="flex items-start justify-between gap-4">
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-black text-slate-900">{{ product.nombre || product.name || 'Producto' }}</p>
+                    <p class="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">ID: {{ product.id }} - {{ product.tenantName }}</p>
+                  </div>
+                  <div class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-900">{{ formatCurrency(product.priceValue) }}</div>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                  <div class="rounded-xl bg-white p-3"><p class="font-black uppercase text-slate-400">Stock</p><p class="mt-1 font-black text-slate-800">{{ product.stock ?? product.existencias ?? product.inventario ?? 'N/D' }}</p></div>
+                  <div class="rounded-xl bg-white p-3"><p class="font-black uppercase text-slate-400">Categoria</p><p class="mt-1 truncate font-black text-slate-800">{{ product.categoryLabel }}</p></div>
+                  <div class="rounded-xl bg-white p-3 sm:col-span-1"><p class="font-black uppercase text-slate-400">Local</p><p class="mt-1 truncate font-black text-slate-800">{{ product.tenantName }}</p></div>
+                </div>
               </div>
               <div v-if="filteredProducts.length === 0" class="py-12 text-center"><p class="text-sm font-bold text-slate-400">No hay productos en esta franquicia.</p></div>
             </div>
           </section>
 
-          <section v-show="currentView === 'franchises_list'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-slate-100 p-6">
-              <div><h3 class="font-black text-slate-800">Gestion de Locales</h3><p class="text-xs font-bold text-slate-500">Todas las franquicias visibles en el sistema.</p></div>
-              <input v-model="search.franchises" type="text" placeholder="Buscar franquicia..." class="w-72 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+          <section v-show="currentView === 'franchises_list'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="admin-section-kicker">Red de locales</p>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Locales</h3>
+                <p class="mt-1 text-xs font-bold text-slate-500">Todas las franquicias visibles en el sistema.</p>
+              </div>
+              <input v-model="search.franchises" type="text" placeholder="Buscar franquicia..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
             </div>
             <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 xl:grid-cols-3">
-              <div v-for="franchise in franchiseCards" :key="franchise.id" class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <p class="font-black text-slate-800">{{ franchise.name }}</p>
-                <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">ID Sistema: {{ franchise.id }}</p>
+              <div v-for="franchise in franchiseCards" :key="franchise.id" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate font-black text-slate-900">{{ franchise.name }}</p>
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">ID Sistema: {{ franchise.id }}</p>
+                  </div>
+                  <span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase text-emerald-700">Activo</span>
+                </div>
                 <div class="mt-4 grid grid-cols-2 gap-3 text-sm"><div class="rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Pedidos</p><p class="mt-2 text-xl font-black text-slate-800">{{ franchise.ordersCount }}</p></div><div class="rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Productos</p><p class="mt-2 text-xl font-black text-slate-800">{{ franchise.productsCount }}</p></div><div class="rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Usuarios</p><p class="mt-2 text-xl font-black text-slate-800">{{ franchise.usersCount }}</p></div><div class="rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Conectados</p><p class="mt-2 text-xl font-black text-slate-800">{{ franchise.connectedCount }}</p></div></div>
                 <div class="mt-4 rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Ventas Entregadas</p><p class="mt-2 text-xl font-black text-slate-800">{{ formatCurrency(franchise.sales) }}</p></div>
               </div>
             </div>
           </section>
 
-          <section v-show="currentView === 'users_fleet'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-slate-100 p-6">
-              <div><h3 class="font-black text-slate-800">Flota y Personal</h3><p class="text-xs font-bold text-slate-500">Usuarios y personas conectadas en el sitio web.</p></div>
-              <input v-model="search.users" type="text" placeholder="Buscar persona..." class="w-72 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-bold outline-none focus:border-brand-500">
+          <section v-show="currentView === 'users_fleet'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+            <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="admin-section-kicker">Equipo operativo</p>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Flota y Personal</h3>
+                <p class="mt-1 text-xs font-bold text-slate-500">Usuarios y personas conectadas en el sitio web.</p>
+              </div>
+              <input v-model="search.users" type="text" placeholder="Buscar persona..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
             </div>
-            <div class="overflow-x-auto p-6">
+            <div class="grid grid-cols-1 gap-3 p-4 md:hidden">
+              <article v-for="user in filteredUsers" :key="`user-mobile-${user.tenantId}-${user.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                <div class="flex items-start gap-3">
+                  <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-sm font-black text-brand-600">{{ (user.name || 'US').slice(0, 2).toUpperCase() }}</div>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate font-black text-slate-900">{{ user.name }}</p>
+                    <p class="truncate text-xs font-bold text-slate-500">{{ user.email || user.phone || 'Sin contacto' }}</p>
+                    <p class="mt-1 text-[10px] font-black uppercase tracking-wider text-slate-400">{{ user.roleLabel }} - {{ user.tenantName }}</p>
+                  </div>
+                  <span class="rounded-full px-3 py-1.5 text-[10px] font-black" :class="user.isConnected ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'">{{ user.isConnected ? 'Online' : 'Offline' }}</span>
+                </div>
+              </article>
+            </div>
+            <div class="hidden overflow-x-auto p-6 md:block">
               <table class="w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">Nombre del Empleado</th><th class="p-4">Rol / Permisos</th><th class="p-4">Local</th><th class="p-4 pr-6 text-right">Estado</th></tr></thead>
                 <tbody><tr v-for="user in filteredUsers" :key="`${user.tenantId}-${user.id}`" class="border-b border-slate-50 hover:bg-slate-50/50"><td class="p-4 pl-6"><p class="font-black text-slate-800">{{ user.name }}</p><p class="mt-1 text-xs font-bold text-slate-400">{{ user.email || user.phone || 'Sin contacto' }}</p></td><td class="p-4"><span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">{{ user.roleLabel }}</span></td><td class="p-4 text-sm font-bold text-slate-600">{{ user.tenantName }}</td><td class="p-4 pr-6 text-right"><span class="rounded-full px-3 py-1.5 text-xs font-black" :class="user.isConnected ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'">{{ user.isConnected ? 'Conectado' : 'Desconectado' }}</span></td></tr></tbody>
@@ -1029,13 +1168,19 @@ onBeforeUnmount(() => {
           </section>
 
           <section v-show="currentView === 'support'" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div class="flex h-[500px] flex-col rounded-2xl border border-slate-100 bg-white shadow-sm">
-              <div class="border-b border-slate-100 p-5"><h3 class="text-sm font-black text-slate-800"><i class="fa-solid fa-user-clock mr-2 text-brand-500"></i> Sesiones Web Activas</h3></div>
+            <div class="admin-module-card flex h-[500px] flex-col rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div class="border-b border-slate-100 p-5">
+                <p class="admin-section-kicker">Actividad viva</p>
+                <h3 class="mt-1 text-sm font-black text-slate-800"><i class="fa-solid fa-user-clock mr-2 text-brand-500"></i> Sesiones Web Activas</h3>
+              </div>
               <div class="hide-scrollbar flex-1 overflow-y-auto p-5"><div class="space-y-3"><div v-for="row in sessionRows" :key="row.id" class="rounded-xl border border-slate-100 bg-slate-50 p-3"><p class="text-xs font-black text-slate-800">{{ row.userName }}</p><p class="text-[10px] font-bold text-slate-500">{{ row.email }} · {{ row.tenantName }}</p><p class="mt-1 text-[10px] font-bold text-slate-400">Expira: {{ formatDate(row.expiresAt) }}</p></div><div v-if="sessionRows.length === 0" class="py-6 text-center text-xs font-bold text-slate-400">No hay sesiones activas detectadas.</div></div></div>
             </div>
 
-            <div class="flex h-[500px] flex-col rounded-2xl border border-red-100 bg-white shadow-sm">
-              <div class="rounded-t-2xl border-b border-red-100 bg-red-50 p-5"><h3 class="text-sm font-black text-red-600"><i class="fa-solid fa-truck-medical mr-2"></i> Centro de Alertas</h3></div>
+            <div class="admin-module-card flex h-[500px] flex-col rounded-2xl border border-red-100 bg-white shadow-sm">
+              <div class="rounded-t-2xl border-b border-red-100 bg-red-50 p-5">
+                <p class="admin-section-kicker text-red-500">Resolver primero</p>
+                <h3 class="mt-1 text-sm font-black text-red-600"><i class="fa-solid fa-truck-medical mr-2"></i> Centro de Alertas</h3>
+              </div>
               <div class="hide-scrollbar flex-1 space-y-3 overflow-y-auto p-5">
                 <div v-for="order in supportAlerts" :key="order.id" class="rounded-xl border border-red-200 bg-red-50 p-4"><p class="text-sm font-black text-red-700">Pedido #{{ order.id }}</p><p class="mt-1 text-xs font-bold text-red-500">{{ order.customerName }} · {{ order.tenantName }}</p><p class="mt-2 text-xs text-red-600">{{ order.itemSummary }}</p></div>
                 <div v-for="(alert, index) in systemAlerts" :key="`alert-${index}`" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-700">{{ alert }}</div>
@@ -1046,10 +1191,11 @@ onBeforeUnmount(() => {
 
           <section v-show="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <div class="space-y-6 xl:col-span-7">
-              <div class="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div class="admin-module-card overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h3 class="font-black text-slate-800">Editor de Zonas y Rutas</h3>
+                    <p class="admin-section-kicker">Mapa operativo</p>
+                    <h3 class="mt-1 font-black text-slate-900">Editor de Zonas y Rutas</h3>
                     <p class="text-xs font-bold text-slate-500">Cobertura operativa de delivery sobre OpenStreetMap.</p>
                   </div>
                   <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
@@ -1057,15 +1203,40 @@ onBeforeUnmount(() => {
                 <div class="h-[420px]">
                   <AdminZonesMap :zones="operationZones" :selected-zone-id="selectedZoneId" @select-zone="selectZone" />
                 </div>
+                <div class="grid grid-cols-1 gap-2 border-t border-slate-100 p-4 text-center text-[10px] font-black uppercase text-slate-400 sm:grid-cols-3">
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle-dot mr-1 text-brand-500"></i> Zona seleccionada</div>
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-emerald-500"></i> Activa</div>
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-slate-400"></i> Pausada</div>
+                </div>
               </div>
 
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <h3 class="mb-4 text-sm font-black text-slate-800">Ajustar zona seleccionada</h3>
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <p class="admin-section-kicker">Reglas de entrega</p>
+                    <h3 class="mt-1 text-lg font-black text-slate-900">Ajustar zona seleccionada</h3>
+                    <p class="mt-1 text-xs font-bold text-slate-500">El formulario queda debajo del mapa para editar sin perder referencia visual.</p>
+                  </div>
+                  <span class="rounded-full bg-slate-50 px-3 py-1 text-[10px] font-black uppercase text-slate-500">{{ zoneDraft.priority || 'Media' }}</span>
+                </div>
+                <div class="admin-zone-form grid grid-cols-1 gap-4">
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Identidad</p>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label class="block sm:col-span-2">
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Nombre</span>
                     <input v-model="zoneDraft.name" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
                   </label>
+                  <label class="block sm:col-span-2">
+                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Palabras clave de direccion</span>
+                    <input v-model="zoneDraft.keywordsText" type="text" placeholder="gurabo, villa olga..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
+                  </label>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Cobertura y costo</p>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label class="block">
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Latitud</span>
                     <input v-model.number="zoneDraft.center.lat" type="number" step="0.0001" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
@@ -1086,15 +1257,17 @@ onBeforeUnmount(() => {
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">ETA min</span>
                     <input v-model.number="zoneDraft.etaMin" type="number" min="5" step="1" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
                   </label>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Estado visual</p>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label class="block">
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Prioridad</span>
                     <select v-model="zoneDraft.priority" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
                       <option v-for="priority in zonePriorityOptions" :key="priority" :value="priority">{{ priority }}</option>
                     </select>
-                  </label>
-                  <label class="block sm:col-span-2">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Palabras clave de direccion</span>
-                    <input v-model="zoneDraft.keywordsText" type="text" placeholder="gurabo, villa olga..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
                   </label>
                   <label class="block">
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Color</span>
@@ -1106,12 +1279,17 @@ onBeforeUnmount(() => {
                     <input v-model="zoneDraft.active" type="checkbox" class="h-4 w-4 accent-orange-500">
                     Zona activa
                   </label>
+                    </div>
+                  </div>
+
+                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                   <label class="block sm:col-span-2">
                     <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Notas operativas</span>
                     <textarea v-model="zoneDraft.notes" rows="3" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500"></textarea>
                   </label>
+                  </div>
                 </div>
-                <div class="mt-4 flex flex-wrap justify-end gap-2">
+                <div class="admin-zone-actions sticky bottom-4 mt-5 flex flex-wrap justify-end gap-2 rounded-2xl border border-slate-100 bg-white/90 p-3 backdrop-blur">
                   <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-black text-slate-500 hover:border-brand-500 hover:text-brand-600" @click="resetZoneDraft">REVERTIR</button>
                   <button type="button" class="rounded-lg bg-brand-500 px-5 py-2 text-xs font-black text-white" @click="saveZone">GUARDAR ZONA</button>
                 </div>
@@ -1119,9 +1297,10 @@ onBeforeUnmount(() => {
             </div>
 
             <div class="space-y-6 xl:col-span-5">
-              <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <div class="mb-4 flex items-center justify-between gap-3">
                   <div>
+                    <p class="admin-section-kicker">Cobertura</p>
                     <h3 class="text-sm font-black text-slate-800">Zonas activas</h3>
                     <p class="text-xs font-bold text-slate-400">Pedidos detectados por direccion.</p>
                   </div>
@@ -1281,6 +1460,7 @@ onBeforeUnmount(() => {
     radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.08), transparent 28rem),
     var(--admin-bg);
   color: var(--admin-text);
+  min-height: 100dvh;
 }
 
 .admin-shell.admin-dark {
@@ -1315,6 +1495,37 @@ onBeforeUnmount(() => {
   border-color: var(--admin-sidebar-line);
   background: rgba(2, 6, 23, 0.32);
   backdrop-filter: blur(16px);
+}
+
+.admin-sidebar-scroll,
+.admin-main {
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+  scrollbar-width: thin;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar,
+.admin-main::-webkit-scrollbar {
+  width: 0.7rem;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-track,
+.admin-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb,
+.admin-main::-webkit-scrollbar-thumb {
+  border: 0.18rem solid transparent;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.56);
+  background-clip: content-box;
+}
+
+.admin-sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.admin-main::-webkit-scrollbar-thumb:hover {
+  background: rgba(249, 115, 22, 0.76);
+  background-clip: content-box;
 }
 
 .admin-brand-mark {
@@ -1391,6 +1602,144 @@ onBeforeUnmount(() => {
 .admin-filter-control,
 .admin-icon-action {
   border-color: var(--admin-line);
+}
+
+.admin-command-strip {
+  isolation: isolate;
+}
+
+.admin-command-tile {
+  display: flex;
+  min-height: 86px;
+  align-items: center;
+  gap: 0.875rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 1rem;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.52)),
+    var(--admin-surface);
+  padding: 1rem;
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-command-tile:hover {
+  border-color: rgba(249, 115, 22, 0.42);
+  box-shadow: var(--admin-shadow);
+  transform: translateY(-2px);
+}
+
+.admin-command-icon {
+  display: flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  font-size: 1rem;
+}
+
+.admin-module-card,
+.admin-kpi-card,
+.admin-data-card,
+.admin-order-card {
+  border-color: var(--admin-line);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-module-card:hover,
+.admin-kpi-card:hover,
+.admin-data-card:hover,
+.admin-order-card:hover {
+  box-shadow: var(--admin-shadow);
+}
+
+.admin-kpi-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-kpi-card::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(249, 115, 22, 0.08), transparent 42%),
+    radial-gradient(circle at top right, rgba(15, 23, 42, 0.05), transparent 9rem);
+}
+
+.admin-kpi-card > * {
+  position: relative;
+}
+
+.admin-data-card,
+.admin-order-card {
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.admin-data-card:hover,
+.admin-order-card:hover {
+  border-color: rgba(249, 115, 22, 0.28);
+  transform: translateY(-1px);
+}
+
+.admin-section-kicker {
+  color: #ea580c;
+  font-size: 0.625rem;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.admin-quick-action {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 0.875rem;
+  background: var(--admin-surface-soft);
+  padding: 0.75rem 1rem;
+  color: var(--admin-text);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.admin-quick-action:hover {
+  border-color: rgba(249, 115, 22, 0.44);
+  color: #ea580c;
+  box-shadow: 0 12px 26px rgba(249, 115, 22, 0.14);
+}
+
+.admin-zone-actions {
+  border-color: var(--admin-line);
+  background: color-mix(in srgb, var(--admin-surface) 92%, transparent);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-dark .admin-command-tile {
+  background:
+    linear-gradient(135deg, rgba(30, 41, 59, 0.82), rgba(15, 23, 42, 0.58)),
+    var(--admin-surface);
+}
+
+.admin-dark .admin-kpi-card::before {
+  background:
+    linear-gradient(135deg, rgba(249, 115, 22, 0.16), transparent 42%),
+    radial-gradient(circle at top right, rgba(20, 184, 166, 0.10), transparent 9rem);
 }
 
 .admin-enterprise :deep(.rounded-2xl.border.border-slate-100.bg-white),
