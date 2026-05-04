@@ -1366,24 +1366,24 @@ onBeforeUnmount(() => {
         </div>
 
         <header class="relative z-40 flex flex-none items-center justify-between bg-white px-4 py-3 shadow-sm">
-            <div class="flex items-center gap-3">
+            <div class="delivery-header-brand flex min-w-0 items-center gap-3">
                 <div class="relative">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-100 bg-orange-50 text-xl text-[#f97316]">
                         <i class="fa-solid fa-motorcycle"></i>
                     </div>
                     <div
                         :class="[
-                            'absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white transition-colors',
+                            'delivery-shift-dot absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white transition-colors',
                             isShiftOnline ? 'bg-[#22c55e]' : 'bg-slate-400'
                         ]"
                     ></div>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <h1 class="leading-none text-lg font-black text-slate-800">
                         Food<span class="text-[#f97316]">Rush</span>
                     </h1>
-                    <p class="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-slate-500">
-                        <span>{{ tenantDisplay }}</span>
+                    <p class="delivery-header-meta mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] font-bold text-slate-500">
+                        <span class="min-w-0 break-words">{{ tenantDisplay }}</span>
                         <span v-if="lastUpdatedAt">• {{ lastUpdatedAt }}</span>
                     </p>
                 </div>
@@ -1439,7 +1439,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div class="mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
+                <div class="delivery-order-tabs sticky top-0 z-30 mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
                     <button
                         type="button"
                         :class="[
@@ -1814,7 +1814,7 @@ onBeforeUnmount(() => {
             </section>
         </main>
 
-        <nav class="relative z-40 flex-none border-t border-slate-100 bg-white px-4 py-2 pb-safe">
+        <nav class="delivery-bottom-nav relative z-40 flex-none border-t border-slate-100 bg-white px-4 py-2 pb-safe">
             <div class="mx-auto flex w-full max-w-sm items-center justify-between">
                 <button type="button" :class="['flex flex-1 flex-col items-center gap-1', currentView === 'orders' ? 'text-[#f97316]' : 'text-slate-300']" @click="navigate('orders')">
                     <i class="fa-solid fa-motorcycle text-xl"></i>
@@ -2097,7 +2097,57 @@ onBeforeUnmount(() => {
 
 .delivery-pro {
     font-family: 'Inter', sans-serif;
+    height: 100dvh;
+    max-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
+}
+
+.delivery-header-brand {
+    max-width: calc(100% - 6rem);
+}
+
+.delivery-header-meta span:last-child {
+    white-space: nowrap;
+}
+
+.delivery-shift-dot {
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.delivery-dark .delivery-shift-dot {
+    border-color: #101827 !important;
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.28);
+}
+
+.delivery-dark .delivery-shift-dot.bg-slate-400 {
+    background-color: #64748b !important;
+}
+
+.delivery-order-tabs {
+    backdrop-filter: blur(16px);
+}
+
+.delivery-dark .delivery-order-tabs {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(16, 24, 39, 0.92) !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+}
+
+.delivery-bottom-nav {
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.delivery-dark .delivery-bottom-nav {
+    box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.38);
+}
+
+@supports not (height: 100dvh) {
+    .delivery-pro {
+        height: 100vh;
+        max-height: 100vh;
+    }
 }
 
 .delivery-onboarding {
@@ -2115,7 +2165,7 @@ onBeforeUnmount(() => {
 
 .view {
     display: none;
-    height: 100%;
+    min-height: 100%;
     animation: fade-in 0.2s ease-in-out forwards;
 }
 

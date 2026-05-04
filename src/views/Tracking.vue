@@ -437,17 +437,17 @@ const goBack = () => router.push('/orders');
             </div>
 
             <aside class="space-y-6">
-                <div class="relative space-y-7 rounded-[1.5rem] border border-gray-100 bg-white p-4 pl-9 shadow-sm before:absolute before:left-[27px] before:top-8 before:h-[calc(100%-4rem)] before:w-0.5 before:bg-gray-100 sm:space-y-8 sm:rounded-[1.75rem] sm:p-6 sm:pl-10 sm:before:left-[31px]" role="list" aria-label="Progreso del pedido">
+                <div class="tracking-progress-timeline relative space-y-7 rounded-[1.5rem] border border-gray-100 bg-white p-4 pl-9 shadow-sm before:absolute before:left-[27px] before:top-8 before:h-[calc(100%-4rem)] before:w-0.5 before:bg-gray-100 sm:space-y-8 sm:rounded-[1.75rem] sm:p-6 sm:pl-10 sm:before:left-[31px]" role="list" aria-label="Progreso del pedido">
                     <div v-for="(step, index) in steps" :key="step.label" class="relative" role="listitem">
                         <div
-                            class="absolute -left-[31px] top-3 z-10 h-4 w-4 rounded-full border-4 border-white shadow-sm transition-all duration-500"
+                            class="tracking-progress-dot absolute -left-[31px] top-3 z-10 h-4 w-4 rounded-full border-4 border-white shadow-sm transition-all duration-500"
                             :class="index <= currentStep && !isCancelled ? 'bg-green-500 scale-125' : 'bg-gray-200'"
                             :aria-hidden="true"
                         ></div>
 
                         <div class="flex items-center gap-4 transition-opacity duration-500" :class="index <= currentStep && !isCancelled ? 'opacity-100' : 'opacity-40'">
                             <div
-                                class="flex h-12 w-12 items-center justify-center rounded-full text-xl shadow-sm transition-colors duration-500"
+                                class="tracking-progress-icon flex h-12 w-12 items-center justify-center rounded-full text-xl shadow-sm transition-colors duration-500"
                                 :class="index <= currentStep && !isCancelled ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-400'"
                                 :aria-hidden="true"
                             >
@@ -512,3 +512,25 @@ const goBack = () => router.push('/orders');
         </div>
     </div>
 </template>
+
+<style scoped>
+html.foodrush-dark .tracking-progress-timeline::before {
+    width: 1px;
+    background: linear-gradient(180deg, rgba(34, 197, 94, 0.48), rgba(148, 163, 184, 0.22), rgba(148, 163, 184, 0.08)) !important;
+    box-shadow: none;
+}
+
+html.foodrush-dark .tracking-progress-dot {
+    border-color: #101827 !important;
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.28);
+}
+
+html.foodrush-dark .tracking-progress-dot.bg-gray-200 {
+    background-color: #334155 !important;
+}
+
+html.foodrush-dark .tracking-progress-icon.bg-gray-50 {
+    background-color: rgba(15, 23, 42, 0.86) !important;
+    color: #64748b !important;
+}
+</style>
