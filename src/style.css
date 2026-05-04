@@ -331,6 +331,12 @@ html.foodrush-dark .customization-panel {
   color: var(--fr-text) !important;
 }
 
+html.foodrush-dark .card-franchise .franchise-title,
+html.foodrush-dark .card-franchise h3 {
+  color: var(--fr-text) !important;
+  text-shadow: none !important;
+}
+
 html.foodrush-dark .filter-btn,
 html.foodrush-dark .modal-chip,
 html.foodrush-dark .franchise-category,

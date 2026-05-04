@@ -106,6 +106,15 @@ const isInTransitOrder = (order = {}) => orderStatusKey(order) === 'en camino';
 const isFinalOrder = (order = {}) => isDeliveredOrder(order) || isCancelledOrder(order);
 const hasAssignedDriver = (order = {}) => Boolean(order.driverName || order.driverEmail || order.deliveryAssignment?.driverName || order.deliveryAssignment?.driverId || order.deliveryAssignment?.driverEmail);
 const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
+const formatChartCurrency = (value) => {
+  const amount = Number(value || 0);
+  if (!amount) return '$0';
+  if (Math.abs(amount) >= 1000) {
+    const compact = amount / 1000;
+    return `$${compact >= 10 ? compact.toFixed(0) : compact.toFixed(1)}k`;
+  }
+  return `$${Math.round(amount)}`;
+};
 const formatDate = (value) => value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
 
 const currentViewTitle = computed(() => {
@@ -328,8 +337,12 @@ const weeklySales = computed(() => {
       .reduce((sum, order) => sum + Number(order.totalValue || 0), 0);
     points.push({ key, label: fmt.format(date).replace('.', ''), amount });
   }
-  const max = Math.max(...points.map((point) => point.amount), 1);
-  return points.map((point) => ({ ...point, height: `${Math.max(10, (point.amount / max) * 100)}%` }));
+  const max = Math.max(...points.map((point) => point.amount), 0);
+  return points.map((point) => ({
+    ...point,
+    hasValue: point.amount > 0,
+    height: point.amount > 0 && max > 0 ? `${Math.max(14, (point.amount / max) * 100)}%` : '0%',
+  }));
 });
 
 const systemAlerts = computed(() => {
@@ -712,7 +725,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="admin-enterprise admin-shell flex min-h-dvh w-full text-slate-800 antialiased lg:h-dvh lg:max-h-dvh lg:overflow-hidden" :class="{ 'admin-dark': isDarkMode }">
+  <div class="admin-enterprise admin-shell flex min-h-dvh w-full flex-col text-slate-800 antialiased lg:h-dvh lg:max-h-dvh lg:flex-row lg:overflow-hidden" :class="{ 'admin-dark': isDarkMode }">
     <aside class="admin-sidebar hidden h-dvh max-h-dvh w-80 shrink-0 flex-col overflow-hidden text-white lg:flex">
       <div class="admin-sidebar-header z-10 flex h-20 shrink-0 items-center border-b px-6">
         <div class="admin-brand-mark flex items-center gap-3 text-xl text-brand-500">
@@ -763,7 +776,7 @@ onBeforeUnmount(() => {
       </div>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden lg:h-dvh lg:max-h-dvh">
+    <div class="flex w-full min-w-0 flex-1 flex-col lg:h-dvh lg:max-h-dvh lg:overflow-hidden">
       <header class="admin-topbar flex min-h-16 flex-col gap-4 border-b px-4 py-4 sm:px-6 xl:flex-row xl:items-center xl:justify-between">
         <div class="flex min-w-0 items-start justify-between gap-3">
           <div class="min-w-0">
@@ -821,7 +834,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <main class="admin-main min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+      <main class="admin-main flex-1 p-4 sm:p-6 lg:min-h-0 lg:overflow-y-auto">
         <div v-if="errorMessage" class="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{{ errorMessage }}</div>
         <div v-if="phaseTwoMessage" class="mb-5 flex items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
           <span><i class="fa-solid fa-circle-check mr-2"></i>{{ phaseTwoMessage }}</span>
@@ -897,11 +910,20 @@ onBeforeUnmount(() => {
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
               <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-7">
                 <h3 class="mb-4 text-sm font-black text-slate-800">Rendimiento Semanal (Ventas)</h3>
-                <div class="flex h-64 items-end gap-3 rounded-2xl bg-slate-50 p-4">
-                  <div v-for="day in weeklySales" :key="day.key" class="flex flex-1 flex-col items-center gap-2">
-                    <div class="flex h-full w-full items-end"><div class="w-full rounded-t-xl bg-gradient-to-t from-brand-600 to-brand-500" :style="{ height: day.height }"></div></div>
-                    <p class="text-[10px] font-black uppercase text-slate-500">{{ day.label }}</p>
-                    <p class="text-[10px] font-bold text-slate-400">{{ formatCurrency(day.amount) }}</p>
+                <div class="admin-chart-shell rounded-2xl p-3 sm:p-4">
+                  <div class="admin-weekly-chart" role="img" aria-label="Ventas entregadas de los ultimos siete dias">
+                    <div v-for="day in weeklySales" :key="day.key" class="admin-weekly-column">
+                      <div class="admin-weekly-track">
+                        <div
+                          class="admin-weekly-bar"
+                          :class="{ 'admin-weekly-bar-empty': !day.hasValue }"
+                          :style="{ height: day.height }"
+                          :title="`${day.label.toUpperCase()}: ${formatCurrency(day.amount)}`"
+                        ></div>
+                      </div>
+                      <p class="admin-weekly-label">{{ day.label }}</p>
+                      <p class="admin-weekly-value">{{ formatChartCurrency(day.amount) }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1624,6 +1646,84 @@ onBeforeUnmount(() => {
     transparent;
 }
 
+.admin-chart-shell {
+  border: 1px solid var(--admin-line);
+  background: var(--admin-surface-soft);
+  overflow: hidden;
+}
+
+.admin-weekly-chart {
+  display: grid;
+  min-height: 17rem;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: 0.55rem;
+}
+
+.admin-weekly-column {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: minmax(9rem, 1fr) auto auto;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.admin-weekly-track {
+  position: relative;
+  display: flex;
+  min-height: 9rem;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.05));
+}
+
+.admin-weekly-track::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(180deg, transparent 24%, rgba(148, 163, 184, 0.12) 25%, transparent 26%),
+    linear-gradient(180deg, transparent 49%, rgba(148, 163, 184, 0.12) 50%, transparent 51%),
+    linear-gradient(180deg, transparent 74%, rgba(148, 163, 184, 0.12) 75%, transparent 76%);
+  opacity: 0.45;
+}
+
+.admin-weekly-bar {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 1.35rem);
+  min-height: 0.6rem;
+  border-radius: 999px 999px 0.4rem 0.4rem;
+  background: linear-gradient(180deg, #fbbf24 0%, #f97316 55%, #ea580c 100%);
+  box-shadow: 0 12px 24px rgba(249, 115, 22, 0.24);
+  transition: height 180ms ease;
+}
+
+.admin-weekly-bar-empty {
+  min-height: 0.35rem;
+  background: rgba(148, 163, 184, 0.38);
+  box-shadow: none;
+}
+
+.admin-weekly-label {
+  color: var(--admin-muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.admin-weekly-value {
+  color: var(--admin-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
 .admin-filter-control,
 .admin-icon-action {
   border-color: var(--admin-line);
@@ -1857,6 +1957,14 @@ onBeforeUnmount(() => {
   color: var(--admin-text) !important;
 }
 
+.admin-dark .admin-data-card,
+.admin-dark .admin-order-card,
+.admin-dark .admin-module-card,
+.admin-dark :deep(.admin-data-card p),
+.admin-dark :deep(.admin-order-card p) {
+  color: var(--admin-text);
+}
+
 .admin-dark :deep(.text-slate-500),
 .admin-dark :deep(.text-slate-400) {
   color: var(--admin-muted) !important;
@@ -1894,6 +2002,60 @@ onBeforeUnmount(() => {
 
 .admin-dark :deep(.leaflet-container) {
   filter: saturate(0.86) brightness(0.88) contrast(1.04);
+}
+
+@media (max-width: 1023px) {
+  .admin-shell {
+    overflow-x: hidden;
+  }
+
+  .admin-topbar,
+  .admin-mobile-nav,
+  .admin-main {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .admin-main {
+    min-height: auto;
+    overflow: visible;
+    overscroll-behavior: auto;
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom));
+  }
+
+  .admin-toolbar,
+  .admin-filter-control {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-weekly-chart {
+    min-height: 14.5rem;
+    gap: 0.35rem;
+  }
+
+  .admin-weekly-column {
+    grid-template-rows: minmax(7.25rem, 1fr) auto auto;
+    gap: 0.4rem;
+  }
+
+  .admin-weekly-track {
+    min-height: 7.25rem;
+    border-radius: 0.75rem;
+  }
+
+  .admin-weekly-bar {
+    width: min(100%, 1rem);
+  }
+
+  .admin-weekly-label {
+    font-size: 0.6rem;
+  }
+
+  .admin-weekly-value {
+    font-size: 0.56rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
