@@ -159,6 +159,10 @@ html.foodrush-dark body {
   box-shadow: 0 24px 50px rgba(15, 23, 42, 0.22);
 }
 
+.foodrush-theme-toggle--raised {
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
 html.foodrush-dark .foodrush-theme-toggle {
   background: rgba(15, 23, 42, 0.9);
   border-color: rgba(249, 115, 22, 0.42);
@@ -168,13 +172,32 @@ html.foodrush-dark .foodrush-theme-toggle {
 
 html.foodrush-dark .bg-cream,
 html.foodrush-dark .bg-\[\#FAFAF5\],
+html.foodrush-dark .bg-\[\#F5F5F5\],
+html.foodrush-dark .bg-\[\#F9F9F9\],
+html.foodrush-dark .bg-\[\#fffaf5\],
+html.foodrush-dark .bg-\[\#f9f9f9\],
+html.foodrush-dark .bg-\[\#f5f5f5\],
 html.foodrush-dark .bg-gray-50,
 html.foodrush-dark .bg-slate-50 {
   background-color: var(--fr-bg) !important;
 }
 
-html.foodrush-dark .bg-white {
+html.foodrush-dark .bg-white,
+html.foodrush-dark .bg-white\/95,
+html.foodrush-dark .bg-white\/90,
+html.foodrush-dark .bg-white\/80,
+html.foodrush-dark .bg-white\/70,
+html.foodrush-dark .bg-white\/60,
+html.foodrush-dark .bg-white\/50 {
   background-color: var(--fr-surface) !important;
+}
+
+html.foodrush-dark .bg-\[\#FAFAF5\]\/95,
+html.foodrush-dark .bg-\[\#F5F5F5\]\/95,
+html.foodrush-dark .bg-\[\#F9F9F9\]\/95,
+html.foodrush-dark .bg-\[\#fffaf5\]\/95,
+html.foodrush-dark .bg-\[\#f9f9f9\]\/95 {
+  background-color: rgba(16, 24, 39, 0.95) !important;
 }
 
 html.foodrush-dark .bg-slate-100,
@@ -299,7 +322,10 @@ html.foodrush-dark .franchise-logo-frame,
 html.foodrush-dark .order-card,
 html.foodrush-dark .cart-card,
 html.foodrush-dark .checkout-card,
-html.foodrush-dark .tracking-card {
+html.foodrush-dark .tracking-card,
+html.foodrush-dark .product-card,
+html.foodrush-dark .filter-panel,
+html.foodrush-dark .customization-panel {
   background: linear-gradient(180deg, rgba(16, 24, 39, 0.98), rgba(12, 18, 31, 0.98)) !important;
   border-color: var(--fr-border) !important;
   color: var(--fr-text) !important;
@@ -337,6 +363,7 @@ html.foodrush-dark .auth-page {
 
 html.foodrush-dark .login-body .card,
 html.foodrush-dark .login-body .form-panel,
+html.foodrush-dark .login-body .panel,
 html.foodrush-dark .login-body .header,
 html.foodrush-dark .login-body .form-container,
 html.foodrush-dark .login-body .input-group input,
@@ -346,12 +373,63 @@ html.foodrush-dark .login-body .social-btn {
   color: var(--fr-text) !important;
 }
 
+html.foodrush-dark .login-body .background-animation {
+  opacity: 0.035 !important;
+  filter: invert(1) saturate(0.6);
+}
+
+html.foodrush-dark .login-body .brand-name,
+html.foodrush-dark .login-body h2 {
+  color: var(--fr-text) !important;
+}
+
 html.foodrush-dark .login-body .subtitle,
 html.foodrush-dark .login-body label,
 html.foodrush-dark .login-body .separator,
 html.foodrush-dark .login-body .terms,
 html.foodrush-dark .login-body .toggle-text {
   color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .login-body .error-msg-global,
+html.foodrush-dark .login-body .invalid-input {
+  background-color: rgba(127, 29, 29, 0.3) !important;
+  border-color: rgba(248, 113, 113, 0.45) !important;
+}
+
+html.foodrush-dark .login-body .zone-hint {
+  background-color: rgba(16, 185, 129, 0.14) !important;
+  color: #6ee7b7 !important;
+}
+
+html.foodrush-dark .catalog-surface {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(249, 115, 22, 0.12), transparent 30%),
+    var(--fr-bg) !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .catalog-surface footer {
+  background-color: #07100d !important;
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark .catalog-surface .customization-row {
+  background-color: rgba(15, 23, 42, 0.36) !important;
+  border-color: var(--fr-border) !important;
+}
+
+html.foodrush-dark .catalog-surface .plus-btn,
+html.foodrush-dark .catalog-surface .quantity-btn {
+  background-color: rgba(15, 23, 42, 0.9) !important;
+  border-color: var(--fr-border) !important;
+  color: #fb7185 !important;
+}
+
+html.foodrush-dark .fixed.bottom-0.left-0.w-full.bg-white {
+  background-color: rgba(8, 13, 25, 0.94) !important;
+  border-color: var(--fr-border) !important;
+  backdrop-filter: blur(18px);
 }
 
 html.foodrush-dark .delivery-pro {
@@ -379,6 +457,11 @@ html.foodrush-dark .delivery-onboarding .hide-scrollbar {
 
 @media (min-width: 768px) {
   .foodrush-theme-toggle {
+    top: 1.25rem;
+    bottom: auto;
+  }
+
+  .foodrush-theme-toggle--raised {
     top: 1.25rem;
     bottom: auto;
   }

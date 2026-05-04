@@ -15,6 +15,8 @@ docs/
 Emprendimiento/
 backend_ref/
 
+/*.png
+
 fix_principal.py
 generate_mock_products.py
 patch_mcd.py

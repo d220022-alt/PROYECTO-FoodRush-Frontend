@@ -6,8 +6,11 @@ import { useTheme } from './services/theme';
 const route = useRoute();
 const { isDarkMode, toggleTheme } = useTheme();
 
-const routesWithIntegratedTheme = new Set(['administracion', 'delivery']);
-const showGlobalThemeToggle = computed(() => !routesWithIntegratedTheme.has(String(route.name || '')));
+const routesWithIntegratedTheme = ['/administracion', '/delivery'];
+const showGlobalThemeToggle = computed(() =>
+  !routesWithIntegratedTheme.some((path) => route.path === path || route.path.startsWith(`${path}/`))
+);
+const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
 </script>
 
 <template>
@@ -20,6 +23,7 @@ const showGlobalThemeToggle = computed(() => !routesWithIntegratedTheme.has(Stri
     v-if="showGlobalThemeToggle"
     type="button"
     class="foodrush-theme-toggle"
+    :class="{ 'foodrush-theme-toggle--raised': shouldRaiseThemeToggle }"
     :aria-label="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
     :title="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
     @click="toggleTheme"
