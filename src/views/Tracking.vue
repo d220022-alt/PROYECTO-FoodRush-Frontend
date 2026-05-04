@@ -45,6 +45,7 @@ const toNumber = (value, fallback = 0) => {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
+const isBackendOrderId = (value) => /^\d+$/.test(safeText(value));
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
 const currentStatusKey = computed(() => normalizeStatusKey(rawStatusLabel.value));
@@ -180,6 +181,7 @@ const fetchOrder = async ({ silent = false } = {}) => {
 
         try {
             if (!silent) isLoading.value = true;
+            const requestedOrderId = String(orderId.value || '');
             const selectedTenantId = String(route.query.tenant || cachedOrder?.tenantId || 'Global');
 
             const dataset = await fetchOperationalDataset({
@@ -187,13 +189,24 @@ const fetchOrder = async ({ silent = false } = {}) => {
                 includeSessions: false,
             });
 
-            const remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === String(orderId.value)) || null;
-            const tenantMeta = (dataset.tenants || []).find((tenant) => String(tenant.id) === String(selectedTenantId)) || {};
+            let resolvedDataset = dataset;
+            let remoteOrder = (dataset.orders || []).find((entry) => String(entry.id) === requestedOrderId) || null;
+
+            if (!remoteOrder && !isBackendOrderId(requestedOrderId) && selectedTenantId !== 'Global') {
+                resolvedDataset = await fetchOperationalDataset({
+                    selectedTenantId: 'Global',
+                    includeSessions: false,
+                });
+                remoteOrder = (resolvedDataset.orders || []).find((entry) => String(entry.id) === requestedOrderId) || null;
+            }
+
+            const resolvedTenantId = remoteOrder?.tenantId || remoteOrder?.tenant_id || selectedTenantId;
+            const tenantMeta = (resolvedDataset.tenants || []).find((tenant) => String(tenant.id) === String(resolvedTenantId)) || {};
             let authoritativeOrder = remoteOrder;
 
-            if (selectedTenantId && selectedTenantId !== 'Global' && !String(orderId.value || '').toLowerCase().startsWith('local-')) {
+            if (selectedTenantId && selectedTenantId !== 'Global' && isBackendOrderId(requestedOrderId)) {
                 try {
-                    const detailResponse = await api.getOrder(orderId.value, buildTenantHeaders(selectedTenantId));
+                    const detailResponse = await api.getOrder(requestedOrderId, buildTenantHeaders(selectedTenantId));
                     if (detailResponse?.data) {
                         authoritativeOrder = normalizeRemoteOrderDetail(detailResponse.data, remoteOrder || cachedOrder || {}, tenantMeta);
                     }
@@ -225,7 +238,7 @@ const fetchOrder = async ({ silent = false } = {}) => {
                 };
                 warnings.value = [];
             } else if (!cachedOrder) {
-                warnings.value = dataset.warnings || [];
+                warnings.value = resolvedDataset.warnings || dataset.warnings || [];
             }
             return order.value;
         } catch (error) {
