@@ -1918,7 +1918,7 @@ onBeforeUnmount(() => {
 
                 <button
                     type="button"
-                    class="mb-4 w-full rounded-xl bg-slate-200 py-4 text-sm font-black text-slate-600 active:bg-slate-300"
+                    class="delivery-logout-button mb-4 w-full rounded-xl py-4 text-sm font-black transition active:scale-[0.99]"
                     @click="logout"
                 >
                     Cerrar sesión
@@ -2253,6 +2253,28 @@ onBeforeUnmount(() => {
 
 .delivery-dark .delivery-bottom-nav {
     box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.38);
+}
+
+.delivery-logout-button {
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #b91c1c;
+    box-shadow: 0 12px 26px rgba(239, 68, 68, 0.12);
+}
+
+.delivery-logout-button:active {
+    background: #fecaca;
+}
+
+.delivery-dark .delivery-logout-button {
+    border-color: rgba(248, 113, 113, 0.38);
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.92), rgba(185, 28, 28, 0.76));
+    color: #fff1f2;
+    box-shadow: 0 18px 36px rgba(127, 29, 29, 0.32);
+}
+
+.delivery-dark .delivery-logout-button:active {
+    background: linear-gradient(135deg, rgba(153, 27, 27, 0.96), rgba(220, 38, 38, 0.82));
 }
 
 @supports not (height: 100dvh) {
