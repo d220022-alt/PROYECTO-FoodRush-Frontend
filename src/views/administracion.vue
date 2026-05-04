@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Panel operativo de administracion. Controla pedidos, catalogos, locales, alertas, mapa y metricas.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -339,6 +344,7 @@ const assignedDeliveryOrders = computed(() => scopedOrders.value.filter(hasAssig
 const deliveryAssignedOrdersCount = computed(() => assignedDeliveryOrders.value.length);
 const activeDeliveryOrdersCount = computed(() => assignedDeliveryOrders.value.filter((order) => isPreparingOrder(order) || isInTransitOrder(order)).length);
 const readyForDeliveryCount = computed(() => scopedOrders.value.filter((order) => isPreparingOrder(order) && !hasAssignedDriver(order)).length);
+// Pedidos que alimentan el mapa en vivo: solo salen los que tienen datos suficientes para operacion.
 const liveMapOrders = computed(() => scopedOrders.value
   .filter((order) => !isFinalOrder(order))
   .sort((left, right) => {

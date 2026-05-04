@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Catalogo local de respaldo. Sirve cuando Render tarda o una franquicia no devuelve productos.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 export const mockProducts = [
   {
     "id": "prod_1_1",

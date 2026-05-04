@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Componente reutilizable de interfaz. Se mantiene pequeno para poder entenderlo rapido en la demo.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <template>
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor">
     <path

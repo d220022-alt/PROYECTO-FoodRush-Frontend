@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Estado del tema visual. Guarda preferencia claro/oscuro y la aplica al documento.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { computed, ref } from 'vue';
 
 export const THEME_STORAGE_KEY = 'foodrush_theme';

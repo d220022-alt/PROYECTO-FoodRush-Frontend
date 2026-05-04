@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Estilos globales compartidos por cliente, tracking, admin y delivery. Tambien vive aqui el tema oscuro global.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

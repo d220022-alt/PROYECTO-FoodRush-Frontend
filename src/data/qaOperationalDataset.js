@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Dataset de QA para presentar flujos completos sin depender de que la DB tenga pedidos perfectos.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { getDeliveryAssignment } from '../services/storage';
 
 export const QA_DATA_STORAGE_KEY = 'foodrush_qa_data_mode';

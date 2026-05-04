@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Historial de pedidos del cliente. Desde aqui se vuelve al tracking de cada orden.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';

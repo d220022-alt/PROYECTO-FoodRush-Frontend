@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Vista de Support. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import Swal from 'sweetalert2';

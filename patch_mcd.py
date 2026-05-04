@@ -1,3 +1,6 @@
+# Guia rapida para presentar:
+# Script auxiliar del frontend. Sirve para generar o ajustar archivos durante desarrollo, no para la app en produccion.
+# Mantener estos comentarios actualizados si cambia el flujo.
 content = """<script setup>
 import FranchiseUnified from './FranchiseUnified.vue';
 </script>

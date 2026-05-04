@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Genera y normaliza el codigo que conecta al cliente con el repartidor al entregar.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const safeString = (value, fallback = '') => {
   if (value === null || value === undefined) return fallback;
   const normalized = String(value).trim();

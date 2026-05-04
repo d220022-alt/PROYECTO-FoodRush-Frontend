@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Archivo de soporte del frontend. Ayuda a conectar la experiencia visual con el resto de la app.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 /* color palette from <https://github.com/vuejs/theme> */
 :root {
   --vt-c-white: #ffffff;

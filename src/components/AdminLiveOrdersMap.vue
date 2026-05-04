@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Mapa operativo de administracion. Muestra pedidos activos, repartidores y seleccion en tiempo real.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { buildDeliveryRoute, ensureLeaflet, SANTIAGO_CENTER } from '../utils/deliveryMap';

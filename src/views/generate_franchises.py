@@ -1,3 +1,6 @@
+# Guia rapida para presentar:
+# Apoyo de la vista Generate Franchises. Mantiene datos o utilidades cercanas a la pantalla.
+# Mantener estos comentarios actualizados si cambia el flujo.
 import os
 import re
 

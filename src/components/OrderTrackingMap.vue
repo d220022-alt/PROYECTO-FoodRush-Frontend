@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Mapa que ve el cliente durante el seguimiento. Dibuja local, cliente, repartidor y ruta por calles.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { buildDeliveryRoute, ensureLeaflet, fetchStreetRoute, getPointAlongRoute, getTrackingCopy } from '../utils/deliveryMap';

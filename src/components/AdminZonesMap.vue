@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Mapa historico de zonas. Se conserva porque algunas vistas antiguas aun pueden necesitarlo.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { ensureLeaflet, SANTIAGO_CENTER } from '../utils/deliveryMap';

@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Datos operativos de apoyo para el panel admin: alertas, metricas y movimientos de prueba.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { api } from './api';
 import { getSession } from './storage';
 

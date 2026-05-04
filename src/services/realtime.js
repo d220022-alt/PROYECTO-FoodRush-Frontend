@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Conexion liviana a eventos en vivo. Si falla, la app sigue usando polling para no romper la demo.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const API_URL = (import.meta.env.VITE_API_URL || 'https://proyecto-foodrush.onrender.com').trim();
 const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').trim();
 

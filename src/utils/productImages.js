@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Resuelve imagenes de productos y evita placeholders rotos en produccion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 /**
  * Mapeo de imágenes de productos para todas las franquicias.
  * Usa Unsplash para imágenes de alta calidad, libres y confiables.

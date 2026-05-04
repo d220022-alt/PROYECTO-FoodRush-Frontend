@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Capa de localStorage. Guarda sesion, carrito, pedidos cacheados y notificaciones por usuario.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { resolveDeliveryCode } from '../utils/deliveryCode';
 
 const STORAGE_KEYS = {
@@ -455,6 +460,7 @@ const resolveAccountScope = (scope = null) => {
   return 'guest';
 };
 
+// Todas las claves quedan separadas por usuario para que una sesion no contamine otra.
 const scopedStorageKey = (baseKey, scope = null) => `${baseKey}::${resolveAccountScope(scope)}`;
 
 export const getCart = (scope = null) => {

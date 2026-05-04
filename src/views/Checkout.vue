@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Flujo de pago y entrega. El cliente confirma direccion, metodo de entrega y crea el pedido.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -512,6 +517,7 @@ const resolveOrderLocationPayload = () => {
   return { lat: location.lat, lng: location.lng };
 };
 
+// Payload final que viaja al backend: cliente, items, entrega, pago y ubicacion salen de aqui.
 const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.value } = {}) => {
   const methodMap = {
       'cash': 'Efectivo',
@@ -556,6 +562,7 @@ const buildTrackingPath = (order = {}, payload = {}) => {
   return `${route.path}${tenantId ? `?tenant=${encodeURIComponent(tenantId)}` : ''}`;
 };
 
+// Boton Pagar Ahora: intenta crear pedido real y deja fallback local solo si la red falla.
 const processOrder = async () => {
   if (cartItems.value.length === 0) {
       return Swal.fire('Error', 'El carrito está vacío.', 'error');
@@ -766,6 +773,7 @@ const ensureLeaflet = () =>
     document.body.appendChild(script);
   });
 
+// El mapa del checkout se actualiza con direccion guardada, pickup o ubicacion real del usuario.
 const updateMap = (lat, lng, label, isUser) => {
   if (!mapInstance || !leaflet) return;
 

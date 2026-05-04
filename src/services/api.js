@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Cliente HTTP principal. Centraliza llamadas al backend, headers de tenant, token y mensajes de error.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const API_URL = (import.meta.env.VITE_API_URL || 'https://proyecto-foodrush.onrender.com').trim();
 const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').trim();
 const REQUEST_TIMEOUT_MS = 60000;
@@ -283,6 +288,7 @@ const resolveTenantHeaderValue = () => {
   return DEFAULT_TENANT_ID;
 };
 
+// Preparamos headers en un solo lugar para no olvidar tenant ni token en llamadas nuevas.
 const createHeaders = (extraHeaders = {}) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -321,6 +327,7 @@ const createApiError = (message, details = {}) => {
   return error;
 };
 
+// Fachada publica: las vistas usan estos metodos y no tienen que saber URLs exactas del backend.
 export const api = {
   async resolveOrderStatusId(preferredId = null, headers = {}) {
     const fallbackStatusId = getFallbackOrderStatusId(preferredId);
@@ -428,6 +435,7 @@ export const api = {
     return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'productos']);
   },
 
+  // Login acepta correo o usuario; si falta tenant, usamos el default para evitar errores confusos.
   async login(identifier, password, headers = {}) {
     const loginHeaders = { ...headers };
     if (!hasTenantHeader(loginHeaders)) {
@@ -487,6 +495,7 @@ export const api = {
     throw new Error('No se pudo resolver un tenant válido para registrar el usuario.');
   },
 
+  // Registro envia X-Tenant-ID de forma explicita porque el backend lo exige para crear usuarios.
   async register(userData, headers = {}) {
     const tenantId = await this.ensureTenantId(userData.tenantId || 1, headers);
 
@@ -577,6 +586,7 @@ export const api = {
     );
   },
 
+  // Checkout termina aqui: arma el pedido remoto y deja el backend como fuente principal.
   async createOrder(orderData, headers = {}) {
     const resolvedStatusId = await this.resolveOrderStatusId(orderData?.estado_id, headers);
     if (!resolvedStatusId) {

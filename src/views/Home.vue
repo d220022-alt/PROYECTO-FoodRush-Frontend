@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Pantalla principal del cliente. Reune busqueda, filtros, ofertas y tarjetas de franquicias.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';

@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Configuracion visual de franquicias: logos, categorias, slides y textos de apoyo.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import logoMcDonalds from "../assets/images/logo-mcdonalds.png";
 import logoStarbucks from "../assets/images/logo-starbucks.png";
 import logoKfc from "../assets/images/logo-kfc.png";

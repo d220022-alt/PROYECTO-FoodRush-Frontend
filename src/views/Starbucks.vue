@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Vista de Starbucks. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';

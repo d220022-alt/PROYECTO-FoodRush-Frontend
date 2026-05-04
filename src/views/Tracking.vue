@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Seguimiento del pedido. Mezcla backend, cache local y dataset QA para mostrar estado, mapa y codigo.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -45,6 +50,7 @@ const toNumber = (value, fallback = 0) => {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
+// Los IDs numericos vienen de la DB; los qa-* o local-* se resuelven en el dataset operativo.
 const isBackendOrderId = (value) => /^\d+$/.test(safeText(value));
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
@@ -163,6 +169,7 @@ const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta
     };
 };
 
+// Carga el pedido sin romper la pantalla: primero cache/dataset, y solo consulta backend si el ID es real.
 const fetchOrder = async ({ silent = false } = {}) => {
     if (silent && document.visibilityState === 'hidden') return null;
     if (fetchOrderPromise) return fetchOrderPromise;

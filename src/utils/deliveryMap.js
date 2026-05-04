@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Utilidades de mapas y rutas. Calcula puntos, fallback y rutas por calles sobre OpenStreetMap/OSRM.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 

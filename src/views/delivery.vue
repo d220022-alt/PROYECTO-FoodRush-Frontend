@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  App del repartidor. Muestra viajes disponibles, viajes activos, wallet y perfil.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -890,6 +895,7 @@ const toggleShift = async () => {
     showToast('Turno finalizado. ¡Buen trabajo!');
 };
 
+// El repartidor toma un viaje: se guarda asignacion y se notifica al resto del flujo.
 const acceptOrder = async (id) => {
     if (!isShiftOnline.value) {
         showToast('Inicia tu turno antes de aceptar un viaje.', 'error');

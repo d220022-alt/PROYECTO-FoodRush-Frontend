@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Mapa de navegacion del frontend. Define que vista abre cada URL y cuales requieren sesion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from './views/Home.vue'
 import Login from './views/Login.vue'

@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Entrada de usuarios. Maneja login, registro, autodeteccion de zona y redireccion por rol.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { api } from '../services/api';

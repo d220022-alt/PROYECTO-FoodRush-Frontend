@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Carrito del cliente. Resume productos agregados antes de pasar al checkout.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';

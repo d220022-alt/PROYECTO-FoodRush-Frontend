@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Validacion de telefonos. Mantiene un criterio unico en registro y perfil.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const DOMINICAN_AREA_CODES = new Set(['809', '829', '849']);
 
 export const onlyPhoneDigits = (value = '') => String(value || '').replace(/\D/g, '');

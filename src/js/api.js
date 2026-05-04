@@ -1,3 +1,8 @@
+/*
+  Guia rapida para presentar:
+  Archivo de soporte del frontend. Ayuda a conectar la experiencia visual con el resto de la app.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 // Si tienes un archivo config.js, impórtalo así:
 // import { CONFIG } from './config.js';
 

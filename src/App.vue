@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Componente raiz. Renderiza la ruta actual y controla el boton global de modo claro/oscuro.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';

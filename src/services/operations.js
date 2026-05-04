@@ -1,9 +1,15 @@
+/*
+  Guia rapida para presentar:
+  Une datos reales del backend con datos QA para que Admin, Delivery y Tracking hablen el mismo idioma.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { api } from './api';
 import { getDeliveryAssignment, getSession } from './storage';
 import { enrichOperationalDatasetWithQaData } from '../data/qaOperationalDataset';
 import { franchiseConfigs } from '../views/franchiseConfigs';
 import { resolveDeliveryCode } from '../utils/deliveryCode';
 
+// Estados compartidos entre pantallas. Si cambian en la DB, este mapa ayuda a mantener la UI coherente.
 export const ORDER_STATUS_IDS = {
   pending: 1,
   confirmed: 2,
@@ -300,6 +306,7 @@ const buildAssignmentsByOrderId = (assignments = []) =>
       ]),
   );
 
+// Convertimos pedidos de varias fuentes al mismo formato para que Admin, Delivery y Tracking no dupliquen reglas.
 const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId) => {
   const id = safeText(order.id);
   const statusLabel = getStatusLabel(order);
@@ -432,6 +439,7 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   };
 }
 
+// Esta funcion es el tablero de control: junta backend, cache local y datos QA en una sola respuesta.
 export async function fetchOperationalDataset({ selectedTenantId = 'Global', includeSessions = true } = {}) {
   const warnings = [];
   let tenants = [];

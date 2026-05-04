@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Centro de notificaciones. Ordena avisos del pedido y eventos importantes del usuario.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';

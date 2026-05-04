@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Perfil del cliente. Muestra datos guardados, direccion y acciones de cuenta.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';

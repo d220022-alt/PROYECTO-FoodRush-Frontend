@@ -1,3 +1,8 @@
+<!--
+  Guia rapida para presentar:
+  Vista de About. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
