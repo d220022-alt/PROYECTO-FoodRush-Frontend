@@ -2,9 +2,9 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import AdminZonesMap from '../components/AdminZonesMap.vue';
+import AdminLiveOrdersMap from '../components/AdminLiveOrdersMap.vue';
 import { api } from '../services/api';
-import { appendAuditLog, buildClosureSnapshot, createClosureRecordRemote, getAdminZones, getAuditLog, getClosureRecords, loadAdminPhaseTwoState, saveAdminZoneRemote } from '../services/adminPhaseTwo';
+import { appendAuditLog, buildClosureSnapshot, createClosureRecordRemote, getAdminZones, getAuditLog, getClosureRecords, loadAdminPhaseTwoState } from '../services/adminPhaseTwo';
 import { getQaOrderStatusPatch, isQaDatasetEnabled, isQaOrder, setQaDatasetEnabled, setQaOrderOverride } from '../data/qaOperationalDataset';
 import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSessionActive, normalizeStatusKey } from '../services/operations';
 import { connectRealtime } from '../services/realtime';
@@ -35,6 +35,10 @@ const closurePage = ref(1);
 const closurePageSize = ref(8);
 const auditPage = ref(1);
 const auditPageSize = ref(10);
+const liveMapFilter = ref('all');
+const liveMapPage = ref(1);
+const liveMapPageSize = ref(8);
+const selectedMapOrderId = ref('');
 const isLoading = ref(true);
 const isRefreshing = ref(false);
 const savingOrderId = ref('');
@@ -44,8 +48,6 @@ const lastUpdatedAt = ref('');
 const data = ref({ tenants: [], orders: [], products: [], users: [], connectedUsers: [], sessions: [], warnings: [] });
 const qaDatasetEnabled = ref(isQaDatasetEnabled());
 const operationZones = ref(getAdminZones());
-const selectedZoneId = ref(operationZones.value[0]?.id || '');
-const zoneDraft = ref({});
 const closureRecords = ref(getClosureRecords());
 const auditEntries = ref(getAuditLog());
 const AUTO_REFRESH_INTERVAL_MS = 20000;
@@ -65,7 +67,7 @@ const menuGroups = [
   {
     name: 'LOGISTICA DELIVERY',
     items: [
-      { id: 'zones', name: 'Zonas y Rutas', icon: 'fa-solid fa-route' },
+      { id: 'zones', name: 'Mapa', icon: 'fa-solid fa-map-location-dot' },
       { id: 'users_fleet', name: 'Personas Conectadas', icon: 'fa-solid fa-users' },
       { id: 'support', name: 'Centro de Alertas', icon: 'fa-solid fa-headset' },
     ],
@@ -96,10 +98,15 @@ const orderDeliveryFilterOptions = [
   { id: 'assigned', label: 'Con delivery' },
   { id: 'unassigned', label: 'Sin delivery' },
 ];
+const liveMapFilterOptions = [
+  { id: 'all', label: 'Todos' },
+  { id: ORDER_STATUS_CODES.pending, label: 'Pendientes' },
+  { id: ORDER_STATUS_CODES.preparing, label: 'Preparando' },
+  { id: ORDER_STATUS_CODES.inTransit, label: 'En camino' },
+  { id: 'unassigned', label: 'Sin delivery' },
+];
 const orderPageSizeOptions = [5, 10, 20, 50];
 const recordPageSizeOptions = [8, 12, 24, 48];
-const zonePriorityOptions = ['Alta', 'Media', 'Baja'];
-const zoneColorOptions = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626'];
 
 let refreshTimer = null;
 let realtimeRefreshTimer = null;
@@ -168,7 +175,7 @@ const viewDescriptions = {
   orders: 'Recepcion, estados y seguimiento operativo de pedidos.',
   menu: 'Catalogo, precios y disponibilidad por franquicia.',
   franchises_list: 'Locales activos, ventas y rendimiento por franquicia.',
-  zones: 'Cobertura, rutas y reglas de entrega por zona.',
+  zones: 'Pedidos, repartidores y locales en tiempo real sobre el mapa.',
   users_fleet: 'Personal conectado, roles y actividad operacional.',
   support: 'Sesiones, alertas y soporte operativo.',
   daily_close: 'Cierre diario, ventas y evidencia de auditoria.',
@@ -332,6 +339,33 @@ const assignedDeliveryOrders = computed(() => scopedOrders.value.filter(hasAssig
 const deliveryAssignedOrdersCount = computed(() => assignedDeliveryOrders.value.length);
 const activeDeliveryOrdersCount = computed(() => assignedDeliveryOrders.value.filter((order) => isPreparingOrder(order) || isInTransitOrder(order)).length);
 const readyForDeliveryCount = computed(() => scopedOrders.value.filter((order) => isPreparingOrder(order) && !hasAssignedDriver(order)).length);
+const liveMapOrders = computed(() => scopedOrders.value
+  .filter((order) => !isFinalOrder(order))
+  .sort((left, right) => {
+    const leftTransit = isInTransitOrder(left) ? 1 : 0;
+    const rightTransit = isInTransitOrder(right) ? 1 : 0;
+    if (leftTransit !== rightTransit) return rightTransit - leftTransit;
+    return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+  }));
+const liveMapFilteredOrders = computed(() => liveMapOrders.value.filter((order) => {
+  if (liveMapFilter.value === 'all') return true;
+  if (liveMapFilter.value === 'unassigned') return isPreparingOrder(order) && !hasAssignedDriver(order);
+  return orderStatusKey(order) === liveMapFilter.value;
+}));
+const liveMapPagination = makePagination(liveMapFilteredOrders, liveMapPage, liveMapPageSize);
+const liveMapPaginationTotal = liveMapPagination.total;
+const liveMapTotalPages = liveMapPagination.totalPages;
+const liveMapPageStart = liveMapPagination.pageStart;
+const liveMapPageEnd = liveMapPagination.pageEnd;
+const paginatedLiveMapOrders = liveMapPagination.items;
+const visibleLiveMapPages = liveMapPagination.visiblePages;
+const selectedMapOrder = computed(() =>
+  liveMapOrders.value.find((order) => String(order.id) === String(selectedMapOrderId.value)) || liveMapFilteredOrders.value[0] || null,
+);
+const liveMapPendingCount = computed(() => liveMapOrders.value.filter(isPendingOrder).length);
+const liveMapPreparingCount = computed(() => liveMapOrders.value.filter(isPreparingOrder).length);
+const liveMapTransitCount = computed(() => liveMapOrders.value.filter(isInTransitOrder).length);
+const liveMapUnassignedCount = computed(() => liveMapOrders.value.filter((order) => isPreparingOrder(order) && !hasAssignedDriver(order)).length);
 const averageTicket = computed(() => (deliveredOrdersCount.value > 0 ? totalSales.value / deliveredOrdersCount.value : 0));
 const completionRate = computed(() => (totalOrdersCount.value > 0 ? Math.round((deliveredOrdersCount.value / totalOrdersCount.value) * 100) : 0));
 const cancellationRate = computed(() => (totalOrdersCount.value > 0 ? Math.round((cancelledOrdersCount.value / totalOrdersCount.value) * 100) : 0));
@@ -446,55 +480,6 @@ const supportPageEnd = supportPagination.pageEnd;
 const paginatedSupportAlerts = supportPagination.items;
 const visibleSupportPages = supportPagination.visiblePages;
 
-const selectedZone = computed(() =>
-  operationZones.value.find((zone) => zone.id === selectedZoneId.value) || operationZones.value[0] || null,
-);
-
-const toZoneDraft = (zone = {}) => ({
-  id: zone.id || '',
-  name: zone.name || '',
-  center: {
-    lat: Number(zone.center?.lat || 0),
-    lng: Number(zone.center?.lng || 0),
-  },
-  radiusKm: Number(zone.radiusKm || 1),
-  deliveryFee: Number(zone.deliveryFee || 0),
-  etaMin: Number(zone.etaMin || 20),
-  priority: zone.priority || 'Media',
-  active: zone.active !== false,
-  color: zone.color || '#f97316',
-  keywordsText: Array.isArray(zone.keywords) ? zone.keywords.join(', ') : '',
-  notes: zone.notes || '',
-});
-
-zoneDraft.value = toZoneDraft(selectedZone.value || {});
-
-const getZoneOrders = (zone = {}) => {
-  const keys = [
-    zone.name,
-    ...(Array.isArray(zone.keywords) ? zone.keywords : []),
-  ].map(normalize).filter(Boolean);
-
-  return scopedOrders.value.filter((order) => {
-    const address = normalize(`${order.address} ${order.customerName} ${order.tenantName}`);
-    return keys.some((key) => address.includes(key));
-  });
-};
-
-const zoneCoverageRows = computed(() => operationZones.value.map((zone) => {
-  const orders = getZoneOrders(zone);
-  const delivered = orders.filter(isDeliveredOrder);
-  const active = orders.filter((order) => !isFinalOrder(order));
-  const revenue = delivered.reduce((sum, order) => sum + Number(order.totalValue || 0), 0);
-  return {
-    ...zone,
-    ordersCount: orders.length,
-    activeCount: active.length,
-    deliveredCount: delivered.length,
-    revenue,
-  };
-}));
-
 const closurePreview = computed(() => buildClosureSnapshot({
   tenantId: selectedTenant.value,
   tenantName: selectedTenantName.value,
@@ -549,7 +534,7 @@ const getStatusBadgeClass = (statusValue) => {
 
 const getMenuBadge = (id) => {
   if (id === 'orders') return pendingOrdersCount.value;
-  if (id === 'zones') return operationZones.value.filter((zone) => zone.active === false).length;
+  if (id === 'zones') return liveMapOrders.value.length;
   if (id === 'daily_close') return closurePreview.value.activeOrders;
   if (id === 'audit') return auditRows.value.length;
   if (id === 'users_fleet') return connectedUsers.value.length;
@@ -570,6 +555,11 @@ const goToSessionPage = (page) => { sessionPage.value = clampPage(page, sessionT
 const goToSupportPage = (page) => { supportPage.value = clampPage(page, supportTotalPages.value); };
 const goToClosurePage = (page) => { closurePage.value = clampPage(page, closureTotalPages.value); };
 const goToAuditPage = (page) => { auditPage.value = clampPage(page, auditTotalPages.value); };
+const goToLiveMapPage = (page) => { liveMapPage.value = clampPage(page, liveMapTotalPages.value); };
+
+const selectMapOrder = (orderId) => {
+  selectedMapOrderId.value = String(orderId || '');
+};
 
 const clearOrderFilters = () => {
   search.value.orders = '';
@@ -596,44 +586,6 @@ const refreshPhaseTwoState = async ({ remote = true } = {}) => {
     audit: auditEntries.value,
     remote: false,
   };
-};
-
-const selectZone = (zoneId) => {
-  selectedZoneId.value = zoneId;
-};
-
-const resetZoneDraft = () => {
-  zoneDraft.value = toZoneDraft(selectedZone.value || {});
-};
-
-const saveZone = async () => {
-  const draft = zoneDraft.value;
-  const saved = await saveAdminZoneRemote({
-    ...draft,
-    center: {
-      lat: Number(draft.center?.lat),
-      lng: Number(draft.center?.lng),
-    },
-    keywords: String(draft.keywordsText || '')
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean),
-  });
-
-  selectedZoneId.value = saved.id;
-  phaseTwoMessage.value = `Zona ${saved.name} guardada para operaciones.`;
-  appendAuditLog({
-    action: 'Zona actualizada',
-    detail: `${saved.name}: ${saved.radiusKm} km, envio ${formatCurrency(saved.deliveryFee)}, ETA ${saved.etaMin} min.`,
-    tenantId: selectedTenant.value === 'Global' ? '' : selectedTenant.value,
-    tenantName: selectedTenantName.value,
-    tone: 'info',
-    metadata: { zoneId: saved.id },
-  }, {
-    syncRemote: false,
-  });
-  await refreshPhaseTwoState({ remote: true });
-  resetZoneDraft();
 };
 
 const generateDailyClosure = async () => {
@@ -789,10 +741,7 @@ watch([selectedTenant, sessionPageSize], () => { sessionPage.value = 1; });
 watch([selectedTenant, supportPageSize], () => { supportPage.value = 1; });
 watch([selectedTenant, closurePageSize], () => { closurePage.value = 1; });
 watch([selectedTenant, auditPageSize], () => { auditPage.value = 1; });
-
-watch(selectedZoneId, () => {
-  resetZoneDraft();
-});
+watch([selectedTenant, liveMapFilter, liveMapPageSize], () => { liveMapPage.value = 1; });
 
 watch(orderTotalPages, (totalPages) => {
   orderPage.value = clampPage(orderPage.value, totalPages);
@@ -804,6 +753,18 @@ watch(sessionTotalPages, (totalPages) => { sessionPage.value = clampPage(session
 watch(supportTotalPages, (totalPages) => { supportPage.value = clampPage(supportPage.value, totalPages); });
 watch(closureTotalPages, (totalPages) => { closurePage.value = clampPage(closurePage.value, totalPages); });
 watch(auditTotalPages, (totalPages) => { auditPage.value = clampPage(auditPage.value, totalPages); });
+watch(liveMapTotalPages, (totalPages) => { liveMapPage.value = clampPage(liveMapPage.value, totalPages); });
+watch(liveMapFilteredOrders, (orders) => {
+  if (orders.length === 0) {
+    selectedMapOrderId.value = '';
+    return;
+  }
+
+  const selectedExists = orders.some((order) => String(order.id) === String(selectedMapOrderId.value));
+  if (!selectedExists) {
+    selectedMapOrderId.value = String(orders[0].id);
+  }
+}, { immediate: true });
 
 onMounted(async () => {
   if (!session.isAuthenticated) {
@@ -967,10 +928,10 @@ onBeforeUnmount(() => {
               </span>
             </button>
             <button type="button" class="admin-command-tile text-left" @click="currentView = 'zones'">
-              <span class="admin-command-icon bg-emerald-50 text-emerald-600"><i class="fa-solid fa-route"></i></span>
+              <span class="admin-command-icon bg-emerald-50 text-emerald-600"><i class="fa-solid fa-map-location-dot"></i></span>
               <span class="min-w-0">
-                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">Zonas activas</span>
-                <span class="mt-1 block text-xl font-black text-slate-900">{{ operationZones.filter((zone) => zone.active).length }}</span>
+                <span class="block text-[10px] font-black uppercase tracking-wider text-slate-400">En mapa</span>
+                <span class="mt-1 block text-xl font-black text-slate-900">{{ liveMapOrders.length }}</span>
               </span>
             </button>
             <button type="button" class="admin-command-tile text-left" @click="currentView = 'support'">
@@ -1005,7 +966,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
                   <button type="button" class="admin-quick-action" @click="currentView = 'orders'"><i class="fa-solid fa-receipt"></i> Pedidos</button>
-                  <button type="button" class="admin-quick-action" @click="currentView = 'zones'"><i class="fa-solid fa-route"></i> Zonas</button>
+                  <button type="button" class="admin-quick-action" @click="currentView = 'zones'"><i class="fa-solid fa-map-location-dot"></i> Mapa</button>
                   <button type="button" class="admin-quick-action" @click="currentView = 'daily_close'"><i class="fa-solid fa-cash-register"></i> Cierre</button>
                   <button type="button" class="admin-quick-action" @click="currentView = 'audit'"><i class="fa-solid fa-clipboard-list"></i> Auditoria</button>
                 </div>
@@ -1410,140 +1371,160 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <section v-if="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
-            <div class="space-y-6 xl:col-span-7">
-              <div class="admin-module-card overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
-                <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p class="admin-section-kicker">Mapa operativo</p>
-                    <h3 class="mt-1 font-black text-slate-900">Editor de Zonas y Rutas</h3>
-                    <p class="text-xs font-bold text-slate-500">Cobertura operativa de delivery sobre OpenStreetMap.</p>
-                  </div>
-                  <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
-                </div>
-                <div class="h-[420px]">
-                  <AdminZonesMap :zones="operationZones" :selected-zone-id="selectedZoneId" @select-zone="selectZone" />
-                </div>
-                <div class="grid grid-cols-1 gap-2 border-t border-slate-100 p-4 text-center text-[10px] font-black uppercase text-slate-400 sm:grid-cols-3">
-                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle-dot mr-1 text-brand-500"></i> Zona seleccionada</div>
-                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-emerald-500"></i> Activa</div>
-                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-slate-400"></i> Pausada</div>
-                </div>
-              </div>
-
+          <section v-if="currentView === 'zones'" class="space-y-6">
+            <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
               <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <div class="mb-5 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p class="admin-section-kicker">Reglas de entrega</p>
-                    <h3 class="mt-1 text-lg font-black text-slate-900">Ajustar zona seleccionada</h3>
-                    <p class="mt-1 text-xs font-bold text-slate-500">El formulario queda debajo del mapa para editar sin perder referencia visual.</p>
-                  </div>
-                  <span class="rounded-full bg-slate-50 px-3 py-1 text-[10px] font-black uppercase text-slate-500">{{ zoneDraft.priority || 'Media' }}</span>
-                </div>
-                <div class="admin-zone-form grid grid-cols-1 gap-4">
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Identidad</p>
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label class="block sm:col-span-2">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Nombre</span>
-                    <input v-model="zoneDraft.name" type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                  <label class="block sm:col-span-2">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Palabras clave de direccion</span>
-                    <input v-model="zoneDraft.keywordsText" type="text" placeholder="gurabo, villa olga..." class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                    </div>
-                  </div>
-
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Cobertura y costo</p>
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Latitud</span>
-                    <input v-model.number="zoneDraft.center.lat" type="number" step="0.0001" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Longitud</span>
-                    <input v-model.number="zoneDraft.center.lng" type="number" step="0.0001" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Radio km</span>
-                    <input v-model.number="zoneDraft.radiusKm" type="number" min="0.5" step="0.1" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Envio</span>
-                    <input v-model.number="zoneDraft.deliveryFee" type="number" min="0" step="5" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">ETA min</span>
-                    <input v-model.number="zoneDraft.etaMin" type="number" min="5" step="1" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                  </label>
-                    </div>
-                  </div>
-
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                    <p class="mb-3 text-[10px] font-black uppercase tracking-wider text-slate-400">Estado visual</p>
-                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Prioridad</span>
-                    <select v-model="zoneDraft.priority" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                      <option v-for="priority in zonePriorityOptions" :key="priority" :value="priority">{{ priority }}</option>
-                    </select>
-                  </label>
-                  <label class="block">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Color</span>
-                    <select v-model="zoneDraft.color" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500">
-                      <option v-for="color in zoneColorOptions" :key="color" :value="color">{{ color }}</option>
-                    </select>
-                  </label>
-                  <label class="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-black text-slate-600">
-                    <input v-model="zoneDraft.active" type="checkbox" class="h-4 w-4 accent-orange-500">
-                    Zona activa
-                  </label>
-                    </div>
-                  </div>
-
-                  <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                  <label class="block sm:col-span-2">
-                    <span class="mb-1 block text-[10px] font-black uppercase tracking-wider text-slate-400">Notas operativas</span>
-                    <textarea v-model="zoneDraft.notes" rows="3" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold outline-none focus:border-brand-500"></textarea>
-                  </label>
-                  </div>
-                </div>
-                <div class="admin-zone-actions sticky bottom-4 mt-5 flex flex-wrap justify-end gap-2 rounded-2xl border border-slate-100 bg-white/90 p-3 backdrop-blur">
-                  <button type="button" class="rounded-lg border border-slate-200 px-4 py-2 text-xs font-black text-slate-500 hover:border-brand-500 hover:text-brand-600" @click="resetZoneDraft">REVERTIR</button>
-                  <button type="button" class="rounded-lg bg-brand-500 px-5 py-2 text-xs font-black text-white" @click="saveZone">GUARDAR ZONA</button>
-                </div>
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Pedidos en vivo</p>
+                <p class="mt-3 text-3xl font-black text-slate-900">{{ liveMapOrders.length }}</p>
+                <p class="mt-1 text-xs font-bold text-slate-500">{{ selectedTenantName }}</p>
+              </div>
+              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Preparando</p>
+                <p class="mt-3 text-3xl font-black text-slate-900">{{ liveMapPreparingCount }}</p>
+                <p class="mt-1 text-xs font-bold text-slate-500">{{ liveMapUnassignedCount }} sin delivery</p>
+              </div>
+              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">En camino</p>
+                <p class="mt-3 text-3xl font-black text-slate-900">{{ liveMapTransitCount }}</p>
+                <p class="mt-1 text-xs font-bold text-slate-500">Repartidores activos</p>
+              </div>
+              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Pendientes</p>
+                <p class="mt-3 text-3xl font-black text-slate-900">{{ liveMapPendingCount }}</p>
+                <p class="mt-1 text-xs font-bold text-slate-500">Esperando local</p>
               </div>
             </div>
 
-            <div class="space-y-6 xl:col-span-5">
-              <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
-                <div class="mb-4 flex items-center justify-between gap-3">
+            <div class="grid grid-cols-1 gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(380px,0.55fr)]">
+              <div class="admin-module-card overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                <div class="flex flex-col gap-4 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:justify-between">
                   <div>
-                    <p class="admin-section-kicker">Cobertura</p>
-                    <h3 class="text-sm font-black text-slate-800">Zonas activas</h3>
-                    <p class="text-xs font-bold text-slate-400">Pedidos detectados por direccion.</p>
+                    <p class="admin-section-kicker">Mapa en vivo</p>
+                    <h3 class="mt-1 text-xl font-black text-slate-900">Operacion de pedidos en tiempo real</h3>
+                    <p class="mt-1 text-xs font-bold text-slate-500">Visualiza locales, clientes y repartidores activos sin editar reglas de zona.</p>
                   </div>
-                  <p class="text-2xl font-black text-slate-800">{{ operationZones.filter((zone) => zone.active).length }}</p>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black uppercase text-brand-600">{{ selectedTenantName }}</span>
+                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-black uppercase text-emerald-700">
+                      <i class="fa-solid fa-satellite-dish mr-1"></i>
+                      {{ isRefreshing ? 'Sincronizando' : 'En vivo' }}
+                    </span>
+                  </div>
                 </div>
-                <div class="space-y-3">
-                  <button v-for="zone in zoneCoverageRows" :key="zone.id" type="button" class="w-full rounded-xl border p-4 text-left transition" :class="selectedZoneId === zone.id ? 'border-brand-500 bg-orange-50' : 'border-slate-100 bg-slate-50 hover:border-orange-200'" @click="selectZone(zone.id)">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="min-w-0">
-                        <p class="truncate text-sm font-black text-slate-800">{{ zone.name }}</p>
-                        <p class="mt-1 text-[10px] font-bold uppercase text-slate-400">{{ zone.radiusKm }} km - ETA {{ zone.etaMin }} min - {{ formatCurrency(zone.deliveryFee) }}</p>
-                      </div>
-                      <span class="rounded-full px-3 py-1 text-[10px] font-black" :class="zone.active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'">{{ zone.active ? 'Activa' : 'Pausada' }}</span>
-                    </div>
-                    <div class="mt-3 grid grid-cols-3 gap-2 text-center">
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Pedidos</p><p class="text-sm font-black text-slate-800">{{ zone.ordersCount }}</p></div>
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Activos</p><p class="text-sm font-black text-slate-800">{{ zone.activeCount }}</p></div>
-                      <div class="rounded-lg bg-white p-2"><p class="text-[10px] font-black text-slate-400">Ventas</p><p class="text-sm font-black text-slate-800">{{ formatCurrency(zone.revenue) }}</p></div>
-                    </div>
-                  </button>
+
+                <div class="admin-live-map-shell">
+                  <AdminLiveOrdersMap
+                    :orders="liveMapFilteredOrders"
+                    :selected-order-id="selectedMapOrder?.id || ''"
+                    @select-order="selectMapOrder"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 border-t border-slate-100 p-4 text-[10px] font-black uppercase text-slate-400 sm:grid-cols-4">
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-amber-500"></i> Pendiente</div>
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-blue-500"></i> Preparando</div>
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-orange-500"></i> En camino</div>
+                  <div class="rounded-xl bg-slate-50 p-3"><i class="fa-solid fa-circle mr-1 text-emerald-500"></i> Seleccionado</div>
                 </div>
               </div>
+
+              <aside class="space-y-6">
+                <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p class="admin-section-kicker">Pedidos</p>
+                      <h3 class="text-lg font-black text-slate-900">Actividad del mapa</h3>
+                    </div>
+                    <select v-model.number="liveMapPageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black outline-none focus:border-brand-500">
+                      <option v-for="size in recordPageSizeOptions" :key="`live-map-${size}`" :value="size">{{ size }} por pagina</option>
+                    </select>
+                  </div>
+
+                  <div class="hide-scrollbar mb-4 flex gap-2 overflow-x-auto pb-1">
+                    <button
+                      v-for="filter in liveMapFilterOptions"
+                      :key="filter.id"
+                      type="button"
+                      class="shrink-0 rounded-full border px-4 py-2 text-xs font-black transition"
+                      :class="liveMapFilter === filter.id ? 'border-brand-500 bg-brand-500 text-white shadow-md shadow-orange-500/20' : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-orange-200 hover:text-brand-600'"
+                      @click="liveMapFilter = filter.id"
+                    >
+                      {{ filter.label }}
+                    </button>
+                  </div>
+
+                  <div class="max-h-[34rem] space-y-3 overflow-y-auto pr-1">
+                    <button
+                      v-for="order in paginatedLiveMapOrders"
+                      :key="order.id"
+                      type="button"
+                      class="w-full rounded-2xl border p-4 text-left transition"
+                      :class="String(selectedMapOrder?.id) === String(order.id) ? 'border-brand-500 bg-orange-50 shadow-sm shadow-orange-500/10' : 'border-slate-100 bg-slate-50 hover:border-orange-200'"
+                      @click="selectMapOrder(order.id)"
+                    >
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-black text-slate-900">Pedido #{{ order.id }}</p>
+                          <p class="mt-1 truncate text-xs font-bold text-slate-500">{{ order.tenantName }} - {{ order.customerName }}</p>
+                        </div>
+                        <span class="shrink-0 rounded-full px-3 py-1 text-[10px] font-black" :class="getStatusBadgeClass(order.statusLabel)">
+                          {{ orderStatusKey(order) }}
+                        </span>
+                      </div>
+                      <div class="mt-3 grid grid-cols-2 gap-2 text-xs font-bold text-slate-500">
+                        <span class="rounded-xl bg-white px-3 py-2"><i class="fa-solid fa-location-dot mr-1 text-brand-500"></i>{{ order.address }}</span>
+                        <span class="rounded-xl bg-white px-3 py-2"><i class="fa-solid fa-motorcycle mr-1 text-emerald-500"></i>{{ order.driverName || order.deliveryAssignment?.driverName || 'Sin delivery' }}</span>
+                      </div>
+                    </button>
+                    <div v-if="liveMapFilteredOrders.length === 0" class="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm font-bold text-slate-500">
+                      No hay pedidos activos para este filtro.
+                    </div>
+                  </div>
+
+                  <div v-if="liveMapFilteredOrders.length > 0" class="admin-pagination mt-4 rounded-2xl border border-slate-100">
+                    <p>{{ liveMapPageStart }}-{{ liveMapPageEnd }} de {{ liveMapPaginationTotal }} pedidos</p>
+                    <div class="admin-pagination-actions">
+                      <button type="button" :disabled="liveMapPage <= 1" @click="goToLiveMapPage(liveMapPage - 1)">Anterior</button>
+                      <button v-for="page in visibleLiveMapPages" :key="`live-map-page-${page}`" type="button" :class="{ 'is-active': page === liveMapPage }" @click="goToLiveMapPage(page)">{{ page }}</button>
+                      <button type="button" :disabled="liveMapPage >= liveMapTotalPages" @click="goToLiveMapPage(liveMapPage + 1)">Siguiente</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="selectedMapOrder" class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <p class="admin-section-kicker">Pedido seleccionado</p>
+                  <div class="mt-3 flex items-start justify-between gap-4">
+                    <div class="min-w-0">
+                      <h3 class="truncate text-xl font-black text-slate-900">#{{ selectedMapOrder.id }} - {{ selectedMapOrder.tenantName }}</h3>
+                      <p class="mt-1 text-xs font-bold text-slate-500">{{ selectedMapOrder.customerName }} - {{ selectedMapOrder.customerPhone }}</p>
+                    </div>
+                    <span class="rounded-full px-3 py-1 text-[10px] font-black" :class="getStatusBadgeClass(selectedMapOrder.statusLabel)">{{ orderStatusKey(selectedMapOrder) }}</span>
+                  </div>
+                  <div class="mt-5 grid grid-cols-1 gap-3 text-sm">
+                    <div class="rounded-2xl bg-slate-50 p-4">
+                      <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Direccion</p>
+                      <p class="mt-1 font-black text-slate-800">{{ selectedMapOrder.address }}</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="rounded-2xl bg-slate-50 p-4">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Total</p>
+                        <p class="mt-1 font-black text-slate-800">{{ formatCurrency(selectedMapOrder.totalValue) }}</p>
+                      </div>
+                      <div class="rounded-2xl bg-slate-50 p-4">
+                        <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Codigo</p>
+                        <p class="mt-1 font-black text-slate-800">{{ selectedMapOrder.securityCode || 'N/D' }}</p>
+                      </div>
+                    </div>
+                    <div class="rounded-2xl bg-slate-50 p-4">
+                      <p class="text-[10px] font-black uppercase tracking-wider text-slate-400">Delivery</p>
+                      <p class="mt-1 font-black text-slate-800">{{ selectedMapOrder.driverName || selectedMapOrder.deliveryAssignment?.driverName || 'Pendiente de asignacion' }}</p>
+                    </div>
+                  </div>
+                  <button type="button" class="mt-5 w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-black text-white hover:bg-brand-600" @click="router.push({ path: `/tracking/${selectedMapOrder.id}`, query: { tenant: selectedMapOrder.tenantId } })">
+                    <i class="fa-solid fa-location-arrow mr-2"></i> Ver tracking del pedido
+                  </button>
+                </div>
+              </aside>
             </div>
           </section>
 
@@ -2046,10 +2027,11 @@ onBeforeUnmount(() => {
   box-shadow: 0 12px 26px rgba(249, 115, 22, 0.14);
 }
 
-.admin-zone-actions {
-  border-color: var(--admin-line);
-  background: color-mix(in srgb, var(--admin-surface) 92%, transparent);
-  box-shadow: var(--admin-shadow-soft);
+.admin-live-map-shell {
+  height: min(62vh, 720px);
+  min-height: 30rem;
+  overflow: hidden;
+  background: var(--admin-surface-soft);
 }
 
 .line-clamp-2 {
@@ -2279,8 +2261,7 @@ onBeforeUnmount(() => {
   .admin-topbar,
   .admin-mobile-nav,
   .admin-sidebar-header,
-  .admin-sidebar-footer,
-  .admin-zone-actions {
+  .admin-sidebar-footer {
     backdrop-filter: none;
   }
 
@@ -2317,6 +2298,11 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 520px) {
+  .admin-live-map-shell {
+    height: 28rem;
+    min-height: 28rem;
+  }
+
   .admin-weekly-chart {
     min-height: 14.5rem;
     gap: 0.35rem;
