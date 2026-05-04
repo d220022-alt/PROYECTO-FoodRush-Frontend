@@ -21,6 +21,20 @@ const orderStatusFilter = ref('all');
 const orderDeliveryFilter = ref('all');
 const orderPage = ref(1);
 const orderPageSize = ref(10);
+const productPage = ref(1);
+const productPageSize = ref(12);
+const franchisePage = ref(1);
+const franchisePageSize = ref(12);
+const userPage = ref(1);
+const userPageSize = ref(12);
+const sessionPage = ref(1);
+const sessionPageSize = ref(8);
+const supportPage = ref(1);
+const supportPageSize = ref(8);
+const closurePage = ref(1);
+const closurePageSize = ref(8);
+const auditPage = ref(1);
+const auditPageSize = ref(10);
 const isLoading = ref(true);
 const isRefreshing = ref(false);
 const savingOrderId = ref('');
@@ -83,6 +97,7 @@ const orderDeliveryFilterOptions = [
   { id: 'unassigned', label: 'Sin delivery' },
 ];
 const orderPageSizeOptions = [5, 10, 20, 50];
+const recordPageSizeOptions = [8, 12, 24, 48];
 const zonePriorityOptions = ['Alta', 'Media', 'Baja'];
 const zoneColorOptions = ['#f97316', '#0f766e', '#2563eb', '#7c3aed', '#dc2626'];
 
@@ -116,6 +131,29 @@ const formatChartCurrency = (value) => {
   return `$${Math.round(amount)}`;
 };
 const formatDate = (value) => value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
+
+const clampPage = (page, totalPages) => Math.min(Math.max(Number(page) || 1, 1), Math.max(Number(totalPages) || 1, 1));
+const getVisiblePages = (currentPage, totalPages) => {
+  const total = Math.max(Number(totalPages) || 1, 1);
+  const current = clampPage(currentPage, total);
+  const start = Math.max(1, Math.min(current - 1, Math.max(1, total - 2)));
+  const end = Math.min(total, start + 2);
+  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+};
+
+const makePagination = (itemsRef, pageRef, pageSizeRef) => {
+  const total = computed(() => itemsRef.value.length);
+  const totalPages = computed(() => Math.max(1, Math.ceil(total.value / Number(pageSizeRef.value || 12))));
+  const pageStart = computed(() => (total.value === 0 ? 0 : ((pageRef.value - 1) * Number(pageSizeRef.value || 12)) + 1));
+  const pageEnd = computed(() => Math.min(total.value, pageRef.value * Number(pageSizeRef.value || 12)));
+  const items = computed(() => {
+    const pageSize = Number(pageSizeRef.value || 12);
+    const start = (pageRef.value - 1) * pageSize;
+    return itemsRef.value.slice(start, start + pageSize);
+  });
+  const visiblePages = computed(() => getVisiblePages(pageRef.value, totalPages.value));
+  return { total, totalPages, pageStart, pageEnd, items, visiblePages };
+};
 
 const currentViewTitle = computed(() => {
   for (const group of menuGroups) {
@@ -216,11 +254,7 @@ const paginatedOrders = computed(() => {
   return filteredOrders.value.slice(start, start + pageSize);
 });
 const visibleOrderPages = computed(() => {
-  const total = orderTotalPages.value;
-  const current = orderPage.value;
-  const start = Math.max(1, current - 1);
-  const end = Math.min(total, start + 2);
-  return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  return getVisiblePages(orderPage.value, orderTotalPages.value);
 });
 const hasOrderFilters = computed(() => Boolean(
   search.value.orders ||
@@ -233,12 +267,26 @@ const filteredProducts = computed(() => {
   if (!term) return scopedProducts.value;
   return scopedProducts.value.filter((product) => normalize(`${product.nombre || product.name} ${product.tenantName} ${product.categoryLabel}`).includes(term));
 });
+const productPagination = makePagination(filteredProducts, productPage, productPageSize);
+const productPaginationTotal = productPagination.total;
+const productTotalPages = productPagination.totalPages;
+const productPageStart = productPagination.pageStart;
+const productPageEnd = productPagination.pageEnd;
+const paginatedProducts = productPagination.items;
+const visibleProductPages = productPagination.visiblePages;
 
 const filteredUsers = computed(() => {
   const term = normalize(search.value.users);
   if (!term) return scopedUsers.value;
   return scopedUsers.value.filter((user) => normalize(`${user.name} ${user.email} ${user.roleLabel} ${user.tenantName}`).includes(term));
 });
+const userPagination = makePagination(filteredUsers, userPage, userPageSize);
+const userPaginationTotal = userPagination.total;
+const userTotalPages = userPagination.totalPages;
+const userPageStart = userPagination.pageStart;
+const userPageEnd = userPagination.pageEnd;
+const paginatedUsers = userPagination.items;
+const visibleUserPages = userPagination.visiblePages;
 
 const filteredFranchises = computed(() => {
   const term = normalize(search.value.franchises);
@@ -260,6 +308,13 @@ const franchiseCards = computed(() => filteredFranchises.value.map((franchise) =
     sales: orders.filter(isDeliveredOrder).reduce((sum, order) => sum + Number(order.totalValue || 0), 0),
   };
 }));
+const franchisePagination = makePagination(franchiseCards, franchisePage, franchisePageSize);
+const franchisePaginationTotal = franchisePagination.total;
+const franchiseTotalPages = franchisePagination.totalPages;
+const franchisePageStart = franchisePagination.pageStart;
+const franchisePageEnd = franchisePagination.pageEnd;
+const paginatedFranchiseCards = franchisePagination.items;
+const visibleFranchisePages = franchisePagination.visiblePages;
 
 const totalSales = computed(() => scopedOrders.value.filter(isDeliveredOrder).reduce((sum, order) => sum + Number(order.totalValue || 0), 0));
 const totalOrdersCount = computed(() => scopedOrders.value.length);
@@ -373,10 +428,23 @@ const sessionRows = computed(() => {
     };
   }).filter((row) => selectedTenant.value === 'Global' || row.tenantName === franchises.value.find((tenant) => String(tenant.id) === String(selectedTenant.value))?.name);
 });
+const sessionPagination = makePagination(sessionRows, sessionPage, sessionPageSize);
+const sessionPaginationTotal = sessionPagination.total;
+const sessionTotalPages = sessionPagination.totalPages;
+const sessionPageStart = sessionPagination.pageStart;
+const sessionPageEnd = sessionPagination.pageEnd;
+const paginatedSessionRows = sessionPagination.items;
+const visibleSessionPages = sessionPagination.visiblePages;
 
 const supportAlerts = computed(() => scopedOrders.value
-  .filter((order) => !isFinalOrder(order))
-  .slice(0, 6));
+  .filter((order) => !isFinalOrder(order)));
+const supportPagination = makePagination(supportAlerts, supportPage, supportPageSize);
+const supportPaginationTotal = supportPagination.total;
+const supportTotalPages = supportPagination.totalPages;
+const supportPageStart = supportPagination.pageStart;
+const supportPageEnd = supportPagination.pageEnd;
+const paginatedSupportAlerts = supportPagination.items;
+const visibleSupportPages = supportPagination.visiblePages;
 
 const selectedZone = computed(() =>
   operationZones.value.find((zone) => zone.id === selectedZoneId.value) || operationZones.value[0] || null,
@@ -439,12 +507,26 @@ const closureHistory = computed(() => (
     ? closureRecords.value
     : closureRecords.value.filter((record) => String(record.tenantId) === String(selectedTenant.value))
 ));
+const closurePagination = makePagination(closureHistory, closurePage, closurePageSize);
+const closurePaginationTotal = closurePagination.total;
+const closureTotalPages = closurePagination.totalPages;
+const closurePageStart = closurePagination.pageStart;
+const closurePageEnd = closurePagination.pageEnd;
+const paginatedClosureHistory = closurePagination.items;
+const visibleClosurePages = closurePagination.visiblePages;
 
 const auditRows = computed(() => (
   selectedTenant.value === 'Global'
     ? auditEntries.value
     : auditEntries.value.filter((entry) => !entry.tenantId || String(entry.tenantId) === String(selectedTenant.value))
 ));
+const auditPagination = makePagination(auditRows, auditPage, auditPageSize);
+const auditPaginationTotal = auditPagination.total;
+const auditTotalPages = auditPagination.totalPages;
+const auditPageStart = auditPagination.pageStart;
+const auditPageEnd = auditPagination.pageEnd;
+const paginatedAuditRows = auditPagination.items;
+const visibleAuditPages = auditPagination.visiblePages;
 
 const auditSummaryRows = computed(() => {
   const rows = new Map();
@@ -478,8 +560,16 @@ const getMenuBadge = (id) => {
 const goToOrderPage = (page) => {
   const nextPage = Number(page);
   if (!Number.isFinite(nextPage)) return;
-  orderPage.value = Math.min(Math.max(1, nextPage), orderTotalPages.value);
+  orderPage.value = clampPage(nextPage, orderTotalPages.value);
 };
+
+const goToProductPage = (page) => { productPage.value = clampPage(page, productTotalPages.value); };
+const goToFranchisePage = (page) => { franchisePage.value = clampPage(page, franchiseTotalPages.value); };
+const goToUserPage = (page) => { userPage.value = clampPage(page, userTotalPages.value); };
+const goToSessionPage = (page) => { sessionPage.value = clampPage(page, sessionTotalPages.value); };
+const goToSupportPage = (page) => { supportPage.value = clampPage(page, supportTotalPages.value); };
+const goToClosurePage = (page) => { closurePage.value = clampPage(page, closureTotalPages.value); };
+const goToAuditPage = (page) => { auditPage.value = clampPage(page, auditTotalPages.value); };
 
 const clearOrderFilters = () => {
   search.value.orders = '';
@@ -692,13 +782,28 @@ watch(
   },
 );
 
+watch([selectedTenant, () => search.value.products, productPageSize], () => { productPage.value = 1; });
+watch([selectedTenant, () => search.value.franchises, franchisePageSize], () => { franchisePage.value = 1; });
+watch([selectedTenant, () => search.value.users, userPageSize], () => { userPage.value = 1; });
+watch([selectedTenant, sessionPageSize], () => { sessionPage.value = 1; });
+watch([selectedTenant, supportPageSize], () => { supportPage.value = 1; });
+watch([selectedTenant, closurePageSize], () => { closurePage.value = 1; });
+watch([selectedTenant, auditPageSize], () => { auditPage.value = 1; });
+
 watch(selectedZoneId, () => {
   resetZoneDraft();
 });
 
 watch(orderTotalPages, (totalPages) => {
-  if (orderPage.value > totalPages) orderPage.value = totalPages;
+  orderPage.value = clampPage(orderPage.value, totalPages);
 });
+watch(productTotalPages, (totalPages) => { productPage.value = clampPage(productPage.value, totalPages); });
+watch(franchiseTotalPages, (totalPages) => { franchisePage.value = clampPage(franchisePage.value, totalPages); });
+watch(userTotalPages, (totalPages) => { userPage.value = clampPage(userPage.value, totalPages); });
+watch(sessionTotalPages, (totalPages) => { sessionPage.value = clampPage(sessionPage.value, totalPages); });
+watch(supportTotalPages, (totalPages) => { supportPage.value = clampPage(supportPage.value, totalPages); });
+watch(closureTotalPages, (totalPages) => { closurePage.value = clampPage(closurePage.value, totalPages); });
+watch(auditTotalPages, (totalPages) => { auditPage.value = clampPage(auditPage.value, totalPages); });
 
 onMounted(async () => {
   if (!session.isAuthenticated) {
@@ -877,7 +982,7 @@ onBeforeUnmount(() => {
             </button>
           </div>
 
-          <section v-show="currentView === 'dashboard'" class="space-y-6">
+          <section v-if="currentView === 'dashboard'" class="space-y-6">
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               <div v-for="card in dashboardKpis" :key="card.label" class="admin-kpi-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <div class="mb-4 flex items-start justify-between gap-3">
@@ -1014,7 +1119,7 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <section v-show="currentView === 'orders'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'orders'" class="rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="border-b border-slate-100 p-4 sm:p-6">
               <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
                 <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.2fr)_180px_170px_130px]">
@@ -1132,17 +1237,22 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <section v-show="currentView === 'menu'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'menu'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="admin-section-kicker">Catalogo operativo</p>
                 <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Productos</h3>
                 <p class="mt-1 text-xs font-bold text-slate-500">Catalogo real cargado desde el backend, con precio, stock y local visible.</p>
               </div>
-              <input v-model="search.products" type="text" placeholder="Buscar producto..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+              <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <input v-model="search.products" type="text" placeholder="Buscar producto..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+                <select v-model.number="productPageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold outline-none focus:border-brand-500">
+                  <option v-for="size in recordPageSizeOptions" :key="`products-${size}`" :value="size">{{ size }} por pagina</option>
+                </select>
+              </div>
             </div>
             <div class="grid grid-cols-1 gap-4 p-5 sm:p-6 xl:grid-cols-2">
-              <div v-for="product in filteredProducts" :key="`${product.tenantId}-${product.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <div v-for="product in paginatedProducts" :key="`${product.tenantId}-${product.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
                 <div class="flex items-start justify-between gap-4">
                   <div class="min-w-0 flex-1">
                     <p class="truncate font-black text-slate-900">{{ product.nombre || product.name || 'Producto' }}</p>
@@ -1158,19 +1268,32 @@ onBeforeUnmount(() => {
               </div>
               <div v-if="filteredProducts.length === 0" class="py-12 text-center"><p class="text-sm font-bold text-slate-400">No hay productos en esta franquicia.</p></div>
             </div>
+            <div v-if="filteredProducts.length > 0" class="admin-pagination">
+              <p>Mostrando {{ productPageStart }}-{{ productPageEnd }} de {{ productPaginationTotal }} productos</p>
+              <div class="admin-pagination-actions">
+                <button type="button" :disabled="productPage <= 1" @click="goToProductPage(productPage - 1)">Anterior</button>
+                <button v-for="page in visibleProductPages" :key="`product-page-${page}`" type="button" :class="{ 'is-active': page === productPage }" @click="goToProductPage(page)">{{ page }}</button>
+                <button type="button" :disabled="productPage >= productTotalPages" @click="goToProductPage(productPage + 1)">Siguiente</button>
+              </div>
+            </div>
           </section>
 
-          <section v-show="currentView === 'franchises_list'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'franchises_list'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="admin-section-kicker">Red de locales</p>
                 <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Locales</h3>
                 <p class="mt-1 text-xs font-bold text-slate-500">Todas las franquicias visibles en el sistema.</p>
               </div>
-              <input v-model="search.franchises" type="text" placeholder="Buscar franquicia..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+              <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <input v-model="search.franchises" type="text" placeholder="Buscar franquicia..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+                <select v-model.number="franchisePageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold outline-none focus:border-brand-500">
+                  <option v-for="size in recordPageSizeOptions" :key="`franchises-${size}`" :value="size">{{ size }} por pagina</option>
+                </select>
+              </div>
             </div>
             <div class="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 xl:grid-cols-3">
-              <div v-for="franchise in franchiseCards" :key="franchise.id" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-5">
+              <div v-for="franchise in paginatedFranchiseCards" :key="franchise.id" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-5">
                 <div class="flex items-start justify-between gap-3">
                   <div class="min-w-0">
                     <p class="truncate font-black text-slate-900">{{ franchise.name }}</p>
@@ -1182,19 +1305,32 @@ onBeforeUnmount(() => {
                 <div class="mt-4 rounded-xl bg-white p-3"><p class="text-[10px] font-black uppercase text-slate-400">Ventas Entregadas</p><p class="mt-2 text-xl font-black text-slate-800">{{ formatCurrency(franchise.sales) }}</p></div>
               </div>
             </div>
+            <div v-if="franchiseCards.length > 0" class="admin-pagination">
+              <p>Mostrando {{ franchisePageStart }}-{{ franchisePageEnd }} de {{ franchisePaginationTotal }} locales</p>
+              <div class="admin-pagination-actions">
+                <button type="button" :disabled="franchisePage <= 1" @click="goToFranchisePage(franchisePage - 1)">Anterior</button>
+                <button v-for="page in visibleFranchisePages" :key="`franchise-page-${page}`" type="button" :class="{ 'is-active': page === franchisePage }" @click="goToFranchisePage(page)">{{ page }}</button>
+                <button type="button" :disabled="franchisePage >= franchiseTotalPages" @click="goToFranchisePage(franchisePage + 1)">Siguiente</button>
+              </div>
+            </div>
           </section>
 
-          <section v-show="currentView === 'users_fleet'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'users_fleet'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="admin-section-kicker">Equipo operativo</p>
                 <h3 class="mt-1 text-xl font-black text-slate-900">Flota y Personal</h3>
                 <p class="mt-1 text-xs font-bold text-slate-500">Usuarios y personas conectadas en el sitio web.</p>
               </div>
-              <input v-model="search.users" type="text" placeholder="Buscar persona..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+              <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+                <input v-model="search.users" type="text" placeholder="Buscar persona..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
+                <select v-model.number="userPageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold outline-none focus:border-brand-500">
+                  <option v-for="size in recordPageSizeOptions" :key="`users-${size}`" :value="size">{{ size }} por pagina</option>
+                </select>
+              </div>
             </div>
             <div class="grid grid-cols-1 gap-3 p-4 md:hidden">
-              <article v-for="user in filteredUsers" :key="`user-mobile-${user.tenantId}-${user.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
+              <article v-for="user in paginatedUsers" :key="`user-mobile-${user.tenantId}-${user.id}`" class="admin-data-card rounded-2xl border border-slate-100 bg-slate-50 p-4">
                 <div class="flex items-start gap-3">
                   <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-sm font-black text-brand-600">{{ (user.name || 'US').slice(0, 2).toUpperCase() }}</div>
                   <div class="min-w-0 flex-1">
@@ -1209,34 +1345,72 @@ onBeforeUnmount(() => {
             <div class="hidden overflow-x-auto p-6 md:block">
               <table class="w-full text-left border-collapse">
                 <thead><tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-200"><th class="p-4 pl-6">Nombre del Empleado</th><th class="p-4">Rol / Permisos</th><th class="p-4">Local</th><th class="p-4 pr-6 text-right">Estado</th></tr></thead>
-                <tbody><tr v-for="user in filteredUsers" :key="`${user.tenantId}-${user.id}`" class="border-b border-slate-50 hover:bg-slate-50/50"><td class="p-4 pl-6"><p class="font-black text-slate-800">{{ user.name }}</p><p class="mt-1 text-xs font-bold text-slate-400">{{ user.email || user.phone || 'Sin contacto' }}</p></td><td class="p-4"><span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">{{ user.roleLabel }}</span></td><td class="p-4 text-sm font-bold text-slate-600">{{ user.tenantName }}</td><td class="p-4 pr-6 text-right"><span class="rounded-full px-3 py-1.5 text-xs font-black" :class="user.isConnected ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'">{{ user.isConnected ? 'Conectado' : 'Desconectado' }}</span></td></tr></tbody>
+                <tbody><tr v-for="user in paginatedUsers" :key="`${user.tenantId}-${user.id}`" class="border-b border-slate-50 hover:bg-slate-50/50"><td class="p-4 pl-6"><p class="font-black text-slate-800">{{ user.name }}</p><p class="mt-1 text-xs font-bold text-slate-400">{{ user.email || user.phone || 'Sin contacto' }}</p></td><td class="p-4"><span class="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">{{ user.roleLabel }}</span></td><td class="p-4 text-sm font-bold text-slate-600">{{ user.tenantName }}</td><td class="p-4 pr-6 text-right"><span class="rounded-full px-3 py-1.5 text-xs font-black" :class="user.isConnected ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'">{{ user.isConnected ? 'Conectado' : 'Desconectado' }}</span></td></tr></tbody>
               </table>
+            </div>
+            <div v-if="filteredUsers.length > 0" class="admin-pagination">
+              <p>Mostrando {{ userPageStart }}-{{ userPageEnd }} de {{ userPaginationTotal }} personas</p>
+              <div class="admin-pagination-actions">
+                <button type="button" :disabled="userPage <= 1" @click="goToUserPage(userPage - 1)">Anterior</button>
+                <button v-for="page in visibleUserPages" :key="`user-page-${page}`" type="button" :class="{ 'is-active': page === userPage }" @click="goToUserPage(page)">{{ page }}</button>
+                <button type="button" :disabled="userPage >= userTotalPages" @click="goToUserPage(userPage + 1)">Siguiente</button>
+              </div>
             </div>
           </section>
 
-          <section v-show="currentView === 'support'" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div class="admin-module-card flex h-[500px] flex-col rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'support'" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div class="admin-module-card flex max-h-[620px] flex-col rounded-2xl border border-slate-100 bg-white shadow-sm">
               <div class="border-b border-slate-100 p-5">
-                <p class="admin-section-kicker">Actividad viva</p>
-                <h3 class="mt-1 text-sm font-black text-slate-800"><i class="fa-solid fa-user-clock mr-2 text-brand-500"></i> Sesiones Web Activas</h3>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="admin-section-kicker">Actividad viva</p>
+                    <h3 class="mt-1 text-sm font-black text-slate-800"><i class="fa-solid fa-user-clock mr-2 text-brand-500"></i> Sesiones Web Activas</h3>
+                  </div>
+                  <select v-model.number="sessionPageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black outline-none focus:border-brand-500">
+                    <option v-for="size in recordPageSizeOptions" :key="`sessions-${size}`" :value="size">{{ size }} por pagina</option>
+                  </select>
+                </div>
               </div>
-              <div class="hide-scrollbar flex-1 overflow-y-auto p-5"><div class="space-y-3"><div v-for="row in sessionRows" :key="row.id" class="rounded-xl border border-slate-100 bg-slate-50 p-3"><p class="text-xs font-black text-slate-800">{{ row.userName }}</p><p class="text-[10px] font-bold text-slate-500">{{ row.email }} · {{ row.tenantName }}</p><p class="mt-1 text-[10px] font-bold text-slate-400">Expira: {{ formatDate(row.expiresAt) }}</p></div><div v-if="sessionRows.length === 0" class="py-6 text-center text-xs font-bold text-slate-400">No hay sesiones activas detectadas.</div></div></div>
+              <div class="min-h-0 flex-1 overflow-y-auto p-5"><div class="space-y-3"><div v-for="row in paginatedSessionRows" :key="row.id" class="rounded-xl border border-slate-100 bg-slate-50 p-3"><p class="text-xs font-black text-slate-800">{{ row.userName }}</p><p class="text-[10px] font-bold text-slate-500">{{ row.email }} · {{ row.tenantName }}</p><p class="mt-1 text-[10px] font-bold text-slate-400">Expira: {{ formatDate(row.expiresAt) }}</p></div><div v-if="sessionRows.length === 0" class="py-6 text-center text-xs font-bold text-slate-400">No hay sesiones activas detectadas.</div></div></div>
+              <div v-if="sessionRows.length > 0" class="admin-pagination">
+                <p>{{ sessionPageStart }}-{{ sessionPageEnd }} de {{ sessionPaginationTotal }} sesiones</p>
+                <div class="admin-pagination-actions">
+                  <button type="button" :disabled="sessionPage <= 1" @click="goToSessionPage(sessionPage - 1)">Anterior</button>
+                  <button v-for="page in visibleSessionPages" :key="`session-page-${page}`" type="button" :class="{ 'is-active': page === sessionPage }" @click="goToSessionPage(page)">{{ page }}</button>
+                  <button type="button" :disabled="sessionPage >= sessionTotalPages" @click="goToSessionPage(sessionPage + 1)">Siguiente</button>
+                </div>
+              </div>
             </div>
 
-            <div class="admin-module-card flex h-[500px] flex-col rounded-2xl border border-red-100 bg-white shadow-sm">
+            <div class="admin-module-card flex max-h-[620px] flex-col rounded-2xl border border-red-100 bg-white shadow-sm">
               <div class="rounded-t-2xl border-b border-red-100 bg-red-50 p-5">
-                <p class="admin-section-kicker text-red-500">Resolver primero</p>
-                <h3 class="mt-1 text-sm font-black text-red-600"><i class="fa-solid fa-truck-medical mr-2"></i> Centro de Alertas</h3>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p class="admin-section-kicker text-red-500">Resolver primero</p>
+                    <h3 class="mt-1 text-sm font-black text-red-600"><i class="fa-solid fa-truck-medical mr-2"></i> Centro de Alertas</h3>
+                  </div>
+                  <select v-model.number="supportPageSize" class="rounded-xl border border-red-100 bg-white px-3 py-2 text-xs font-black text-red-600 outline-none focus:border-brand-500">
+                    <option v-for="size in recordPageSizeOptions" :key="`support-${size}`" :value="size">{{ size }} por pagina</option>
+                  </select>
+                </div>
               </div>
-              <div class="hide-scrollbar flex-1 space-y-3 overflow-y-auto p-5">
-                <div v-for="order in supportAlerts" :key="order.id" class="rounded-xl border border-red-200 bg-red-50 p-4"><p class="text-sm font-black text-red-700">Pedido #{{ order.id }}</p><p class="mt-1 text-xs font-bold text-red-500">{{ order.customerName }} · {{ order.tenantName }}</p><p class="mt-2 text-xs text-red-600">{{ order.itemSummary }}</p></div>
+              <div class="min-h-0 flex-1 space-y-3 overflow-y-auto p-5">
+                <div v-for="order in paginatedSupportAlerts" :key="order.id" class="rounded-xl border border-red-200 bg-red-50 p-4"><p class="text-sm font-black text-red-700">Pedido #{{ order.id }}</p><p class="mt-1 text-xs font-bold text-red-500">{{ order.customerName }} · {{ order.tenantName }}</p><p class="mt-2 text-xs text-red-600">{{ order.itemSummary }}</p></div>
                 <div v-for="(alert, index) in systemAlerts" :key="`alert-${index}`" class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-700">{{ alert }}</div>
                 <div v-if="supportAlerts.length === 0 && systemAlerts.length === 0" class="py-12 text-center text-sm font-bold text-slate-500">Sistema estable. No hay alertas criticas.</div>
               </div>
+              <div v-if="supportAlerts.length > 0" class="admin-pagination">
+                <p>{{ supportPageStart }}-{{ supportPageEnd }} de {{ supportPaginationTotal }} alertas de pedido</p>
+                <div class="admin-pagination-actions">
+                  <button type="button" :disabled="supportPage <= 1" @click="goToSupportPage(supportPage - 1)">Anterior</button>
+                  <button v-for="page in visibleSupportPages" :key="`support-page-${page}`" type="button" :class="{ 'is-active': page === supportPage }" @click="goToSupportPage(page)">{{ page }}</button>
+                  <button type="button" :disabled="supportPage >= supportTotalPages" @click="goToSupportPage(supportPage + 1)">Siguiente</button>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section v-show="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <section v-if="currentView === 'zones'" class="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <div class="space-y-6 xl:col-span-7">
               <div class="admin-module-card overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 <div class="flex flex-col gap-2 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between">
@@ -1373,7 +1547,7 @@ onBeforeUnmount(() => {
             </div>
           </section>
 
-          <section v-show="currentView === 'daily_close'" class="space-y-6">
+          <section v-if="currentView === 'daily_close'" class="space-y-6">
             <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -1396,14 +1570,21 @@ onBeforeUnmount(() => {
 
             <div class="rounded-2xl border border-slate-100 bg-white shadow-sm">
               <div class="border-b border-slate-100 p-5">
-                <h3 class="font-black text-slate-800">Historial de cierres</h3>
-                <p class="text-xs font-bold text-slate-500">Ultimos cortes generados desde este navegador administrativo.</p>
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 class="font-black text-slate-800">Historial de cierres</h3>
+                    <p class="text-xs font-bold text-slate-500">Ultimos cortes generados desde este navegador administrativo.</p>
+                  </div>
+                  <select v-model.number="closurePageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black outline-none focus:border-brand-500">
+                    <option v-for="size in recordPageSizeOptions" :key="`closures-${size}`" :value="size">{{ size }} por pagina</option>
+                  </select>
+                </div>
               </div>
               <div class="overflow-x-auto">
                 <table class="min-w-[860px] w-full text-left">
                   <thead><tr class="border-b border-slate-100 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-500"><th class="p-4 pl-6">Fecha</th><th class="p-4">Alcance</th><th class="p-4">Ventas</th><th class="p-4">Entregados</th><th class="p-4">Activos</th><th class="p-4 pr-6">Zonas</th></tr></thead>
                   <tbody class="text-sm">
-                    <tr v-for="record in closureHistory" :key="record.id" class="border-b border-slate-50">
+                    <tr v-for="record in paginatedClosureHistory" :key="record.id" class="border-b border-slate-50">
                       <td class="p-4 pl-6 font-black text-slate-800">{{ formatDate(record.generatedAt) }}</td>
                       <td class="p-4 font-bold text-slate-600">{{ record.tenantName }}</td>
                       <td class="p-4 font-black text-slate-800">{{ formatCurrency(record.grossSales) }}</td>
@@ -1415,10 +1596,18 @@ onBeforeUnmount(() => {
                   </tbody>
                 </table>
               </div>
+              <div v-if="closureHistory.length > 0" class="admin-pagination">
+                <p>Mostrando {{ closurePageStart }}-{{ closurePageEnd }} de {{ closurePaginationTotal }} cierres</p>
+                <div class="admin-pagination-actions">
+                  <button type="button" :disabled="closurePage <= 1" @click="goToClosurePage(closurePage - 1)">Anterior</button>
+                  <button v-for="page in visibleClosurePages" :key="`closure-page-${page}`" type="button" :class="{ 'is-active': page === closurePage }" @click="goToClosurePage(page)">{{ page }}</button>
+                  <button type="button" :disabled="closurePage >= closureTotalPages" @click="goToClosurePage(closurePage + 1)">Siguiente</button>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section v-show="currentView === 'audit'" class="space-y-6">
+          <section v-if="currentView === 'audit'" class="space-y-6">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Eventos</p><p class="mt-3 text-3xl font-black text-slate-800">{{ auditRows.length }}</p><p class="mt-1 text-xs font-bold text-slate-500">Acciones registradas</p></div>
               <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Cierres</p><p class="mt-3 text-3xl font-black text-slate-800">{{ closureHistory.length }}</p><p class="mt-1 text-xs font-bold text-slate-500">Cortes locales guardados</p></div>
@@ -1439,11 +1628,18 @@ onBeforeUnmount(() => {
 
               <div class="rounded-2xl border border-slate-100 bg-white shadow-sm xl:col-span-8">
                 <div class="border-b border-slate-100 p-5">
-                  <h3 class="font-black text-slate-800">Bitacora administrativa</h3>
-                  <p class="text-xs font-bold text-slate-500">Cambios de estado, ajustes de zonas y cierres operativos.</p>
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 class="font-black text-slate-800">Bitacora administrativa</h3>
+                      <p class="text-xs font-bold text-slate-500">Cambios de estado, ajustes de zonas y cierres operativos.</p>
+                    </div>
+                    <select v-model.number="auditPageSize" class="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-black outline-none focus:border-brand-500">
+                      <option v-for="size in recordPageSizeOptions" :key="`audit-${size}`" :value="size">{{ size }} por pagina</option>
+                    </select>
+                  </div>
                 </div>
                 <div class="divide-y divide-slate-100">
-                  <div v-for="entry in auditRows" :key="entry.id" class="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
+                  <div v-for="entry in paginatedAuditRows" :key="entry.id" class="flex flex-col gap-3 p-5 sm:flex-row sm:items-start sm:justify-between">
                     <div class="min-w-0">
                       <div class="flex flex-wrap items-center gap-2">
                         <span class="rounded-full px-3 py-1 text-[10px] font-black uppercase" :class="entry.tone === 'success' ? 'bg-emerald-100 text-emerald-700' : entry.tone === 'danger' ? 'bg-red-100 text-red-700' : 'bg-orange-50 text-brand-600'">{{ entry.action }}</span>
@@ -1456,11 +1652,19 @@ onBeforeUnmount(() => {
                   </div>
                   <div v-if="auditRows.length === 0" class="p-12 text-center text-sm font-bold text-slate-400">La auditoria empezara a llenarse cuando cambies estados, zonas o cierres.</div>
                 </div>
+                <div v-if="auditRows.length > 0" class="admin-pagination">
+                  <p>Mostrando {{ auditPageStart }}-{{ auditPageEnd }} de {{ auditPaginationTotal }} eventos</p>
+                  <div class="admin-pagination-actions">
+                    <button type="button" :disabled="auditPage <= 1" @click="goToAuditPage(auditPage - 1)">Anterior</button>
+                    <button v-for="page in visibleAuditPages" :key="`audit-page-${page}`" type="button" :class="{ 'is-active': page === auditPage }" @click="goToAuditPage(page)">{{ page }}</button>
+                    <button type="button" :disabled="auditPage >= auditTotalPages" @click="goToAuditPage(auditPage + 1)">Siguiente</button>
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
-          <section v-show="currentView === 'settings'" class="mx-auto max-w-2xl rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section v-if="currentView === 'settings'" class="mx-auto max-w-2xl rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="border-b border-slate-100 p-6"><h3 class="font-black text-slate-800">Estado del Sistema</h3><p class="text-xs font-bold text-slate-500">Resumen real de la integracion actual de FoodRush.</p></div>
             <div class="space-y-6 p-6">
               <div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Usuario actual</label><input :value="session.userName || session.userEmail || 'Sin sesion'" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div>
@@ -2004,6 +2208,55 @@ onBeforeUnmount(() => {
   filter: saturate(0.86) brightness(0.88) contrast(1.04);
 }
 
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid var(--admin-line);
+  padding: 1rem 1.25rem;
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.admin-pagination-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.admin-pagination-actions button {
+  min-height: 2.25rem;
+  min-width: 2.25rem;
+  border: 1px solid var(--admin-line);
+  border-radius: 0.75rem;
+  background: var(--admin-surface-soft);
+  padding: 0.5rem 0.75rem;
+  color: var(--admin-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.admin-pagination-actions button:hover:not(:disabled) {
+  border-color: rgba(249, 115, 22, 0.58);
+  color: #ea580c;
+}
+
+.admin-pagination-actions button.is-active {
+  border-color: #f97316;
+  background: #f97316;
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(249, 115, 22, 0.22);
+}
+
+.admin-pagination-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 @media (max-width: 1023px) {
   .admin-shell {
     overflow-x: hidden;
@@ -2023,9 +2276,43 @@ onBeforeUnmount(() => {
     padding-bottom: calc(2rem + env(safe-area-inset-bottom));
   }
 
+  .admin-topbar,
+  .admin-mobile-nav,
+  .admin-sidebar-header,
+  .admin-sidebar-footer,
+  .admin-zone-actions {
+    backdrop-filter: none;
+  }
+
+  .admin-command-tile,
+  .admin-kpi-card,
+  .admin-module-card,
+  .admin-data-card,
+  .admin-order-card {
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  }
+
+  .admin-command-tile:hover,
+  .admin-menu-button:hover,
+  .admin-data-card:hover,
+  .admin-order-card:hover,
+  .admin-enterprise :deep(button:not(:disabled):active) {
+    transform: none;
+  }
+
   .admin-toolbar,
   .admin-filter-control {
     min-width: 0;
+  }
+
+  .admin-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-pagination-actions {
+    justify-content: flex-start;
+    width: 100%;
   }
 }
 

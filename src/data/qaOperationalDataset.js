@@ -33,6 +33,12 @@ const SAMPLE_PRODUCTS = [
   ['Producto premium', 'Favorito FoodRush', 420],
   ['Bebida especial', 'Bebidas', 160],
   ['Postre de temporada', 'Postres', 220],
+  ['Combo familiar', 'Combo familiar', 580],
+  ['Menu ejecutivo', 'Almuerzo rapido', 310],
+  ['Extra popular', 'Complementos', 95],
+  ['Promo express', 'Oferta activa', 260],
+  ['Producto de temporada', 'Edicion limitada', 390],
+  ['Pack para compartir', 'Grupo FoodRush', 640],
 ];
 
 const now = () => Date.now();
@@ -181,16 +187,16 @@ const createQaProducts = (tenant, tenantIndex) =>
     activo: true,
   }));
 
-const createQaUser = (tenant, index, role, connected = false) => ({
-  id: `qa-user-${tenant.id}-${role}`,
+const createQaUser = (tenant, index, role, connected = false, sequence = 1) => ({
+  id: `qa-user-${tenant.id}-${role}-${sequence}`,
   source: 'qa',
   isQa: true,
   tenantId: String(tenant.id),
   tenantName: tenant.name,
   tenantLogo: tenant.logo,
-  name: `${role === 'delivery' ? 'Delivery' : role === 'admin' ? 'Admin' : 'Cliente'} QA ${index + 1}`,
-  email: `${role}.qa.${tenant.id}@foodrush.test`,
-  phone: `809-555-${String(1000 + index).slice(-4)}`,
+  name: `${role === 'delivery' ? 'Delivery' : role === 'admin' ? 'Admin' : 'Cliente'} QA ${index + 1}.${sequence}`,
+  email: `${role}${sequence}.qa.${tenant.id}@foodrush.test`,
+  phone: `809-555-${String(1000 + index * 10 + sequence).slice(-4)}`,
   roleLabel: role === 'delivery' ? 'Repartidor' : role === 'admin' ? 'Administrador' : 'Cliente',
   isConnected: connected,
 });
@@ -210,13 +216,13 @@ const createQaSession = (user, tenant, index) => ({
 });
 
 const createQaOrder = (tenant, tenantIndex, orderIndex, products, overrides) => {
-  const numericId = 930000 + tenantIndex * 10 + orderIndex + 1;
+  const numericId = 930000 + tenantIndex * 100 + orderIndex + 1;
   const id = `qa-${numericId}`;
-  const statusCycle = ['pendiente', 'preparando', 'en camino', 'entregado', 'entregado', 'cancelado'];
+  const statusCycle = ['pendiente', 'preparando', 'en camino', 'entregado', 'entregado', 'cancelado', 'preparando', 'pendiente', 'en camino', 'entregado', 'preparando', 'entregado'];
   const statusKey = statusCycle[(tenantIndex + orderIndex) % statusCycle.length];
   const status = getQaOrderStatusPatch(statusKey);
   const product = products[orderIndex % products.length] || products[0];
-  const quantity = (orderIndex % 2) + 1;
+  const quantity = (orderIndex % 3) + 1;
   const unitPrice = Number(product?.priceValue || product?.precio || 250);
   const totalValue = unitPrice * quantity + (statusKey === 'entregado' ? 50 : 0);
   const createdAt = new Date(now() - ((tenantIndex + orderIndex) % 7) * 86400000 - orderIndex * 1500000).toISOString();
@@ -317,16 +323,19 @@ export const enrichOperationalDatasetWithQaData = (dataset = {}) => {
   const overrides = readOverrides();
   const qaProducts = scopedTenants.flatMap((tenant, index) => createQaProducts(tenant, index));
   const qaUsers = scopedTenants.flatMap((tenant, index) => [
-    createQaUser(tenant, index, 'admin', index % 3 === 0),
-    createQaUser(tenant, index, 'delivery', index % 2 === 0),
-    createQaUser(tenant, index, 'client', index % 4 === 0),
+    createQaUser(tenant, index, 'admin', index % 3 === 0, 1),
+    createQaUser(tenant, index, 'admin', index % 5 === 0, 2),
+    createQaUser(tenant, index, 'delivery', index % 2 === 0, 1),
+    createQaUser(tenant, index, 'delivery', index % 4 === 0, 2),
+    createQaUser(tenant, index, 'client', index % 4 === 0, 1),
+    createQaUser(tenant, index, 'client', index % 5 === 0, 2),
   ]);
   const qaSessions = qaUsers
     .filter((user) => user.isConnected)
     .map((user, index) => createQaSession(user, scopedTenants.find((tenant) => String(tenant.id) === String(user.tenantId)) || scopedTenants[0], index));
   const qaOrders = scopedTenants.flatMap((tenant, tenantIndex) => {
     const tenantProducts = qaProducts.filter((product) => String(product.tenantId) === String(tenant.id));
-    return [0, 1, 2].map((orderIndex) => createQaOrder(tenant, tenantIndex, orderIndex, tenantProducts, overrides));
+    return Array.from({ length: 12 }, (_, orderIndex) => createQaOrder(tenant, tenantIndex, orderIndex, tenantProducts, overrides));
   });
 
   const products = dedupeBy([...(dataset.products || []), ...qaProducts], (product) => String(product.id));
