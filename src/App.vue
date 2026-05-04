@@ -11,6 +11,7 @@ const showGlobalThemeToggle = computed(() =>
   !routesWithIntegratedTheme.some((path) => route.path === path || route.path.startsWith(`${path}/`))
 );
 const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
+const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking'));
 </script>
 
 <template>
@@ -23,7 +24,10 @@ const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
     v-if="showGlobalThemeToggle"
     type="button"
     class="foodrush-theme-toggle"
-    :class="{ 'foodrush-theme-toggle--raised': shouldRaiseThemeToggle }"
+    :class="{
+      'foodrush-theme-toggle--raised': shouldRaiseThemeToggle,
+      'foodrush-theme-toggle--tracking': shouldLowerThemeToggle,
+    }"
     :aria-label="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
     :title="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
     @click="toggleTheme"

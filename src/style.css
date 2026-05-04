@@ -163,6 +163,10 @@ html.foodrush-dark body {
   bottom: calc(6.5rem + env(safe-area-inset-bottom));
 }
 
+.foodrush-theme-toggle--tracking {
+  right: max(1.25rem, env(safe-area-inset-right));
+}
+
 html.foodrush-dark .foodrush-theme-toggle {
   background: rgba(15, 23, 42, 0.9);
   border-color: rgba(249, 115, 22, 0.42);
@@ -469,6 +473,11 @@ html.foodrush-dark .delivery-onboarding .hide-scrollbar {
 
   .foodrush-theme-toggle--raised {
     top: 1.25rem;
+    bottom: auto;
+  }
+
+  .foodrush-theme-toggle--tracking {
+    top: 4.5rem;
     bottom: auto;
   }
 }
