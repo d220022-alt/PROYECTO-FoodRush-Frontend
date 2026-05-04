@@ -23,6 +23,7 @@ const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
 const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
 const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
+const AVAILABLE_ORDERS_PAGE_SIZE = 8;
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -65,6 +66,7 @@ const state = reactive(defaultState());
 const data = ref({ tenants: [], orders: [], warnings: [], connectedUsers: [], sessions: [] });
 const currentView = ref('orders');
 const currentTab = ref('available');
+const availablePage = ref(1);
 const activePage = ref('');
 const activeModal = ref('');
 const onboardingVisible = ref(false);
@@ -283,6 +285,25 @@ const tenantDisplay = computed(() => {
     return match ? `Servidor: ${match.label.replace(/^[^\s]+\s/, '')}` : 'Servidor: Todas las tiendas';
 });
 const badgeAvail = computed(() => state.availableOrders.length);
+const availableTotalPages = computed(() => Math.max(1, Math.ceil(state.availableOrders.length / AVAILABLE_ORDERS_PAGE_SIZE)));
+const currentAvailablePage = computed(() => Math.min(Math.max(availablePage.value, 1), availableTotalPages.value));
+const paginatedAvailableOrders = computed(() => {
+    const startIndex = (currentAvailablePage.value - 1) * AVAILABLE_ORDERS_PAGE_SIZE;
+    return state.availableOrders.slice(startIndex, startIndex + AVAILABLE_ORDERS_PAGE_SIZE);
+});
+const availablePageLabel = computed(() => {
+    if (state.availableOrders.length === 0) return 'Sin pedidos nuevos';
+    const start = (currentAvailablePage.value - 1) * AVAILABLE_ORDERS_PAGE_SIZE + 1;
+    const end = Math.min(start + AVAILABLE_ORDERS_PAGE_SIZE - 1, state.availableOrders.length);
+    return `${start}-${end} de ${state.availableOrders.length}`;
+});
+const availablePageNumbers = computed(() => {
+    const total = availableTotalPages.value;
+    const current = currentAvailablePage.value;
+    const start = Math.max(1, Math.min(current - 2, total - 4));
+    const end = Math.min(total, start + 4);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+});
 const badgeActive = computed(() => (state.activeOrder ? 1 : 0));
 const financeBalance = computed(() => formatCurrency(state.earnings));
 const statTips = computed(() => formatCurrency(state.tips));
@@ -565,6 +586,25 @@ const switchTab = (tab) => {
             }, 100);
         });
     }
+};
+
+const scrollOrdersToTop = () => {
+    nextTick(() => {
+        const main = document.querySelector('.delivery-pro main');
+        const tabs = document.querySelector('.delivery-order-tabs');
+        if (!main || !tabs) return;
+
+        const nextTop = Math.max(0, tabs.offsetTop - 8);
+        main.scrollTo({ top: nextTop, behavior: 'smooth' });
+    });
+};
+
+const setAvailablePage = (page) => {
+    const nextPage = Math.min(Math.max(Number(page) || 1, 1), availableTotalPages.value);
+    if (availablePage.value === nextPage) return;
+
+    availablePage.value = nextPage;
+    scrollOrdersToTop();
 };
 
 const openPage = (pageId) => { activePage.value = pageId; };
@@ -1271,7 +1311,16 @@ const logout = () => {
     }
 };
 
-watch(() => state.tenant, changeTenant);
+watch(() => state.tenant, () => {
+    availablePage.value = 1;
+    changeTenant();
+});
+
+watch(() => state.availableOrders.length, () => {
+    if (availablePage.value > availableTotalPages.value) {
+        availablePage.value = availableTotalPages.value;
+    }
+});
 
 onMounted(async () => {
     loadState();
@@ -1491,7 +1540,50 @@ onBeforeUnmount(() => {
                         <p class="text-xs text-slate-500">No hay pedidos pendientes por ahora.</p>
                     </div>
 
-                    <div v-for="order in state.availableOrders" :key="order.id" class="card-shadow rounded-2xl border border-slate-50 bg-white p-4">
+                    <div v-if="state.availableOrders.length > 0" class="delivery-available-pager rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Pedidos nuevos</p>
+                                <p class="text-xs font-bold text-slate-600">{{ availablePageLabel }}</p>
+                            </div>
+                            <p class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black text-[#f97316]">
+                                Pagina {{ currentAvailablePage }} / {{ availableTotalPages }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                            <button
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl border border-slate-100 bg-slate-50 px-3 text-xs font-black text-slate-500 disabled:opacity-40"
+                                :disabled="currentAvailablePage === 1"
+                                @click="setAvailablePage(currentAvailablePage - 1)"
+                            >
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span v-if="availablePageNumbers[0] > 1" class="px-1 text-xs font-black text-slate-400">...</span>
+                            <button
+                                v-for="page in availablePageNumbers"
+                                :key="page"
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl px-3 text-xs font-black transition"
+                                :class="page === currentAvailablePage ? 'bg-[#f97316] text-white shadow-md shadow-orange-500/20' : 'border border-slate-100 bg-slate-50 text-slate-500'"
+                                @click="setAvailablePage(page)"
+                            >
+                                {{ page }}
+                            </button>
+                            <span v-if="availablePageNumbers[availablePageNumbers.length - 1] < availableTotalPages" class="px-1 text-xs font-black text-slate-400">...</span>
+                            <button
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl border border-slate-100 bg-slate-50 px-3 text-xs font-black text-slate-500 disabled:opacity-40"
+                                :disabled="currentAvailablePage === availableTotalPages"
+                                @click="setAvailablePage(currentAvailablePage + 1)"
+                            >
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-for="order in paginatedAvailableOrders" :key="order.id" class="card-shadow rounded-2xl border border-slate-50 bg-white p-4">
                         <div class="mb-3 flex items-start justify-between">
                             <div class="flex items-center gap-2">
                                 <div :class="['flex h-10 w-10 items-center justify-center rounded-full text-xl', order.franchise.color]">
@@ -1539,6 +1631,26 @@ onBeforeUnmount(() => {
                                 {{ order.backendStatusKey === 'preparando' ? 'ACEPTAR VIAJE' : 'ACEPTAR Y VALIDAR' }}
                             </button>
                         </div>
+                    </div>
+
+                    <div v-if="availableTotalPages > 1" class="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+                        <button
+                            type="button"
+                            class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-600 disabled:opacity-40"
+                            :disabled="currentAvailablePage === 1"
+                            @click="setAvailablePage(currentAvailablePage - 1)"
+                        >
+                            Anterior
+                        </button>
+                        <span class="text-xs font-black text-slate-500">Pagina {{ currentAvailablePage }} de {{ availableTotalPages }}</span>
+                        <button
+                            type="button"
+                            class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-600 disabled:opacity-40"
+                            :disabled="currentAvailablePage === availableTotalPages"
+                            @click="setAvailablePage(currentAvailablePage + 1)"
+                        >
+                            Siguiente
+                        </button>
                     </div>
                 </div>
 
