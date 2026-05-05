@@ -309,8 +309,6 @@ const filterResultText = computed(() => {
 
             <nav class="hidden md:flex gap-8 font-medium">
                 <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
-                <a href="#" @click.prevent="scrollToSection('category-filters')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
-                <a href="#" @click.prevent="scrollToSection('offers')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
             </nav>
 
             <div class="flex items-center gap-2 sm:gap-4">
