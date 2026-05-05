@@ -1,3 +1,9 @@
+<!--
+  Guia rapida para presentar:
+  Flujo de pago y entrega. El cliente confirma direccion, metodo de entrega y crea el pedido.
+  Buscar en VS Code: checkout, pago, delivery, pickup, ubicacion real, crear pedido, tracking, api.createOrder.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -5,6 +11,7 @@ import Swal from 'sweetalert2';
 import { api } from '../services/api';
 import {
   APP_EVENTS,
+  addNotification,
   buildLocalOrder,
   clearCart,
   clearSession,
@@ -20,6 +27,7 @@ import {
   saveSavedPayPal,
   setLastClientId,
 } from '../services/storage';
+import { SANTIAGO_CENTER, getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
@@ -33,6 +41,8 @@ const goBack = () => {
 
 const mapEl = ref(null);
 const mapLoading = ref(true);
+const isLocatingUser = ref(false);
+const locationError = ref('');
 
 const currentMode = ref('delivery'); // 'delivery' | 'pickup'
 const deliveryType = ref('basic'); // 'basic' | 'scheduled'
@@ -70,6 +80,8 @@ const savedCard = ref(null);
 const savedPayPalAccount = ref(null);
 
 // Load saved methods for user
+// Carga metodo preferido del usuario antes de pintar el resumen de pago.
+// Para presentar: hidrata metodos guardados de pago antes de mostrar efectivo/tarjeta/PayPal.
 const loadUserPaymentMethods = () => {
     const email = currentUserEmail.value;
     const storedCard = getSavedCard(email);
@@ -114,10 +126,27 @@ const subtotal = computed(() =>
 const deliveryFee = computed(() => (currentMode.value === 'delivery' ? 5 : 0));
 const total = computed(() => subtotal.value + deliveryFee.value);
 
+const DOMINICAN_BOUNDS = {
+  minLat: 17.35,
+  maxLat: 20.1,
+  minLng: -72.1,
+  maxLng: -68.25,
+};
+
+const isDominicanLocation = (lat, lng) =>
+  Number.isFinite(lat)
+  && Number.isFinite(lng)
+  && lat >= DOMINICAN_BOUNDS.minLat
+  && lat <= DOMINICAN_BOUNDS.maxLat
+  && lng >= DOMINICAN_BOUNDS.minLng
+  && lng <= DOMINICAN_BOUNDS.maxLng;
+
+// Para presentar: entrada del checkout; sin carrito no hay pedido que pagar.
 const loadCart = () => {
   cartItems.value = getCart();
 };
 
+// Cambia entre delivery y pickup; este valor tambien decide tarifa y coordenadas del mapa.
 const setMode = (mode) => {
   currentMode.value = mode;
 };
@@ -348,7 +377,17 @@ const editAddress = async () => {
     inputValue: addressDetails.value,
     showCancelButton: true,
   });
-  if (value) addressDetails.value = value;
+  if (value) {
+    addressTitle.value = 'Direccion guardada';
+    addressDetails.value = value;
+    locationError.value = '';
+
+    if (mapInstance && currentMode.value === 'delivery') {
+      const location = getCustomerLocation({ id: 'checkout', address: value });
+      cachedPos = { lat: location.lat, lng: location.lng };
+      updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+    }
+  }
 };
 
 const editInstructions = async () => {
@@ -380,6 +419,7 @@ const resolveUserIdentity = () => {
   };
 };
 
+// Para presentar: conecta usuario frontend con cliente backend; si no existe, lo crea.
 const resolveClientId = async (identity) => {
   const cachedClientId = getLastClientId(identity.email);
   if (cachedClientId) {
@@ -414,6 +454,7 @@ const resolveClientId = async (identity) => {
   return cachedClientId || null;
 };
 
+// Para presentar: convierte items del carrito a productos reales del backend cuando es posible.
 const resolveRemoteOrderItems = async () => {
   const tenantHeaders = resolveTenantHeaders();
   const productsResponse = await api.getProducts({ limit: 300 }, tenantHeaders);
@@ -448,6 +489,88 @@ const resolveRemoteOrderItems = async () => {
   });
 };
 
+const normalizeOrderItemForPayload = (item = {}) => {
+  const quantity = Number(item.qty || item.cantidad || item.quantity || 1);
+  const price = Number(item.price || item.precio || item.unitPrice || 0);
+
+  return {
+    ...item,
+    id: item.id || item.productId || item.producto_id,
+    producto_id: item.producto_id || item.productId || item.id,
+    name: item.name || item.nombre || 'Producto',
+    nombre: item.nombre || item.name || 'Producto',
+    qty: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+    cantidad: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+    price: Number.isFinite(price) ? price : 0,
+    precio_unitario: Number.isFinite(price) ? price : 0,
+    subtotal: Number(item.subtotal) || ((Number.isFinite(price) ? price : 0) * (Number.isFinite(quantity) && quantity > 0 ? quantity : 1)),
+    tenant_id: item.tenant_id || item.tenantId || resolveTenantId(),
+    tenantId: item.tenantId || item.tenant_id || resolveTenantId(),
+  };
+};
+
+const resolveOrderLocationPayload = () => {
+  if (currentMode.value === 'pickup') {
+    const storeLocation = getStoreLocation({ tenant_id: resolveTenantId() });
+    return { lat: storeLocation.lat, lng: storeLocation.lng };
+  }
+
+  if (cachedPos) {
+    return { lat: cachedPos.lat, lng: cachedPos.lng };
+  }
+
+  const { location } = resolveSafeFallbackLocation();
+  cachedPos = { lat: location.lat, lng: location.lng };
+  return { lat: location.lat, lng: location.lng };
+};
+
+// Payload final que viaja al backend: cliente, items, entrega, pago y ubicacion salen de aqui.
+// Para presentar: arma el objeto final que se manda a /api/pedidos al pagar.
+const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.value } = {}) => {
+  const methodMap = {
+      'cash': 'Efectivo',
+      'card': 'Tarjeta (Pagado)',
+      'paypal': 'PayPal (Pagado)'
+  };
+  const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value;
+  const deliveryLocation = resolveOrderLocationPayload();
+  const deliveryNotes = [
+      `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
+      `Instrucciones: ${instructionsText.value}`,
+      currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      deliveryType.value === 'scheduled' && scheduleDate.value ? `Programado para: ${scheduleDate.value}` : '',
+  ].filter(Boolean).join('. ');
+
+  return {
+      cliente_id: clientId,
+      total: orderTotal,
+      tenant_id: resolveTenantId(),
+      direccion_entrega: deliveryAddress,
+      notas: deliveryNotes,
+      estado_id: 'pendiente',
+      items: items.map(normalizeOrderItemForPayload),
+      metodo_pago: paymentMethod.value,
+      tipo_entrega: currentMode.value,
+      lat: deliveryLocation?.lat,
+      lng: deliveryLocation?.lng,
+  };
+};
+
+const buildTrackingRoute = (order = {}, payload = {}) => {
+  const tenantId = order.tenantId || order.tenant_id || payload.tenant_id || resolveTenantId();
+  return {
+    path: `/tracking/${order.id}`,
+    query: tenantId ? { tenant: String(tenantId) } : {},
+  };
+};
+
+const buildTrackingPath = (order = {}, payload = {}) => {
+  const route = buildTrackingRoute(order, payload);
+  const tenantId = route.query.tenant;
+  return `${route.path}${tenantId ? `?tenant=${encodeURIComponent(tenantId)}` : ''}`;
+};
+
+// Boton Pagar Ahora: intenta crear pedido real y deja fallback local solo si la red falla.
 const processOrder = async () => {
   if (cartItems.value.length === 0) {
       return Swal.fire('Error', 'El carrito está vacío.', 'error');
@@ -510,43 +633,39 @@ const processOrder = async () => {
       }
 
       const identity = resolveUserIdentity();
-      const clientId = (await resolveClientId(identity)) || 1;
-      const syncedItems = await resolveRemoteOrderItems();
-      const syncedSubtotal = syncedItems.reduce(
-        (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
-        0,
-      );
-      const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
-
-      const methodMap = {
-          'cash': 'Efectivo',
-          'card': 'Tarjeta (Pagado)',
-          'paypal': 'PayPal (Pagado)'
-      };
-
-      const orderPayload = {
-          cliente_id: clientId,
-          total: syncedTotal,
-          tenant_id: resolveTenantId(),
-          direccion_entrega: currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value,
-          notas: `Pago vía: ${methodMap[paymentMethod.value] || paymentMethod.value}. Instrucciones: ${instructionsText.value}`,
-          estado_id: 1, // Pendiente
-          items: syncedItems,
-          metodo_pago: paymentMethod.value
-      };
-
+      let clientId = null;
+      let orderPayload = null;
       let finalOrder = null;
       let usedLocalFallback = false;
 
       try {
+          clientId = await resolveClientId(identity);
+          if (!clientId) {
+              throw new Error('No se pudo crear o recuperar el cliente para este pedido.');
+          }
+
+          const syncedItems = await resolveRemoteOrderItems();
+          const syncedSubtotal = syncedItems.reduce(
+            (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
+            0,
+          );
+          const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
+          orderPayload = buildOrderPayload({
+            clientId,
+            items: syncedItems,
+            orderTotal: syncedTotal,
+          });
+
           const orderParams = await api.createOrder(orderPayload, resolveTenantHeaders());
           if (orderParams.success && orderParams.data) {
               finalOrder = saveCachedOrder(
                 {
                   ...orderParams.data,
+                  tenant_id: orderParams.data.tenant_id || orderPayload.tenant_id,
                   items: orderParams.data.items || orderPayload.items,
                   user_email: identity.email,
                   user_name: identity.name,
+                  tipo_entrega: orderParams.data.tipo_entrega || orderPayload.tipo_entrega,
                   source: 'remote'
                 },
                 identity.email
@@ -557,6 +676,11 @@ const processOrder = async () => {
       } catch (serverError) {
           console.warn('Falling back to local order storage', serverError);
           usedLocalFallback = true;
+          orderPayload = orderPayload || buildOrderPayload({
+            clientId,
+            items: cartItems.value.map(normalizeOrderItemForPayload),
+            orderTotal: total.value,
+          });
           finalOrder = saveCachedOrder(
             buildLocalOrder({
               orderPayload,
@@ -571,15 +695,44 @@ const processOrder = async () => {
       }
 
       if (finalOrder) {
+          const trackingRoute = buildTrackingRoute(finalOrder, orderPayload);
+          const trackingPath = buildTrackingPath(finalOrder, orderPayload);
+          const notificationTitle = usedLocalFallback
+            ? `Pedido #${finalOrder.id} pendiente`
+            : `Pedido #${finalOrder.id} enviado`;
+          const notificationMessage = usedLocalFallback
+            ? 'Quedo guardado en este dispositivo. Todavia no esta confirmado por el servidor.'
+            : 'Tu pedido fue enviado al local. El estado cambiara cuando el local lo confirme.';
+          const confirmationTitle = usedLocalFallback
+            ? 'Pedido guardado localmente'
+            : paymentMethod.value === 'cash'
+              ? 'Pedido enviado'
+              : 'Pago registrado';
+          const confirmationDetail = usedLocalFallback
+            ? 'No se pudo confirmar con el servidor, por eso lo veras como pendiente de sincronizar.'
+            : 'El local debe confirmar el pedido antes de marcarlo como recibido o en preparacion.';
+
+          addNotification(
+            {
+              type: 'order',
+              title: notificationTitle,
+              message: notificationMessage,
+              icon: 'fa-solid fa-receipt',
+              route: trackingPath,
+              order_id: finalOrder.id,
+            },
+            identity.email,
+          );
+
           Swal.fire({
-              icon: 'success',
-              title: paymentMethod.value === 'cash' ? '¡Pedido Confirmado!' : '¡Pago Procesado con Éxito!',
-              html: `Tu pedido <b>#${finalOrder.id}</b> está siendo preparado.<br><br><span class="text-sm text-gray-500">${usedLocalFallback ? 'Quedó guardado localmente mientras el servidor termina de responder.' : 'Recibirás actualizaciones sobre el estado de tu entrega.'}</span>`,
+              icon: usedLocalFallback ? 'info' : 'success',
+              title: confirmationTitle,
+              html: `Tu pedido <b>#${finalOrder.id}</b> quedo en estado <b>Pendiente de confirmacion</b>.<br><br><span class="text-sm text-gray-500">${confirmationDetail}</span>`,
               confirmButtonColor: '#BD0A0A',
               allowOutsideClick: false
           }).then(() => {
               clearCart();
-              router.push(`/tracking/${finalOrder.id}`);
+              router.push(trackingRoute);
           });
       } else {
           throw new Error('No se pudo registrar el pedido.');
@@ -628,6 +781,8 @@ const ensureLeaflet = () =>
     document.body.appendChild(script);
   });
 
+// El mapa del checkout se actualiza con direccion guardada, pickup o ubicacion real del usuario.
+// Para presentar: pinta la ubicacion elegida en el mapa Leaflet del checkout.
 const updateMap = (lat, lng, label, isUser) => {
   if (!mapInstance || !leaflet) return;
 
@@ -644,38 +799,135 @@ const updateMap = (lat, lng, label, isUser) => {
   }
 };
 
-const locateUser = () => {
+const formatLocationCoordinates = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+
+const reverseGeocodeLocation = async (lat, lng) => {
+  const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&accept-language=es`;
+  const response = await fetch(url);
+  if (!response.ok) return '';
+  const data = await response.json();
+  return String(data?.display_name || '')
+    .split(',')
+    .slice(0, 4)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(', ');
+};
+
+const resolveSafeFallbackLocation = () => {
+  const session = getSession();
+  const candidates = [addressDetails.value, session.userAddress]
+    .map((value) => String(value || '').trim())
+    .filter((value) => value && value !== 'Espere un momento');
+
+  for (const address of candidates) {
+    const location = getCustomerLocation({ id: 'checkout', address });
+    if (isDominicanLocation(location.lat, location.lng)) {
+      return { location, address };
+    }
+  }
+
+  return {
+    location: { ...SANTIAGO_CENTER, label: 'Santiago de los Caballeros' },
+    address: '',
+  };
+};
+
+const applySavedLocationFallback = (message = '') => {
+  const { location, address } = resolveSafeFallbackLocation();
+
+  addressTitle.value = address ? 'Direccion guardada' : 'Direccion estimada';
+  addressDetails.value = address || location.label;
+
+  locationError.value = message;
+  mapLoading.value = false;
+  cachedPos = { lat: location.lat, lng: location.lng };
+  updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+};
+
+const applyCurrentLocation = async (lat, lng) => {
+  const coordsText = formatLocationCoordinates(lat, lng);
+  let addressLabel = '';
+
+  try {
+    addressLabel = await reverseGeocodeLocation(lat, lng);
+  } catch (error) {
+    console.warn('Reverse geocode checkout failed', error);
+  }
+
+  cachedPos = { lat, lng };
+  addressTitle.value = 'Ubicacion actual';
+  addressDetails.value = addressLabel ? `${addressLabel} - ${coordsText}` : coordsText;
+  locationError.value = '';
+  updateMap(lat, lng, 'Tu ubicacion actual', true);
+};
+
+const locateUser = ({ forceReal = false } = {}) => {
   if (!mapInstance) return;
 
-  if (cachedPos) {
+  const savedAddress = addressDetails.value;
+  if (!forceReal && savedAddress && savedAddress !== 'Espere un momento') {
+    const location = getCustomerLocation({ id: 'checkout', address: savedAddress });
+    updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
+    return;
+  }
+
+  if (!forceReal && cachedPos) {
     updateMap(cachedPos.lat, cachedPos.lng, 'Tu Ubicación', true);
     return;
   }
 
   mapLoading.value = true;
+  isLocatingUser.value = true;
+  locationError.value = '';
 
   if (!navigator.geolocation) {
-    updateMap(19.4517, -70.697, 'Default', true);
+    isLocatingUser.value = false;
+    applySavedLocationFallback('Tu navegador no permite usar ubicacion real. Mantuvimos tu direccion guardada.');
     return;
   }
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
+    async (pos) => {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
-      cachedPos = { lat, lng };
-      updateMap(lat, lng, 'Tu Ubicación', true);
-      addressTitle.value = 'Ubicación Actual';
-      addressDetails.value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      isLocatingUser.value = false;
+
+      if (!isDominicanLocation(lat, lng)) {
+        applySavedLocationFallback(
+          'La ubicacion del navegador salio fuera de Republica Dominicana. Mantuvimos tu direccion guardada para evitar enviar el pedido a una zona incorrecta.'
+        );
+        return;
+      }
+
+      await applyCurrentLocation(lat, lng);
     },
-    () => {
-      updateMap(19.4517, -70.697, 'Default', true);
+    (error) => {
+      isLocatingUser.value = false;
+      applySavedLocationFallback(
+        error?.code === 1
+          ? 'Permiso de ubicacion denegado. Puedes editar la direccion manualmente.'
+          : 'No se pudo obtener tu ubicacion real. Mantuvimos tu direccion guardada.'
+      );
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 12000,
+      maximumAge: 0,
     }
   );
 };
 
+const requestRealLocation = () => {
+  if (currentMode.value !== 'delivery') {
+    setMode('delivery');
+  }
+  locateUser({ forceReal: true });
+};
+
 const showStoreLocation = () => {
-  updateMap(19.459, -70.69, 'Tienda', false);
+  const location = getStoreLocation({ tenant_id: resolveTenantId() });
+  updateMap(location.lat, location.lng, location.label || 'Tienda FoodRush', false);
 };
 
 const initMapDefault = () => {
@@ -824,6 +1076,16 @@ onBeforeUnmount(() => {
             <div class="border border-slate-200/60 rounded-2xl p-1.5 mb-8 relative shadow-sm hover:shadow-lg hover:border-red-100 transition-all duration-500 bg-white/50 backdrop-blur-sm group">
               <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <div id="map" ref="mapEl" class="rounded-xl overflow-hidden shadow-inner h-[200px] z-10 relative"></div>
+              <button
+                v-show="currentMode === 'delivery'"
+                type="button"
+                class="absolute bottom-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-800 shadow-lg ring-1 ring-red-100 transition hover:-translate-y-0.5 hover:bg-red-600 hover:text-white disabled:cursor-wait disabled:opacity-80 disabled:hover:translate-y-0"
+                :disabled="isLocatingUser"
+                @click="requestRealLocation"
+              >
+                <i class="fa-solid" :class="isLocatingUser ? 'fa-circle-notch fa-spin' : 'fa-location-crosshairs'"></i>
+                {{ isLocatingUser ? 'Ubicando...' : 'Usar mi ubicacion real' }}
+              </button>
               <div
                 v-show="mapLoading"
                 id="map-loading"
@@ -835,6 +1097,9 @@ onBeforeUnmount(() => {
                 </span>
               </div>
             </div>
+            <p v-if="locationError" class="-mt-5 mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-700">
+              {{ locationError }}
+            </p>
 
             <div class="space-y-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between border-b border-gray-100 pb-4">
@@ -991,7 +1256,7 @@ onBeforeUnmount(() => {
               
               <div class="bg-slate-50 rounded-2xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a Preparar</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a cobrar</p>
                 <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">${{ total.toFixed(2) }}</p>
                 <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y Sin Comisiones</p>
               </div>
@@ -1403,6 +1668,45 @@ onBeforeUnmount(() => {
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@media (max-width: 768px) {
+  .checkout-page main {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .checkout-page nav > div {
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .checkout-page nav .text-2xl {
+    font-size: 1.25rem;
+  }
+
+  .checkout-page nav .h-8.w-px,
+  .checkout-page nav .flex-col.items-end {
+    display: none;
+  }
+
+  .checkout-page .grid {
+    min-width: 0;
+  }
+
+  .checkout-page .rounded-2xl {
+    border-radius: 18px;
+  }
+
+  .checkout-page #btn-delivery,
+  .checkout-page #btn-pickup {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .credit-card-visual {
+    padding: 18px;
   }
 }
 </style>

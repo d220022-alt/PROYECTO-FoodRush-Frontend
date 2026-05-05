@@ -1,10 +1,16 @@
+<!--
+  Guia rapida para presentar:
+  Vista de Starbucks. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: franquicia, menu, productos, fetchProducts, filtros, modal producto, addToCart, carrito.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
 import starbucksLogo from '../assets/images/logo-starbucks.png';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, resolveProductImage } from '../utils/productImages';
 import {
     APP_EVENTS,
     addCartItem,
@@ -13,6 +19,7 @@ import {
     getCartRestaurantInfo,
     getFavorites,
     getSession,
+    getUnreadNotificationsCount,
     hasCartRestaurantConflict,
     toggleFavoriteItem
 } from '../services/storage';
@@ -28,6 +35,7 @@ const isLoading = ref(true);
 const currentCategory = ref('Todos');
 const searchTerm = ref('');
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const userName = ref('');
 
 // Sidebar filter state
@@ -145,11 +153,7 @@ const inferMcType = (category, name, description, rawType = '') => {
 };
 
 const getSafeImage = (rawImage, name, category) => {
-    const candidate = String(rawImage || '').trim();
-    if (candidate && (candidate.startsWith('http://') || candidate.startsWith('https://'))) {
-        return candidate;
-    }
-    return getProductImage(name, category);
+    return resolveProductImage(rawImage, name, category);
 };
 
 const getProductMediaVariant = (category, context = 'card') => {
@@ -548,6 +552,7 @@ const toggleFavorite = () => {
 };
 
 // ── Fetch Real Data ──
+// Para presentar: carga productos de la franquicia; usa backend y fallback local si la nube tarda.
 const fetchProducts = async () => {
     try {
         isLoading.value = true;
@@ -603,13 +608,13 @@ const fetchProducts = async () => {
                 deduped.push(item);
             });
 
-            products.value = deduped;
+            products.value = deduped.length > 0 ? deduped : getDefaultProducts();
         } else {
             throw new Error(response.message || 'No se pudieron cargar los productos de Starbucks');
         }
     } catch (e) {
         console.error("Error fetching products", e);
-        products.value = [];
+        products.value = getDefaultProducts();
     } finally {
         isLoading.value = false;
     }
@@ -718,6 +723,7 @@ const buildFilteredList = ({
     return applySort(result);
 };
 
+// Para presentar: aplica filtros visibles, busqueda y orden antes de pintar productos.
 const filteredProducts = computed(() => buildFilteredList());
 
 const fallbackProducts = computed(() => {
@@ -789,6 +795,7 @@ const setCategory = (cat) => {
 };
 
 // ── Detail View Logic ──
+// Para presentar: abre el modal de producto, donde se eligen variantes, extras y cantidad.
 const openProductDetail = (product) => {
     selectedProduct.value = product;
     mobileOptionInfoKey.value = null;
@@ -907,6 +914,11 @@ const updateCartBadge = () => {
     cartCount.value = getCartCount();
 };
 
+const updateNotificationBadge = () => {
+    const session = getSession();
+    notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
+};
+
 const createCartItem = () => {
     let detailsStr = `Tamano: ${currentSize.value}`;
 
@@ -944,8 +956,9 @@ const createCartItem = () => {
     };
 };
 
-const addToCart = async () => {
-    if (!selectedProduct.value) return;
+// Para presentar: agrega el producto personalizado al carrito compartido por Checkout.
+const addToCart = async ({ silent = false } = {}) => {
+    if (!selectedProduct.value) return false;
     const cartItem = createCartItem();
 
     if (hasCartRestaurantConflict(cartItem)) {
@@ -961,7 +974,7 @@ const addToCart = async () => {
         });
 
         if (!result.isConfirmed) {
-            return;
+            return false;
         }
 
         clearCart();
@@ -969,13 +982,23 @@ const addToCart = async () => {
 
     addCartItem(cartItem);
     updateCartBadge();
-    Swal.fire({
-        icon: 'success', title: '¡Añadido!',
-        showConfirmButton: false, timer: 1000,
-        background: bgBrand, color: '#fff',
-        toast: true, position: 'top-end'
-    });
+    if (!silent) {
+        Swal.fire({
+            icon: 'success', title: '¡Añadido!',
+            showConfirmButton: false, timer: 1000,
+            background: bgBrand, color: '#fff',
+            toast: true, position: 'top-end'
+        });
+    }
     closeDetail();
+    return true;
+};
+
+const buyNow = async () => {
+    const added = await addToCart({ silent: true });
+    if (added) {
+        router.push('/checkout');
+    }
 };
 
 const goBackHome = () => {
@@ -984,7 +1007,9 @@ const goBackHome = () => {
 
 onMounted(() => {
     updateCartBadge();
+    updateNotificationBadge();
     window.addEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
     const storedName = getSession().userName;
     if (storedName) userName.value = storedName;
     fetchProducts();
@@ -993,6 +1018,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
     clearInterval(slideInterval);
 });
 </script>
@@ -1018,6 +1044,10 @@ onBeforeUnmount(() => {
 
             <div class="flex items-center gap-4 md:gap-6">
                 <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
+                <button @click="router.push('/notifications')" class="hover:text-[#00704A] transition relative text-xl text-gray-600 p-1" aria-label="Ver notificaciones">
+                    <i class="fa-regular fa-bell"></i>
+                    <span v-if="notificationCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm">{{ notificationCount }}</span>
+                </button>
                 <button @click="router.push('/cart')" class="hover:text-[#00704A] transition relative text-xl text-gray-600 p-1" aria-label="Ver carrito">
                     <i class="fa-solid fa-cart-shopping"></i>
                     <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-[#D4E9E2] text-[#00704A] font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm">{{ cartCount }}</span>
@@ -1784,11 +1814,16 @@ onBeforeUnmount(() => {
                             <span class="text-4xl font-black text-[#1E3932] leading-none">{{ totalPrice }}</span>
                         </div>
                     </div>
-                    <button @click="addToCart" class="w-full bg-[#D4E9E2] hover:bg-[#b9d5cb] text-[#00704A] font-bold py-4 rounded-2xl shadow-lg shadow-emerald-500/20 text-lg transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden">
-                        <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                        <span class="relative z-10">Añadir al Pedido</span>
-                        <i class="fa-solid fa-cart-arrow-down relative z-10 text-xl group-hover:animate-bounce"></i>
-                    </button>
+                    <div class="studio-cta__actions">
+                        <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
+                            <span>Añadir al Pedido</span>
+                            <i class="fa-solid fa-cart-arrow-down"></i>
+                        </button>
+                        <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
+                            <span>Pagar ahora</span>
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3384,6 +3419,56 @@ body { font-family: 'Inter', sans-serif; }
 .studio-cta > button i {
     position: static !important;
     font-size: 20px;
+}
+
+.studio-cta .studio-cta__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+}
+
+.studio-cta__button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 56px;
+    padding: 14px 18px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    font-size: 16px;
+    font-weight: 900;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.studio-cta__button:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.05);
+}
+
+.studio-cta__button:active {
+    transform: scale(0.985);
+}
+
+.studio-cta__button--secondary {
+    background: linear-gradient(135deg, #D4E9E2 0%, #bddfd2 100%);
+    color: #0c4f38;
+    box-shadow: 0 14px 24px rgba(0, 112, 74, 0.14);
+}
+
+.studio-cta__button--primary {
+    background: linear-gradient(135deg, #00704A 0%, #0c4f38 100%);
+    color: #ffffff;
+    box-shadow: 0 18px 30px rgba(0, 112, 74, 0.22);
+}
+
+@media (min-width: 640px) {
+    .studio-cta .studio-cta__actions {
+        grid-template-columns: 1fr 1fr;
+    }
 }
 
 @media (min-width: 768px) {

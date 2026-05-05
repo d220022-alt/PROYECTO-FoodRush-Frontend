@@ -1,3 +1,11 @@
+/*
+  Guia rapida para presentar:
+  Capa de localStorage. Guarda sesion, carrito, pedidos cacheados y notificaciones por usuario.
+  Buscar en VS Code: localStorage, sesion, carrito, pedidos cacheados, notificaciones, delivery assignments.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
+import { resolveDeliveryCode } from '../utils/deliveryCode';
+
 const STORAGE_KEYS = {
   authToken: 'auth_token',
   userId: 'user_id',
@@ -13,24 +21,82 @@ const STORAGE_KEYS = {
   paypals: 'foodrush_saved_paypals',
   preferredPayments: 'foodrush_preferred_payments',
   orders: 'foodrush_orders',
+  deliveryAssignments: 'foodrush_delivery_assignments',
   clients: 'foodrush_clients',
+  notifications: 'foodrush_notifications',
 };
 
+// Eventos internos para que Home, carrito, checkout, perfil y notificaciones se actualicen sin recargar.
 export const APP_EVENTS = {
   authChanged: 'foodrush:auth-changed',
   cartChanged: 'foodrush:cart-changed',
   favoritesChanged: 'foodrush:favorites-changed',
   paymentsChanged: 'foodrush:payments-changed',
   ordersChanged: 'foodrush:orders-changed',
+  notificationsChanged: 'foodrush:notifications-changed',
 };
 
 const STATUS_LABELS = {
-  1: 'Pendiente',
-  2: 'Preparando',
-  3: 'En camino',
-  4: 'Entregado',
-  5: 'Cancelado',
+  1: 'Pendiente de confirmacion',
+  2: 'Pedido confirmado por el restaurante',
+  3: 'Pedido en preparación',
+  4: 'Pedido en camino',
+  5: 'Pedido entregado',
+  6: 'Pedido cancelado',
 };
+
+const STATUS_LABELS_BY_KEY = {
+  pendiente: 'Pendiente de confirmacion',
+  preparando: 'Pedido en preparación',
+  en_transito: 'Pedido en camino',
+  'en camino': 'Pedido en camino',
+  entregado: 'Pedido entregado',
+  cancelado: 'Pedido cancelado',
+};
+
+const normalizeStatusKey = (value = '') =>
+  String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+const getStatusLabel = (statusId, fallback = 'Actualizado') => {
+  const numericStatus = Number.parseInt(statusId, 10);
+  if (Number.isFinite(numericStatus) && STATUS_LABELS[numericStatus]) return STATUS_LABELS[numericStatus];
+
+  const key = normalizeStatusKey(statusId).replace(/_/g, ' ');
+  if (key.includes('cancel')) return STATUS_LABELS_BY_KEY.cancelado;
+  if (key.includes('entreg')) return STATUS_LABELS_BY_KEY.entregado;
+  if (key.includes('transito') || key.includes('camino')) return STATUS_LABELS_BY_KEY.en_transito;
+  if (key.includes('pend') || key.includes('recib') || key.includes('solicit')) return STATUS_LABELS_BY_KEY.pendiente;
+  if (key.includes('prepar') || key.includes('confirm')) return STATUS_LABELS_BY_KEY.preparando;
+
+  return fallback;
+};
+
+const DEFAULT_NOTIFICATIONS = [
+  {
+    id: 'welcome',
+    type: 'system',
+    title: 'Bienvenido a FoodRush',
+    message: 'Tu cuenta esta lista para recibir alertas de pedidos, ofertas y cambios de estado.',
+    icon: 'fa-solid fa-bolt',
+    route: '/',
+    read: false,
+    created_at: '2026-04-30T00:00:00.000Z',
+  },
+  {
+    id: 'promo-delivery',
+    type: 'promo',
+    title: 'Promos activas cerca de ti',
+    message: 'Revisa tus franquicias favoritas y agrega productos al carrito para no perder ofertas.',
+    icon: 'fa-solid fa-tag',
+    route: '/',
+    read: false,
+    created_at: '2026-04-30T00:01:00.000Z',
+  },
+];
 
 const CARD_ICONS = {
   Visa: 'fa-brands fa-cc-visa text-blue-800',
@@ -239,15 +305,15 @@ const buildCartLineKey = (item = {}) =>
 const normalizeCartItem = (item = {}) => {
   const normalized = {
     ...item,
-    id: safeString(item.id, `item-${Date.now()}`),
-    name: safeString(item.name, 'Producto'),
+    id: safeString(item.productId || item.producto_id || item.id, `item-${Date.now()}`),
+    name: safeString(item.name || item.nombre || item.producto?.nombre, 'Producto'),
     img: safeString(item.img),
-    price: Math.max(0, toNumber(item.price, 0)),
-    qty: Math.max(1, toInteger(item.qty, 1)),
+    price: Math.max(0, toNumber(item.price ?? item.precio_unitario ?? item.precio ?? item.unitPrice, 0)),
+    qty: Math.max(1, toInteger(item.qty ?? item.cantidad ?? item.quantity, 1)),
     details: safeString(item.details, 'Sin adicionales'),
     place: safeString(item.place),
     franchiseSlug: safeString(item.franchiseSlug),
-    tenantId: safeString(item.tenantId) || null,
+    tenantId: safeString(item.tenantId || item.tenant_id) || null,
   };
 
   normalized.lineKey = safeString(item.lineKey) || buildCartLineKey(normalized);
@@ -264,6 +330,7 @@ const normalizeFavoriteItem = (item = {}) => ({
   tenantId: safeString(item.tenantId) || null,
 });
 
+// Punto unico para leer sesion: evita que cada vista interprete localStorage de forma distinta.
 export const getSession = () => {
   const storage = getStorage();
   if (!storage) {
@@ -396,8 +463,10 @@ const resolveAccountScope = (scope = null) => {
   return 'guest';
 };
 
+// Todas las claves quedan separadas por usuario para que una sesion no contamine otra.
 const scopedStorageKey = (baseKey, scope = null) => `${baseKey}::${resolveAccountScope(scope)}`;
 
+// Carrito persistido por usuario. Checkout consume esta estructura directamente.
 export const getCart = (scope = null) => {
   const key = scopedStorageKey(STORAGE_KEYS.cart, scope);
   return readJson(key, []).map(normalizeCartItem);
@@ -595,17 +664,36 @@ export const clearPreferredPaymentMethod = (email) => {
 };
 
 const normalizeOrder = (order = {}, fallbackEmail = '') => {
-  const statusId = Math.max(1, toInteger(order.estado_id ?? order.estado?.id, 1));
-  const statusLabel =
-    safeString(order.estado?.descripcion || order.status || order.estado) ||
-    STATUS_LABELS[statusId] ||
-    STATUS_LABELS[1];
+  const statusId = Math.max(1, toInteger(order.estado_id ?? order.statusId ?? order.estado?.id, 1));
+  const explicitStatus = safeString(order.statusLabel || order.status || order.estado?.descripcion || order.estado);
+  const explicitStatusKey = normalizeStatusKey(explicitStatus).replace(/_/g, ' ');
+  const statusFromId = STATUS_LABELS[statusId];
+  const statusIdKey = normalizeStatusKey(statusFromId).replace(/_/g, ' ');
+  const statusLabel = statusFromId && statusId !== 1 && (!explicitStatus || explicitStatusKey === 'pendiente' || explicitStatusKey !== statusIdKey)
+    ? statusFromId
+    : statusId === 1 && explicitStatusKey.includes('recib')
+      ? STATUS_LABELS[1]
+      : explicitStatus || statusFromId || STATUS_LABELS[1];
+  const rawItems = Array.isArray(order.items)
+    ? order.items
+    : Array.isArray(order.itemsDetailed)
+      ? order.itemsDetailed.map((item) => ({
+          id: item.productId || item.producto_id || item.id,
+          name: item.name || item.nombre,
+          qty: item.quantity || item.cantidad,
+          price: item.unitPrice || item.precio_unitario || item.price,
+          subtotal: item.subtotal,
+          tenantId: order.tenantId || order.tenant_id,
+        }))
+      : [];
+  const orderId = safeString(order.id, `local-${Date.now()}`);
+  const deliveryCode = resolveDeliveryCode(order, orderId);
 
   return {
     ...order,
-    id: safeString(order.id, `local-${Date.now()}`),
-    cliente_id: order.cliente_id ?? order.client_id ?? null,
-    total: Math.max(0, toNumber(order.total, 0)),
+    id: orderId,
+    cliente_id: order.cliente_id ?? order.client_id ?? order.customerId ?? null,
+    total: Math.max(0, toNumber(order.total ?? order.totalValue, 0)),
     direccion_entrega: safeString(order.direccion_entrega || order.address, 'Recogida en tienda'),
     notas: safeString(order.notas || order.notes),
     metodo_pago: safeString(order.metodo_pago || order.paymentMethod),
@@ -615,10 +703,15 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
       ...(typeof order.estado === 'object' ? order.estado : {}),
       descripcion: statusLabel,
     },
-    items: Array.isArray(order.items) ? order.items.map(normalizeCartItem) : [],
-    user_email: normalizeEmailKey(order.user_email || fallbackEmail),
-    user_name: safeString(order.user_name || order.userName || order.nombre),
-    source: safeString(order.source, 'local'),
+    items: rawItems.map(normalizeCartItem),
+    user_email: normalizeEmailKey(order.user_email || order.customerEmail || order.cliente?.correo || fallbackEmail),
+    user_name: safeString(order.user_name || order.userName || order.customerName || order.cliente?.nombre || order.nombre),
+    repartidor_nombre: safeString(order.repartidor_nombre || order.driverName || order.repartidor?.nombre),
+    repartidor_email: normalizeEmailKey(order.repartidor_email || order.driverEmail),
+    securityCode: deliveryCode,
+    codigo_seguridad: deliveryCode,
+    codigoDelivery: deliveryCode,
+    source: safeString(order.source, String(orderId).startsWith('local-') ? 'local' : 'remote'),
   };
 };
 
@@ -629,11 +722,184 @@ const sortOrdersByDate = (orders = []) =>
     return rightTime - leftTime;
   });
 
+const sortNotificationsByDate = (notifications = []) =>
+  [...notifications].sort((left, right) => {
+    const leftTime = new Date(left.created_at).getTime();
+    const rightTime = new Date(right.created_at).getTime();
+    return rightTime - leftTime;
+  });
+
+const normalizeNotification = (notification = {}) => ({
+  id: safeString(notification.id, `notif-${Date.now()}`),
+  type: safeString(notification.type, 'system'),
+  title: safeString(notification.title, 'Notificacion'),
+  message: safeString(notification.message, ''),
+  icon: safeString(notification.icon, 'fa-regular fa-bell'),
+  route: safeString(notification.route, ''),
+  read: Boolean(notification.read),
+  created_at: safeString(notification.created_at || notification.createdAt, new Date().toISOString()),
+  order_id: notification.order_id ?? notification.orderId ?? null,
+});
+
+const readNotificationsBucket = () => readJson(STORAGE_KEYS.notifications, {});
+
+const writeNotificationsBucket = (bucket, email = '') => {
+  writeJson(STORAGE_KEYS.notifications, bucket);
+  const emailKey = normalizeEmailKey(email);
+  const notifications = sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
+  emitAppEvent(APP_EVENTS.notificationsChanged, {
+    email: emailKey,
+    notifications,
+    unreadCount: notifications.filter((notification) => !notification.read).length,
+  });
+};
+
+const ensureNotificationsForEmail = (email = '') => {
+  const emailKey = normalizeEmailKey(email);
+  const bucket = readNotificationsBucket();
+
+  if (!Array.isArray(bucket[emailKey])) {
+    bucket[emailKey] = DEFAULT_NOTIFICATIONS.map((notification) => normalizeNotification(notification));
+    writeNotificationsBucket(bucket, emailKey);
+  }
+
+  return { bucket, emailKey };
+};
+
+// Notificaciones locales: se usan para avisos de pedido y badges del header.
+export const getNotifications = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  return sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
+};
+
+export const mergeNotifications = (notifications = [], email = '') => {
+  const incoming = Array.isArray(notifications) ? notifications.map(normalizeNotification) : [];
+  if (incoming.length === 0) return getNotifications(email);
+
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  const current = (bucket[emailKey] || []).map(normalizeNotification);
+  const currentById = new Map(current.map((notification) => [String(notification.id), notification]));
+  const incomingIds = new Set(incoming.map((notification) => String(notification.id)));
+
+  bucket[emailKey] = sortNotificationsByDate([
+    ...incoming.map((notification) => ({
+      ...notification,
+      read: currentById.get(String(notification.id))?.read ?? Boolean(notification.read),
+    })),
+    ...current.filter((notification) => !incomingIds.has(String(notification.id))),
+  ]);
+
+  writeNotificationsBucket(bucket, emailKey);
+  return getNotifications(emailKey);
+};
+
+export const getUnreadNotificationsCount = (email = '') =>
+  getNotifications(email).filter((notification) => !notification.read).length;
+
+export const addNotification = (notification = {}, email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  const normalized = normalizeNotification({
+    ...notification,
+    id: notification.id || `notif-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    created_at: notification.created_at || new Date().toISOString(),
+    read: false,
+  });
+
+  const current = (bucket[emailKey] || []).map(normalizeNotification);
+  bucket[emailKey] = sortNotificationsByDate([
+    normalized,
+    ...current.filter((entry) => String(entry.id) !== String(normalized.id)),
+  ]);
+  writeNotificationsBucket(bucket, emailKey);
+  return normalized;
+};
+
+export const markNotificationRead = (notificationId, email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = (bucket[emailKey] || []).map((entry) => {
+    const normalized = normalizeNotification(entry);
+    return String(normalized.id) === String(notificationId)
+      ? { ...normalized, read: true }
+      : normalized;
+  });
+  writeNotificationsBucket(bucket, emailKey);
+};
+
+export const markAllNotificationsRead = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = (bucket[emailKey] || []).map((entry) => ({
+    ...normalizeNotification(entry),
+    read: true,
+  }));
+  writeNotificationsBucket(bucket, emailKey);
+};
+
+export const clearNotifications = (email = '') => {
+  const { bucket, emailKey } = ensureNotificationsForEmail(email);
+  bucket[emailKey] = [];
+  writeNotificationsBucket(bucket, emailKey);
+};
+
 const readOrdersBucket = () => readJson(STORAGE_KEYS.orders, {});
 
 const writeOrdersBucket = (bucket) => {
   writeJson(STORAGE_KEYS.orders, bucket);
   emitAppEvent(APP_EVENTS.ordersChanged, bucket);
+};
+
+const normalizeDeliveryAssignment = (assignment = {}) => ({
+  orderId: safeString(assignment.orderId || assignment.pedido_id || assignment.id),
+  tenantId: safeString(assignment.tenantId || assignment.tenant_id),
+  driverId: safeString(assignment.driverId || assignment.repartidor_id),
+  repartidor_id: safeString(assignment.repartidor_id || assignment.driverId),
+  driverName: safeString(assignment.driverName || assignment.repartidor_nombre, 'Repartidor FoodRush'),
+  driverEmail: normalizeEmailKey(assignment.driverEmail || assignment.repartidor_email),
+  status: safeString(assignment.status, 'accepted'),
+  stage: safeString(assignment.stage, 'accepted'),
+  assignedAt: safeString(assignment.assignedAt || assignment.creado_en, new Date().toISOString()),
+  updatedAt: safeString(assignment.updatedAt, new Date().toISOString()),
+});
+
+const readDeliveryAssignments = () => readJson(STORAGE_KEYS.deliveryAssignments, {});
+
+const writeDeliveryAssignments = (bucket) => {
+  writeJson(STORAGE_KEYS.deliveryAssignments, bucket);
+  emitAppEvent(APP_EVENTS.ordersChanged, readOrdersBucket());
+};
+
+export const getDeliveryAssignment = (orderId) => {
+  const normalizedOrderId = safeString(orderId);
+  if (!normalizedOrderId) return null;
+
+  const assignment = readDeliveryAssignments()[normalizedOrderId];
+  return assignment ? normalizeDeliveryAssignment(assignment) : null;
+};
+
+export const setDeliveryAssignment = (orderId, assignment = {}) => {
+  const normalizedOrderId = safeString(orderId || assignment.orderId);
+  if (!normalizedOrderId) return null;
+
+  const bucket = readDeliveryAssignments();
+  const previous = bucket[normalizedOrderId] || {};
+  const normalized = normalizeDeliveryAssignment({
+    ...previous,
+    ...assignment,
+    orderId: normalizedOrderId,
+    updatedAt: new Date().toISOString(),
+  });
+
+  bucket[normalizedOrderId] = normalized;
+  writeDeliveryAssignments(bucket);
+  return normalized;
+};
+
+export const clearDeliveryAssignment = (orderId) => {
+  const normalizedOrderId = safeString(orderId);
+  if (!normalizedOrderId) return;
+
+  const bucket = readDeliveryAssignments();
+  delete bucket[normalizedOrderId];
+  writeDeliveryAssignments(bucket);
 };
 
 export const getCachedOrders = (email) => {
@@ -653,9 +919,17 @@ export const getCachedOrders = (email) => {
 
 export const getCachedOrderById = (orderId, email) => {
   const directBucket = email ? getCachedOrders(email) : getCachedOrders();
-  return directBucket.find((order) => String(order.id) === String(orderId)) || null;
+  const directMatch = directBucket.find((order) => String(order.id) === String(orderId));
+  if (directMatch) return directMatch;
+
+  if (email) {
+    return getCachedOrders().find((order) => String(order.id) === String(orderId)) || null;
+  }
+
+  return null;
 };
 
+// Cache de pedidos: permite que Tracking muestre ordenes recien creadas aunque el backend tarde en sincronizar.
 export const saveCachedOrder = (order, email) => {
   const normalizedOrder = normalizeOrder(order, email);
   const bucket = readOrdersBucket();
@@ -671,7 +945,7 @@ export const saveCachedOrder = (order, email) => {
   return normalizedOrder;
 };
 
-export const updateCachedOrderStatus = (orderId, statusId, email) => {
+export const updateCachedOrderStatus = (orderId, statusId, email, patch = {}) => {
   const bucket = readOrdersBucket();
   const emailKeys = email ? [normalizeEmailKey(email)] : Object.keys(bucket);
   let updatedOrder = null;
@@ -686,10 +960,11 @@ export const updateCachedOrderStatus = (orderId, statusId, email) => {
       updatedOrder = normalizeOrder(
         {
           ...normalizedEntry,
+          ...patch,
           estado_id: statusId,
           estado: {
             ...(normalizedEntry.estado || {}),
-            descripcion: STATUS_LABELS[statusId] || normalizedEntry.estado?.descripcion,
+            descripcion: getStatusLabel(statusId, normalizedEntry.estado?.descripcion),
           },
         },
         emailKey,
@@ -701,6 +976,17 @@ export const updateCachedOrderStatus = (orderId, statusId, email) => {
 
   if (updatedOrder) {
     writeOrdersBucket(bucket);
+    addNotification(
+      {
+        type: 'order',
+        title: `Pedido #${updatedOrder.id} actualizado`,
+        message: `Estado actual: ${updatedOrder.estado?.descripcion || getStatusLabel(statusId)}.`,
+        icon: 'fa-solid fa-motorcycle',
+        route: `/tracking/${updatedOrder.id}${updatedOrder.tenantId || updatedOrder.tenant_id ? `?tenant=${encodeURIComponent(updatedOrder.tenantId || updatedOrder.tenant_id)}` : ''}`,
+        order_id: updatedOrder.id,
+      },
+      updatedOrder.user_email,
+    );
   }
 
   return updatedOrder;

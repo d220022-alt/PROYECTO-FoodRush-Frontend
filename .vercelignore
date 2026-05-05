@@ -1,0 +1,15 @@
+.git
+node_modules
+dist
+
+.env
+.env.*
+
+test-results/
+.vercel/
+
+docs/
+Emprendimiento/
+backend_ref/
+
+/*.png

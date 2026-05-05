@@ -1,3 +1,9 @@
+/*
+  Guia rapida para presentar:
+  Opciones de personalizacion por productos: tamanos, extras, bebidas, combos y ajustes.
+  Buscar en VS Code: modificadores, opciones producto, tamanos, extras, cafe, carrito.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 export const categoryModifiers = {
     Hamburguesas: [
         { id: 'meat', label: 'Tipo de Carne', type: 'choice', options: ['Res', 'Pollo', 'Pescado', 'Veggie'], default: 'Res', price: 0 },

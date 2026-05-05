@@ -1,9 +1,15 @@
+<!--
+  Guia rapida para presentar:
+  Vista de Panda Express. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: franquicia, menu, productos, fetchProducts, filtros, modal producto, addToCart, carrito.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import { getProductImage } from '../utils/productImages';
+import { getProductImage, resolveProductImage } from '../utils/productImages';
 import { franchiseConfigs } from './franchiseConfigs';
 import { mockProducts } from '../data/mockProducts';
 import { getModifiersForCategory } from '../data/productModifiers';
@@ -15,6 +21,7 @@ import {
   getCartRestaurantInfo,
   getFavorites,
   getSession,
+  getUnreadNotificationsCount,
   hasCartRestaurantConflict,
   toggleFavoriteItem,
 } from '../services/storage';
@@ -32,6 +39,7 @@ const isLoading = ref(true);
 const fetchError = ref(false);
 const searchTerm = ref('');
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const userName = ref('');
 const currentCategory = ref('');
 const activeTypeFilters = ref([]);
@@ -324,11 +332,7 @@ const parseProduct = (product, index) => {
     price,
     isExtraFeature,
     description,
-    img:
-      product.img ||
-      product.imagen ||
-      getProductImage(name, category) ||
-      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=700&q=80',
+    img: resolveProductImage(product.img || product.imagen, name, category),
   };
 };
 
@@ -427,6 +431,7 @@ const buildFilteredList = ({
   return applySort(result);
 };
 
+// Para presentar: aplica filtros visibles, busqueda y orden antes de pintar productos.
 const filteredProducts = computed(() => buildFilteredList());
 
 const fallbackProducts = computed(() => {
@@ -875,12 +880,23 @@ const getDefaultProducts = () => {
   });
 };
 
+const getFallbackProducts = () => {
+  const tenantId = Number(franchise.value.tenantId);
+  const fallbackSource = mockProducts.filter((product) => (
+    normalize(product.franchiseSlug) === normalize(franchise.value.slug) ||
+    Number(product.tenantId) === tenantId
+  ));
+  const source = fallbackSource.length > 0 ? fallbackSource : getDefaultProducts();
+  return source.map((product, index) => parseProduct(product, index)).filter(Boolean);
+};
+
+// Para presentar: carga productos de la franquicia; usa backend y fallback local si la nube tarda.
 const fetchProducts = async () => {
   try {
     isLoading.value = true;
     fetchError.value = false;
     const response = await api.getProducts(
-      { limit: 200 },
+      { limit: 200, tenant_id: franchise.value.tenantId },
       { 'X-Tenant-ID': franchise.value.tenantId },
     );
     const rawData =
@@ -898,12 +914,13 @@ const fetchProducts = async () => {
       deduped.push(item);
     });
 
-    products.value = deduped;
+    products.value = deduped.length > 0 ? deduped : getFallbackProducts();
+    fetchError.value = products.value.length === 0;
     syncCategory();
   } catch (error) {
     console.error(`Error loading ${franchise.value.name} products`, error);
-    products.value = [];
-    fetchError.value = true;
+    products.value = getFallbackProducts();
+    fetchError.value = products.value.length === 0;
     syncCategory();
   } finally {
     isLoading.value = false;
@@ -912,6 +929,11 @@ const fetchProducts = async () => {
 
 const updateCartBadge = () => {
   cartCount.value = getCartCount();
+};
+
+const updateNotificationBadge = () => {
+  const session = getSession();
+  notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
 };
 
 const setCategory = (category) => {
@@ -1015,6 +1037,7 @@ const toggleFavorite = () => {
   }
 };
 
+// Para presentar: abre el modal de producto, donde se eligen variantes, extras y cantidad.
 const openProductDetail = (product) => {
   selectedProduct.value = product;
   currentQty.value = 1;
@@ -1102,8 +1125,9 @@ const createCartItem = () => {
   };
 };
 
-const addToCart = async () => {
-  if (!selectedProduct.value) return;
+// Para presentar: agrega el producto personalizado al carrito compartido por Checkout.
+const addToCart = async ({ silent = false } = {}) => {
+  if (!selectedProduct.value) return false;
 
   const item = createCartItem();
 
@@ -1120,7 +1144,7 @@ const addToCart = async () => {
     });
 
     if (!result.isConfirmed) {
-      return;
+      return false;
     }
 
     clearCart();
@@ -1129,18 +1153,28 @@ const addToCart = async () => {
   addCartItem(item);
   updateCartBadge();
 
-  Swal.fire({
-    icon: 'success',
-    title: `${item.name} agregado`,
-    toast: true,
-    position: 'top-end',
-    timer: 1400,
-    showConfirmButton: false,
-    background: franchise.value.primary,
-    color: '#fff',
-  });
+  if (!silent) {
+    Swal.fire({
+      icon: 'success',
+      title: `${item.name} agregado`,
+      toast: true,
+      position: 'top-end',
+      timer: 1400,
+      showConfirmButton: false,
+      background: franchise.value.primary,
+      color: '#fff',
+    });
+  }
 
   closeDetail();
+  return true;
+};
+
+const buyNow = async () => {
+  const added = await addToCart({ silent: true });
+  if (added) {
+    router.push('/checkout');
+  }
 };
 
 const startSlideShow = () => {
@@ -1163,8 +1197,10 @@ const goBackHome = () => {
 
 onMounted(async () => {
   updateCartBadge();
+  updateNotificationBadge();
   userName.value = getSession().userName || '';
   window.addEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+  window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
 
   currentCategory.value = 'Todos';
 
@@ -1174,6 +1210,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   window.removeEventListener(APP_EVENTS.cartChanged, updateCartBadge);
+  window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationBadge);
   if (slideInterval) {
     clearInterval(slideInterval);
   }
@@ -1201,6 +1238,10 @@ onBeforeUnmount(() => {
 
         <div class="flex items-center gap-4 md:gap-6">
           <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button @click="router.push('/notifications')" class="transition relative text-xl text-gray-600 p-1" :style="{ color: 'var(--brand-primary)' }" aria-label="Ver notificaciones">
+            <i class="fa-regular fa-bell"></i>
+            <span v-if="notificationCount > 0" class="absolute -top-1 -right-1 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm bg-red-500">{{ notificationCount }}</span>
+          </button>
           <button @click="router.push('/cart')" class="transition relative text-xl text-gray-600 p-1" :style="{ color: 'var(--brand-primary)' }" aria-label="Ver carrito">
             <i class="fa-solid fa-cart-shopping"></i>
             <span v-if="cartCount > 0" class="absolute -top-1 -right-1 text-white font-bold text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-sm" :style="{ backgroundColor: 'var(--brand-primary)' }">{{ cartCount }}</span>
@@ -1741,10 +1782,16 @@ onBeforeUnmount(() => {
                 <span class="studio-cta__price">${{ totalPrice }}</span>
               </div>
             </div>
-            <button @click="addToCart">
-              <span>Anadir al pedido</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
+            <div class="studio-cta__actions">
+              <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
+                <span>Anadir al pedido</span>
+                <i class="fa-solid fa-cart-arrow-down"></i>
+              </button>
+              <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
+                <span>Pagar ahora</span>
+                <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2998,6 +3045,56 @@ onBeforeUnmount(() => {
 .studio-cta > button i {
   position: static !important;
   font-size: 20px;
+}
+
+.studio-cta .studio-cta__actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.studio-cta__button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.studio-cta__button:hover {
+  transform: translateY(-2px);
+  filter: saturate(1.05);
+}
+
+.studio-cta__button:active {
+  transform: scale(0.985);
+}
+
+.studio-cta__button--secondary {
+  background: var(--brand-soft);
+  border-color: var(--brand-soft-strong);
+  color: var(--brand-primary-deep);
+}
+
+.studio-cta__button--primary {
+  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-deep) 100%);
+  color: #ffffff;
+  box-shadow: 0 18px 30px var(--brand-shadow);
+}
+
+@media (min-width: 640px) {
+  .studio-cta .studio-cta__actions {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .brand-footer {

@@ -1,3 +1,9 @@
+/*
+  Guia rapida para presentar:
+  Archivo de soporte del frontend. Ayuda a conectar la experiencia visual con el resto de la app.
+  Buscar en VS Code: estructura, flujo, UI, datos, presentacion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 // Si tienes un archivo config.js, impórtalo así:
 // import { CONFIG } from './config.js';
 

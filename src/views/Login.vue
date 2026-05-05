@@ -1,12 +1,25 @@
+<!--
+  Guia rapida para presentar:
+  Entrada de usuarios. Maneja login, registro, autodeteccion de zona y redireccion por rol.
+  Buscar en VS Code: login, registro, usuario o correo, api.login, api.register, zona, redireccion por rol.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 import { setSessionFromAuth } from '../services/storage';
 import { getPortalRouteByEmail } from '../utils/portalRouting';
+import {
+    countDominicanPhoneDigits,
+    formatDominicanPhone,
+    normalizeDominicanPhone,
+    validateDominicanPhone,
+} from '../utils/phoneValidation';
 
 const router = useRouter();
 
+// Para presentar: zonas simples usadas para detectar envio desde la direccion escrita en registro.
 const DELIVERY_ZONES = [
     { key: 'pekin', label: 'Pekín', fee: 25, keywords: ['pekin', 'pekín'] },
     { key: 'gurabo', label: 'Gurabo', fee: 50, keywords: ['gurabo'] },
@@ -21,11 +34,16 @@ const loginForm = ref({ email: '', password: '' });
 const registerForm = ref({ email: '', name: '', phone: '', password: '', confirmPassword: '', address: '' });
 const termsAccepted = ref(false);
 
+// Para presentar: autodeteccion de zona; busca palabras como Gurabo, Pekin o Villa Olga en la direccion.
 const detectedZone = computed(() => {
     const normalized = String(registerForm.value.address || '').toLowerCase();
     if (!normalized.trim()) return null;
     return DELIVERY_ZONES.find((zone) => zone.keywords.some((kw) => normalized.includes(kw))) || null;
 });
+
+const registerPhoneDigitsCount = computed(() => countDominicanPhoneDigits(registerForm.value.phone));
+const registerPhoneValidation = computed(() => validateDominicanPhone(registerForm.value.phone));
+const shouldShowPhoneValidation = computed(() => Boolean(registerForm.value.phone || registerPhoneDigitsCount.value));
 
 const loginError = ref('');
 const registerError = ref('');
@@ -35,6 +53,49 @@ const redirectToPortal = (email) => {
     router.replace(getPortalRouteByEmail(email));
 };
 
+const formatRetryAfter = (retryAfter) => {
+    const seconds = Number.parseInt(retryAfter, 10);
+    if (!Number.isFinite(seconds) || seconds <= 0) return '';
+
+    const minutes = Math.max(1, Math.ceil(seconds / 60));
+    return minutes === 1 ? '1 minuto' : `${minutes} minutos`;
+};
+
+const formatAuthError = (error) => {
+    const code = String(error?.code || error?.payload?.error || '').toUpperCase();
+    const status = Number.parseInt(error?.status, 10);
+
+    if (code === 'AUTH_ERROR' || status === 401) {
+        return 'Usuario/correo o contraseña incorrectos. Revisa los datos de la cuenta que estás usando.';
+    }
+
+    if (code === 'USER_INACTIVE' || status === 403) {
+        return 'Esta cuenta está desactivada. Contacta a administración para volver a usarla.';
+    }
+
+    if (code === 'TOO_MANY_LOGIN_ATTEMPTS' || code === 'TOO_MANY_REQUESTS' || status === 429) {
+        const wait = formatRetryAfter(error?.retryAfter);
+        return wait
+            ? `Demasiados intentos de inicio de sesión. Espera ${wait} e intenta otra vez.`
+            : 'Demasiados intentos de inicio de sesión. Espera unos minutos e intenta otra vez.';
+    }
+
+    if (code === 'NETWORK_ERROR') {
+        return 'No pudimos conectar con el servidor de FoodRush. Revisa tu conexión o intenta de nuevo en unos segundos.';
+    }
+
+    if (code === 'REQUEST_TIMEOUT') {
+        return 'El servidor tardó demasiado en responder. Intenta de nuevo en unos segundos.';
+    }
+
+    if (status >= 500 || code === 'SERVER_ERROR') {
+        return 'El servidor tuvo un problema al iniciar sesión. Intenta de nuevo en unos minutos.';
+    }
+
+    return error?.message || 'No se pudo iniciar sesión. Revisa los datos e intenta nuevamente.';
+};
+
+// Para presentar: registra una sesion web en el backend para que Administracion vea usuarios conectados.
 const registerWebSession = async (session) => {
     if (!session?.userId) return;
 
@@ -71,7 +132,7 @@ onMounted(() => {
             
             registerForm.value.email = data.email || '';
             registerForm.value.name = data.name || '';
-            registerForm.value.phone = data.phone || '';
+            registerForm.value.phone = formatDominicanPhone(data.phone || '');
             registerForm.value.password = data.password || '';
             registerForm.value.confirmPassword = data.confirmPassword || '';
             registerForm.value.address = data.address || '';
@@ -101,42 +162,57 @@ const togglePanel = (active) => {
     registerError.value = '';
 };
 
+const onRegisterPhoneInput = (event) => {
+    registerForm.value.phone = formatDominicanPhone(event.target.value);
+};
+
+// Para presentar: flujo de inicio de sesion; llama api.login, guarda token y redirige segun rol/correo.
 const handleLogin = async () => {
     loginError.value = '';
-    const { email, password } = loginForm.value;
+    const identifier = String(loginForm.value.email || '').trim();
+    const password = loginForm.value.password;
+    loginForm.value.email = identifier;
 
-    if (!email || !password) {
-        loginError.value = 'Por favor, ingresa correo y contraseña.';
-        return;
-    }
-
-    if (!validateEmail(email)) {
-        loginError.value = 'Ingresa un correo electrónico válido.';
+    if (!identifier || !password) {
+        loginError.value = 'Por favor, ingresa usuario/correo y contraseña.';
         return;
     }
 
     isSubmitting.value = true;
 
     try {
-        const response = await api.login(email, password);
+        const response = await api.login(identifier, password);
         if (response.success) {
-            const session = setSessionFromAuth({ ...response, email, userEmail: email });
+            const resolvedEmail = response.user?.correo || response.user?.email || identifier;
+            const session = setSessionFromAuth({ ...response, email: resolvedEmail, userEmail: resolvedEmail });
             await registerWebSession(session);
-            redirectToPortal(session.userEmail || email);
+            redirectToPortal(session.userEmail || resolvedEmail);
         } else {
-            loginError.value = response.message || 'Error al iniciar sesión';
+            loginError.value = formatAuthError(response);
         }
     } catch (err) {
         console.error(err);
-        loginError.value = err.message || 'Error de conexión';
+        loginError.value = formatAuthError(err);
     } finally {
         isSubmitting.value = false;
     }
 };
 
+// Para presentar: flujo de registro de cliente; valida telefono, crea usuario y luego inicia sesion.
 const handleRegister = async () => {
     registerError.value = '';
-    const { email, name, phone, password, confirmPassword, address } = registerForm.value;
+    const email = String(registerForm.value.email || '').trim().toLowerCase();
+    const name = String(registerForm.value.name || '').trim();
+    const password = registerForm.value.password;
+    const confirmPassword = registerForm.value.confirmPassword;
+    const address = String(registerForm.value.address || '').trim();
+    const phoneValidation = validateDominicanPhone(registerForm.value.phone);
+    const phone = normalizeDominicanPhone(registerForm.value.phone);
+
+    registerForm.value.email = email;
+    registerForm.value.name = name;
+    registerForm.value.phone = phone;
+    registerForm.value.address = address;
 
     if (!email || !name || !phone || !password || !confirmPassword || !address) {
         registerError.value = 'Completa todos los campos obligatorios.';
@@ -148,6 +224,10 @@ const handleRegister = async () => {
     }
     if (!validateEmail(email)) {
         registerError.value = 'Ingresa un correo electrónico válido.';
+        return;
+    }
+    if (!phoneValidation.valid) {
+        registerError.value = phoneValidation.message;
         return;
     }
     if (password.length < 6) {
@@ -217,7 +297,7 @@ const handleRegister = async () => {
                     <form @submit.prevent="handleLogin">
                         <div class="input-group">
                             <label for="login-email">Usuario o Correo</label>
-                            <input id="login-email" v-model="loginForm.email" type="text" placeholder="ejemplo@correo.com" aria-required="true">
+                            <input id="login-email" v-model="loginForm.email" type="text" placeholder="FoodRush o ejemplo@correo.com" aria-required="true">
                         </div>
                         
                         <div class="input-group">
@@ -261,7 +341,20 @@ const handleRegister = async () => {
                             </div>
                             <div class="input-group">
                                 <label for="reg-phone">Teléfono</label>
-                                <input id="reg-phone" v-model="registerForm.phone" type="tel" placeholder="809-000-0000" aria-required="true">
+                                <input
+                                    id="reg-phone"
+                                    :value="registerForm.phone"
+                                    @input="onRegisterPhoneInput"
+                                    type="tel"
+                                    inputmode="numeric"
+                                    autocomplete="tel"
+                                    maxlength="12"
+                                    placeholder="809-000-0000"
+                                    aria-required="true"
+                                    :class="{ 'invalid-input': shouldShowPhoneValidation && !registerPhoneValidation.valid }"
+                                >
+                                <span v-if="shouldShowPhoneValidation && !registerPhoneValidation.valid" class="error-msg">{{ registerPhoneValidation.message }}</span>
+                                <span v-else class="input-hint">Digitos: {{ registerPhoneDigitsCount }}/10</span>
                             </div>
                         </div>
                         
@@ -455,6 +548,7 @@ input:focus, select:focus {
 
 .invalid-input { border-color: #D90429 !important; background-color: #fff1f2; }
 .error-msg { color: #D90429; font-size: 12px; margin-top: 4px; display: block; font-weight: 700; }
+.input-hint { color: #94a3b8; font-size: 12px; margin-top: 4px; display: block; font-weight: 700; }
 .error-msg-global { color: #D90429; font-size: 13px; margin-top: 10px; text-align: center; font-weight: 700; background: #fff1f2; padding: 10px; border-radius: 8px; }
 .zone-hint { color: #047857; font-size: 12px; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; background: #ecfdf5; padding: 4px 10px; border-radius: 6px; }
 .zone-hint strong { font-weight: 800; }

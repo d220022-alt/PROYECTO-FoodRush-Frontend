@@ -1,8 +1,14 @@
+<!--
+  Guia rapida para presentar:
+  Historial de pedidos del cliente. Desde aqui se vuelve al tracking de cada orden.
+  Buscar en VS Code: mis pedidos, historial, cache de pedidos, tracking, fetchOperationalDataset.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
-import { getCachedOrders, getSession } from '../services/storage';
+import { getCachedOrders, getSession, saveCachedOrder } from '../services/storage';
 
 const router = useRouter();
 const session = getSession();
@@ -48,8 +54,10 @@ const getStatusColor = (status) => {
 
 const getProgressStep = (status) => getOrderProgressStep(status);
 
+// Para presentar: junta pedidos cacheados y pedidos del dataset operativo para mostrar historial del cliente.
 const fetchOrders = async () => {
-    const email = normalize(session.userEmail || localStorage.getItem('user_email'));
+    const liveSession = getSession();
+    const email = normalize(liveSession.userEmail || session.userEmail || localStorage.getItem('user_email'));
     orders.value = email ? getCachedOrders(email) : [];
     warnings.value = [];
     errorMessage.value = '';
@@ -62,8 +70,25 @@ const fetchOrders = async () => {
         const dataset = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
         warnings.value = dataset.warnings || [];
 
-        const remoteOrders = (dataset.orders || []).filter((order) => normalize(order.customerEmail) === email);
-        orders.value = remoteOrders.length > 0 ? remoteOrders : getCachedOrders(email);
+        const cachedIds = new Set(orders.value.map((order) => String(order.id)));
+        const remoteOrders = (dataset.orders || []).filter((order) => (
+            normalize(order.customerEmail) === email || cachedIds.has(String(order.id))
+        ));
+
+        remoteOrders.forEach((order) => {
+            saveCachedOrder(
+                {
+                    ...order,
+                    tenant_id: order.tenantId || order.tenant_id,
+                    user_email: order.customerEmail || email,
+                    user_name: order.customerName,
+                    source: 'remote',
+                },
+                email,
+            );
+        });
+
+        orders.value = getCachedOrders(email);
     } catch (error) {
         console.error('Error loading orders', error);
         errorMessage.value = error.message || 'No se pudo cargar tus pedidos.';
@@ -127,7 +152,7 @@ onMounted(() => {
                     <div class="p-4">
                         <div v-if="(order.statusLabel || order.estado?.descripcion || '').toLowerCase() !== 'cancelado'" class="mb-5">
                             <div class="relative mb-2 flex justify-between px-1 text-[10px] font-bold text-gray-400 sm:text-xs">
-                                <span :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 1 ? 'text-orange-500' : ''">Recibido</span>
+                                <span :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 1 ? 'text-orange-500' : ''">Solicitado</span>
                                 <span class="text-center" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 2 ? 'text-orange-500' : ''">Preparando</span>
                                 <span class="text-center" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 3 ? 'text-orange-500' : ''">En Camino</span>
                                 <span class="text-right" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 4 ? 'text-green-500' : ''">Entregado</span>

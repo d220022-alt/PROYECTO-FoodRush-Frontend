@@ -1,3 +1,9 @@
+/*
+  Guia rapida para presentar:
+  Configuracion visual de franquicias: logos, categorias, slides y textos de apoyo.
+  Buscar en VS Code: configuracion franquicias, logos, colores, slides, rutas.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import logoMcDonalds from "../assets/images/logo-mcdonalds.png";
 import logoStarbucks from "../assets/images/logo-starbucks.png";
 import logoKfc from "../assets/images/logo-kfc.png";
@@ -110,7 +116,7 @@ export const franchiseConfigs = {
     categories: ['Todos', "Pollo", "Combos", "Acompañantes", "Bebidas"],
     slides: [
       "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1585325701165-351af045e581?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?auto=format&fit=crop&w=1600&q=80",
     ],
     comboLabel: "Hacer Combo",
@@ -329,7 +335,7 @@ export const franchiseConfigs = {
     slides: [
       "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1548365328-9f547fb0953f?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1600&q=80",
     ],
     comboPrice: 165,
     extraLabel: "Extra queso",
@@ -351,8 +357,8 @@ export const franchiseConfigs = {
     heroSubtitle: "Rápido, callejero y delicioso",
     categories: ['Todos', "Hot Dogs", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1612392166886-ee8475b03f6c?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1534312954071-88812fca3c40?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
+      "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&w=1600&q=80",
     ],
     comboPrice: 130,

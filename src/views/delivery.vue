@@ -1,16 +1,30 @@
+<!--
+  Guia rapida para presentar:
+  App del repartidor. Muestra viajes disponibles, viajes activos, wallet y perfil.
+  Buscar en VS Code: delivery, repartidor, nuevos, paginacion, aceptar viaje, mapa, confirmar entrega, wallet.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { api } from '../services/api';
-import { ORDER_STATUS_IDS, buildTenantHeaders, fetchOperationalDataset } from '../services/operations';
-import { clearSession, getSession } from '../services/storage';
+import { getQaOrderStatusPatch, isQaOrder, setQaOrderOverride } from '../data/qaOperationalDataset';
+import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, normalizeStatusKey } from '../services/operations';
+import { connectRealtime } from '../services/realtime';
+import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
+import { useTheme } from '../services/theme';
+import { normalizeDeliveryCodeInput, resolveDeliveryCode } from '../utils/deliveryCode';
+import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
 const STORAGE_KEY = 'FoodRush_Delivery_Real_V2';
 const TUTORIAL_KEY = 'FoodRush_Tutorial_Final';
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
 const LEAFLET_JS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-const coordsSantiago = [19.4517, -70.697];
+const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
+const AUTO_REFRESH_INTERVAL_MS = 20000;
+const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
+const AVAILABLE_ORDERS_PAGE_SIZE = 8;
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -42,15 +56,20 @@ const defaultState = () => ({
     activeStage: '',
     activeOrder: null,
     availableOrders: [],
+    tripHistory: [],
     history: [],
 });
 
 const session = getSession();
 const router = useRouter();
+const { isDarkMode, toggleTheme } = useTheme();
 const state = reactive(defaultState());
+
+// Dataset operativo recibido desde services/operations: pedidos, franquicias y sesiones conectadas.
 const data = ref({ tenants: [], orders: [], warnings: [], connectedUsers: [], sessions: [] });
 const currentView = ref('orders');
 const currentTab = ref('available');
+const availablePage = ref(1);
 const activePage = ref('');
 const activeModal = ref('');
 const onboardingVisible = ref(false);
@@ -61,12 +80,17 @@ const reportId = ref('');
 const reportEvidence = ref(null);
 const reportFileName = ref('Toca para subir captura de pantalla');
 const reportFileLoaded = ref(false);
+const deliveryConfirmCode = ref('');
+const deliveryProofFile = ref(null);
+const deliveryProofFileName = ref('Toca para tomar foto de entrega');
+const deliveryProofAccepted = ref(false);
 const isWithdrawing = ref(false);
 const isSubmittingReport = ref(false);
 const isLoading = ref(true);
 const isRefreshing = ref(false);
 const isAdvancing = ref(false);
 const errorMessage = ref('');
+const realtimeWarning = ref('');
 const lastUpdatedAt = ref('');
 const mapEl = ref(null);
 const cameraInput = ref(null);
@@ -80,10 +104,17 @@ let mapInstance = null;
 let riderMarker = null;
 let routeLayers = [];
 let currentRoute = null;
+let routeRequestId = 0;
+let routeAbortController = null;
+let realtimeRefreshTimer = null;
+let realtimeConnections = [];
+let lastLocationReportKey = '';
+let refreshPromise = null;
 const scheduledTimeouts = [];
 
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
+const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
 const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
 
 const queueTimeout = (callback, delay) => {
@@ -117,14 +148,97 @@ const resolveFranchisePresentation = (tenantName = '') => {
 };
 
 const resolveSecurityCode = (order = {}) => {
-    const provided = String(order.securityCode || '').trim().toUpperCase();
-    if (provided) return provided;
-    return String(order.id || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(-6).padStart(6, '0');
+    return resolveDeliveryCode(order, order.id);
+};
+
+const driverIdentity = () => ({
+    driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
+    driverEmail: session.userEmail || '',
+});
+
+// Para presentar: enlaza un pedido con un repartidor y guarda la asignacion para que Admin/Tracking la vean.
+const syncDeliveryAssignment = async (order, stage, status = stage) => {
+    const identity = driverIdentity();
+    if (isQaOrder(order)) {
+        const assignment = {
+            orderId: order.id,
+            pedido_id: order.id,
+            tenantId: order.tenantId,
+            tenant_id: order.tenantId,
+            driverId: session.userId || 'qa-delivery-driver',
+            repartidor_id: session.userId || 'qa-delivery-driver',
+            stage,
+            status,
+            assignedAt: order.deliveryAssignment?.assignedAt || new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            ...identity,
+        };
+
+        setDeliveryAssignment(order.id, assignment);
+        setQaOrderOverride(order.id, {
+            deliveryAssignment: assignment,
+            driverName: identity.driverName,
+            driverEmail: identity.driverEmail,
+        });
+        return assignment;
+    }
+
+    const response = await api.upsertDeliveryAssignment({
+        orderId: order.id,
+        pedido_id: order.id,
+        stage,
+        status,
+        ...identity,
+    }, buildTenantHeaders(order.tenantId));
+
+    const assignment = response?.data || {};
+    setDeliveryAssignment(order.id, {
+        ...assignment,
+        tenantId: order.tenantId,
+        status,
+        stage,
+        ...identity,
+    });
+
+    return assignment;
+};
+
+const reportDriverLocation = async (point, stage = '') => {
+    if (!point || !state.activeOrder) return;
+
+    const key = [
+        state.activeOrder.id,
+        stage,
+        Number(point.lat).toFixed(5),
+        Number(point.lng).toFixed(5),
+    ].join(':');
+
+    if (key === lastLocationReportKey) return;
+    lastLocationReportKey = key;
+
+    if (isQaOrder(state.activeOrder)) return;
+
+    try {
+        await api.recordDriverLocation({
+            orderId: state.activeOrder.id,
+            pedido_id: state.activeOrder.id,
+            repartidor_id: state.activeOrder.deliveryAssignment?.driverId || state.activeOrder.deliveryAssignment?.repartidor_id || null,
+            lat: point.lat,
+            lon: point.lng,
+            stage,
+        }, buildTenantHeaders(state.activeOrder.tenantId));
+    } catch (error) {
+        console.warn('No se pudo reportar ubicacion del repartidor', error);
+    }
 };
 
 const deriveActiveStage = (order = {}) => {
     if (state.activeStage) return state.activeStage;
-    return Number(order.statusId) >= ORDER_STATUS_IDS.inTransit ? 'picked' : 'accepted';
+    const assignmentStage = normalize(order.deliveryAssignment?.stage || order.deliveryAssignment?.status || order.assignmentStage || order.assignmentStatus);
+    if (assignmentStage.includes('arrived_customer') || assignmentStage.includes('arrived customer')) return 'arrived_customer';
+    if (assignmentStage.includes('picked') || assignmentStage.includes('en camino')) return 'picked';
+    if (assignmentStage.includes('arrived')) return 'arrived';
+    return orderStatusKey(order) === 'en camino' ? 'picked' : 'accepted';
 };
 
 const buildOrderDescription = (order = {}) => {
@@ -135,8 +249,10 @@ const buildOrderDescription = (order = {}) => {
     return [`Pedido #${order.id}`, `Local: ${order.tenantName}`, `Cliente: ${order.customerName}`, `Telefono: ${order.customerPhone || 'Sin telefono'}`, 'Artículos:', itemLines].join('\n');
 };
 
+// Para presentar: normaliza cada pedido para que la app del repartidor tenga un formato unico.
 const buildOrderView = (order = {}, status = 'pending') => {
     const presentation = resolveFranchisePresentation(order.tenantName);
+    const backendStatusKey = orderStatusKey(order);
     const compactItems = Array.isArray(order.itemsDetailed) && order.itemsDetailed.length > 0
         ? order.itemsDetailed.slice(0, 2).map((item) => `${item.quantity}x ${item.name}`).join(' • ')
         : order.itemSummary || 'Sin detalle';
@@ -148,10 +264,17 @@ const buildOrderView = (order = {}, status = 'pending') => {
         dropoff: order.address || 'Recogida en tienda',
         price: Number(order.totalValue || 0),
         status,
+        backendStatusKey,
+        canAccept: ['pendiente', 'preparando'].includes(backendStatusKey),
         codigoDelivery: resolveSecurityCode(order),
         descripcionDetallada: buildOrderDescription(order),
     };
 };
+
+const buildQaOrderWithStatus = (order = {}, nextStatus) => ({
+    ...order,
+    ...getQaOrderStatusPatch(nextStatus),
+});
 
 const tenantOptions = computed(() => [
     { value: 'Global', label: '🍽️ Ver todas las tiendas' },
@@ -167,6 +290,26 @@ const tenantDisplay = computed(() => {
     return match ? `Servidor: ${match.label.replace(/^[^\s]+\s/, '')}` : 'Servidor: Todas las tiendas';
 });
 const badgeAvail = computed(() => state.availableOrders.length);
+const availableTotalPages = computed(() => Math.max(1, Math.ceil(state.availableOrders.length / AVAILABLE_ORDERS_PAGE_SIZE)));
+const currentAvailablePage = computed(() => Math.min(Math.max(availablePage.value, 1), availableTotalPages.value));
+// Para presentar: paginacion de Nuevos; evita renderizar decenas de pedidos al mismo tiempo en telefono.
+const paginatedAvailableOrders = computed(() => {
+    const startIndex = (currentAvailablePage.value - 1) * AVAILABLE_ORDERS_PAGE_SIZE;
+    return state.availableOrders.slice(startIndex, startIndex + AVAILABLE_ORDERS_PAGE_SIZE);
+});
+const availablePageLabel = computed(() => {
+    if (state.availableOrders.length === 0) return 'Sin pedidos nuevos';
+    const start = (currentAvailablePage.value - 1) * AVAILABLE_ORDERS_PAGE_SIZE + 1;
+    const end = Math.min(start + AVAILABLE_ORDERS_PAGE_SIZE - 1, state.availableOrders.length);
+    return `${start}-${end} de ${state.availableOrders.length}`;
+});
+const availablePageNumbers = computed(() => {
+    const total = availableTotalPages.value;
+    const current = currentAvailablePage.value;
+    const start = Math.max(1, Math.min(current - 2, total - 4));
+    const end = Math.min(total, start + 4);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+});
 const badgeActive = computed(() => (state.activeOrder ? 1 : 0));
 const financeBalance = computed(() => formatCurrency(state.earnings));
 const statTips = computed(() => formatCurrency(state.tips));
@@ -187,14 +330,173 @@ const showMapWrapper = computed(() => Boolean(state.activeOrder));
 const isReportModalOpen = computed(() => activeModal.value === 'modal-report');
 const isWithdrawModalOpen = computed(() => activeModal.value === 'modal-withdraw');
 const isAbsenceModalOpen = computed(() => activeModal.value === 'modal-absence');
-const supportWarnings = computed(() => dedupeMessages([errorMessage.value, ...(data.value.warnings || [])]));
+const isDeliveryConfirmModalOpen = computed(() => activeModal.value === 'modal-delivery-confirm');
+const supportWarnings = computed(() => dedupeMessages([errorMessage.value, realtimeWarning.value, ...(data.value.warnings || [])]));
 const activeOrderMeta = computed(() => {
     if (!state.activeOrder) return null;
-    if (state.activeOrder.status === 'accepted') return { title: 'HACIA EL LOCAL', emoji: '🏪', buttonClass: 'bg-[#f97316] text-white', buttonLabel: 'LLEGUÉ AL LOCAL' };
-    if (state.activeOrder.status === 'arrived') return { title: 'ESPERANDO PEDIDO', emoji: '⏳', buttonClass: 'bg-[#eab308] text-slate-900', buttonLabel: '¡RECIBÍ COMIDA!' };
-    return { title: 'ENTREGANDO AL CLIENTE', emoji: '🏠', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'TOMAR FOTO DE ENTREGA' };
+    if (state.activeOrder.status === 'accepted') return { title: 'HACIA EL LOCAL', emoji: '🏪', buttonClass: 'bg-[#f97316] text-white', buttonLabel: 'LLEGUE AL LOCAL' };
+    if (state.activeOrder.status === 'arrived') return { title: 'ESPERANDO PEDIDO', emoji: '⏳', buttonClass: 'bg-[#eab308] text-slate-900', buttonLabel: 'RECIBI COMIDA' };
+    if (state.activeOrder.status === 'picked') return { title: 'RUMBO AL CLIENTE', emoji: '🏠', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'LLEGUE AL DESTINO' };
+    return { title: 'EN EL DESTINO', emoji: '✅', buttonClass: 'bg-[#22c55e] text-white', buttonLabel: 'CONFIRMAR ENTREGA' };
 });
-const activeOrderAddress = computed(() => (state.activeOrder ? (state.activeOrder.status === 'picked' ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
+const activeOrderAddress = computed(() => (state.activeOrder ? (['picked', 'arrived_customer'].includes(state.activeOrder.status) ? state.activeOrder.dropoff : state.activeOrder.pickup) : ''));
+const expectedDeliveryCode = computed(() => String(state.activeOrder?.codigoDelivery || '').trim().toUpperCase());
+const normalizedDeliveryCode = computed(() => normalizeDeliveryCodeInput(deliveryConfirmCode.value));
+const deliveryCodeMatches = computed(() => {
+    if (!expectedDeliveryCode.value) return false;
+    return normalizedDeliveryCode.value === expectedDeliveryCode.value || normalizedDeliveryCode.value === expectedDeliveryCode.value.slice(-4);
+});
+const canSubmitDeliveryConfirmation = computed(() => (
+    Boolean(state.activeOrder)
+    && deliveryCodeMatches.value
+    && Boolean(deliveryProofFile.value)
+    && deliveryProofAccepted.value
+    && !isAdvancing.value
+));
+
+const isAssignedToCurrentDriver = (order = {}) => {
+    const currentDriverEmail = normalize(session.userEmail);
+    if (!currentDriverEmail) return false;
+    return normalize(order.deliveryAssignment?.driverEmail || order.driverEmail) === currentDriverEmail;
+};
+
+const assignedDriverOrders = computed(() =>
+    buildScopedOrders()
+        .filter((order) => isAssignedToCurrentDriver(order))
+        .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()),
+);
+
+const completedDriverOrders = computed(() => assignedDriverOrders.value.filter((order) => orderStatusKey(order) === 'entregado'));
+const cancelledDriverOrders = computed(() => assignedDriverOrders.value.filter((order) => orderStatusKey(order) === 'cancelado'));
+const localCompletedTrips = computed(() => state.tripHistory.filter((item) => item.kind === 'delivered'));
+const localCancelledTrips = computed(() => state.tripHistory.filter((item) => ['released', 'cancelled'].includes(item.kind)));
+
+const completedTripsCount = computed(() => {
+    const ids = new Set([
+        ...completedDriverOrders.value.map((order) => String(order.id)),
+        ...localCompletedTrips.value.map((item) => String(item.orderId || item.id || item.createdAt)),
+    ]);
+    return Math.max(Number(state.trips || 0), ids.size);
+});
+
+const cancelledTripsCount = computed(() => {
+    const ids = new Set([
+        ...cancelledDriverOrders.value.map((order) => String(order.id)),
+        ...localCancelledTrips.value.map((item) => String(item.orderId || item.id || item.createdAt)),
+    ]);
+    return ids.size;
+});
+
+const activeTripsCount = computed(() => {
+    if (state.activeOrder) return 1;
+    return assignedDriverOrders.value.filter((order) => ['preparando', 'en camino'].includes(orderStatusKey(order))).length;
+});
+
+const estimatedActiveTime = computed(() => {
+    if (!state.activeOrder) return 'Sin viaje activo';
+    if (state.activeOrder.status === 'accepted') return '12 min al local';
+    if (state.activeOrder.status === 'arrived') return 'Esperando local';
+    return '18 min al cliente';
+});
+
+const averageTripValue = computed(() => {
+    const values = [
+        ...completedDriverOrders.value.map((order) => Number(order.totalValue || 0)),
+        ...localCompletedTrips.value.map((item) => Number(item.amount || 0)),
+    ].filter((value) => value > 0);
+    if (values.length === 0) return '$0.00';
+    return formatCurrency(values.reduce((sum, value) => sum + value, 0) / values.length);
+});
+
+const driverPerformanceCards = computed(() => [
+    { label: 'Activos', value: activeTripsCount.value, hint: estimatedActiveTime.value, icon: 'fa-solid fa-route', class: 'bg-orange-50 text-[#f97316]' },
+    { label: 'Completados', value: completedTripsCount.value, hint: `${averageTripValue.value} promedio`, icon: 'fa-solid fa-check', class: 'bg-emerald-50 text-emerald-600' },
+    { label: 'Cancelados', value: cancelledTripsCount.value, hint: 'Liberados o anulados', icon: 'fa-solid fa-ban', class: 'bg-rose-50 text-rose-500' },
+    { label: 'Ganancias', value: financeBalance.value, hint: `${state.trips} viajes pagados`, icon: 'fa-solid fa-wallet', class: 'bg-slate-100 text-slate-700' },
+]);
+
+const formatTripDate = (value) => {
+    if (!value) return 'Ahora';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+    return `${date.toLocaleDateString('es-DO', { day: '2-digit', month: 'short' })} ${date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}`;
+};
+
+const appendTripHistory = (entry = {}) => {
+    const createdAt = new Date().toISOString();
+    const normalizedEntry = {
+        ...entry,
+        orderId: String(entry.orderId || ''),
+        createdAt,
+        time: entry.time || formatTripDate(createdAt),
+    };
+    state.tripHistory = [
+        ...state.tripHistory.filter((item) => !(normalizedEntry.orderId && String(item.orderId) === normalizedEntry.orderId && item.kind === normalizedEntry.kind)),
+        normalizedEntry,
+    ].slice(-60);
+};
+
+const buildLocalTripRow = (item = {}) => {
+    const isDone = item.kind === 'delivered';
+    return {
+        id: `local-${item.kind}-${item.orderId || item.createdAt}`,
+        icon: isDone ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation',
+        iconClass: isDone ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500',
+        title: item.franchiseName || item.desc || 'Viaje FoodRush',
+        subtitle: item.status || (isDone ? 'Entregado' : 'Liberado'),
+        detail: item.address || 'Sin direccion registrada',
+        amountText: Number(item.amount || 0) > 0 ? `+${formatCurrency(item.amount)}` : 'Sin pago',
+        amountClass: Number(item.amount || 0) > 0 ? 'text-emerald-600' : 'text-slate-400',
+        time: item.time || formatTripDate(item.createdAt),
+    };
+};
+
+const buildRemoteTripRow = (order = {}) => {
+    const statusKey = orderStatusKey(order);
+    const isDone = statusKey === 'entregado';
+    return {
+        id: `remote-${statusKey}-${order.id}`,
+        icon: isDone ? 'fa-solid fa-check' : 'fa-solid fa-ban',
+        iconClass: isDone ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500',
+        title: `${order.tenantName} #${order.id}`,
+        subtitle: isDone ? 'Entregado' : 'Cancelado',
+        detail: order.address || 'Sin direccion registrada',
+        amountText: isDone ? `+${formatCurrency(order.totalValue)}` : 'Cancelado',
+        amountClass: isDone ? 'text-emerald-600' : 'text-rose-500',
+        time: formatTripDate(order.createdAt),
+    };
+};
+
+const activeTripRow = computed(() => {
+    if (!state.activeOrder) return null;
+    return {
+        id: `active-${state.activeOrder.id}`,
+        icon: 'fa-solid fa-motorcycle',
+        iconClass: 'bg-orange-50 text-[#f97316]',
+        title: state.activeOrder.franchise.name,
+        subtitle: activeOrderMeta.value?.title || 'En curso',
+        detail: activeOrderAddress.value,
+        amountText: formatCurrency(state.activeOrder.price),
+        amountClass: 'text-[#f97316]',
+        time: estimatedActiveTime.value,
+    };
+});
+
+const driverHistoryRows = computed(() => {
+    const localOrderIds = new Set(state.tripHistory.map((item) => String(item.orderId)).filter(Boolean));
+    const localRows = [...state.tripHistory].reverse().map((item) => buildLocalTripRow(item));
+    const remoteRows = assignedDriverOrders.value
+        .filter((order) => ['entregado', 'cancelado'].includes(orderStatusKey(order)))
+        .filter((order) => !localOrderIds.has(String(order.id)))
+        .map((order) => buildRemoteTripRow(order));
+
+    return [
+        ...(activeTripRow.value ? [activeTripRow.value] : []),
+        ...localRows,
+        ...remoteRows,
+    ].slice(0, 30);
+});
+const badgeHistory = computed(() => driverHistoryRows.value.length);
 
 const saveState = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -210,6 +512,7 @@ const saveState = () => {
         dismissedOrderIds: state.dismissedOrderIds,
         activeOrderId: state.activeOrderId,
         activeStage: state.activeStage,
+        tripHistory: state.tripHistory,
         history: state.history,
     }));
 };
@@ -222,6 +525,7 @@ const loadState = () => {
         const parsed = JSON.parse(saved);
         const merged = { ...defaultState(), ...parsed };
         merged.shiftHistory = Array.isArray(merged.shiftHistory) ? merged.shiftHistory : [];
+        merged.tripHistory = Array.isArray(merged.tripHistory) ? merged.tripHistory : [];
         merged.history = Array.isArray(merged.history) ? merged.history : [];
         merged.dismissedOrderIds = Array.isArray(merged.dismissedOrderIds) ? merged.dismissedOrderIds : [];
         Object.assign(state, merged);
@@ -290,6 +594,25 @@ const switchTab = (tab) => {
     }
 };
 
+const scrollOrdersToTop = () => {
+    nextTick(() => {
+        const main = document.querySelector('.delivery-pro main');
+        const tabs = document.querySelector('.delivery-order-tabs');
+        if (!main || !tabs) return;
+
+        const nextTop = Math.max(0, tabs.offsetTop - 8);
+        main.scrollTo({ top: nextTop, behavior: 'smooth' });
+    });
+};
+
+const setAvailablePage = (page) => {
+    const nextPage = Math.min(Math.max(Number(page) || 1, 1), availableTotalPages.value);
+    if (availablePage.value === nextPage) return;
+
+    availablePage.value = nextPage;
+    scrollOrdersToTop();
+};
+
 const openPage = (pageId) => { activePage.value = pageId; };
 const closePage = (pageId) => { if (activePage.value === pageId) activePage.value = ''; };
 const openModal = (modalId) => { activeModal.value = modalId; };
@@ -306,7 +629,12 @@ const finishOnboarding = () => {
 };
 
 const checkOnboarding = () => {
-    if (!localStorage.getItem(TUTORIAL_KEY)) showTutorial();
+    if (!localStorage.getItem(TUTORIAL_KEY)) {
+        localStorage.setItem(TUTORIAL_KEY, 'available');
+        queueTimeout(() => {
+            showToast('Guia disponible en Perfil > Centro de Ayuda.', 'info');
+        }, 1000);
+    }
 };
 
 const checkAbsence = () => {
@@ -350,12 +678,60 @@ const buildLeafletIcon = (emoji) => {
     return leaflet.divIcon({ className: '', html: `<div style="font-size:20px; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.5));">${emoji}</div>`, iconSize: [20, 20] });
 };
 
-const renderCurrentRoute = () => {
+const resolveActiveRoute = () => {
+    if (!state.activeOrder) return null;
+
+    const store = getStoreLocation(state.activeOrder);
+    const customer = getCustomerLocation(state.activeOrder);
+    const isCustomerRoute = ['picked', 'arrived_customer'].includes(state.activeOrder.status);
+    const origin = isCustomerRoute ? store : SANTIAGO_CENTER;
+    const target = isCustomerRoute ? customer : store;
+    const progressByStage = {
+        accepted: 0.2,
+        arrived: 0.95,
+        picked: 0.42,
+        arrived_customer: 0.95,
+    };
+
+    return {
+        type: isCustomerRoute ? 'customer' : 'restaurant',
+        origin,
+        target,
+        progress: progressByStage[state.activeOrder.status] ?? 0.2,
+        color: isCustomerRoute ? '#22c55e' : '#f97316',
+        emoji: isCustomerRoute ? '🏠' : '🏪',
+    };
+};
+
+const resolveStreetPoints = async (route, requestId) => {
+    try {
+        routeAbortController?.abort();
+        routeAbortController = new AbortController();
+        const streetRoute = await fetchStreetRoute(route.origin, route.target, { signal: routeAbortController.signal });
+        if (requestId !== routeRequestId) return null;
+        if (streetRoute?.points?.length >= 2) return streetRoute.points;
+    } catch (error) {
+        if (error?.name !== 'AbortError') {
+            console.warn('No se pudo calcular ruta real en delivery, usando estimacion', error);
+        }
+    }
+
+    return buildFallbackRoute(route.origin, route.target);
+};
+
+const renderCurrentRoute = async () => {
     if (!mapInstance || !leaflet || !currentRoute) return;
+    const requestId = ++routeRequestId;
     clearRouteLayers();
-    const marker = leaflet.marker(currentRoute.target, { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
-    const line = leaflet.polyline([coordsSantiago, currentRoute.target], { color: currentRoute.color, weight: 4, dashArray: '6,6' }).addTo(mapInstance);
-    routeLayers = [marker, line];
+    const routePoints = await resolveStreetPoints(currentRoute, requestId);
+    if (requestId !== routeRequestId || !routePoints?.length) return;
+
+    const riderPoint = getPointAlongRoute(routePoints, currentRoute.progress) || currentRoute.origin;
+    void reportDriverLocation(riderPoint, state.activeOrder.status);
+    const targetMarker = leaflet.marker([currentRoute.target.lat, currentRoute.target.lng], { icon: buildLeafletIcon(currentRoute.emoji) }).addTo(mapInstance);
+    const rider = leaflet.marker([riderPoint.lat, riderPoint.lng], { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
+    const line = leaflet.polyline(routePoints.map((point) => [point.lat, point.lng]), { color: currentRoute.color, weight: 5, opacity: 0.9, lineCap: 'round' }).addTo(mapInstance);
+    routeLayers = [targetMarker, rider, line];
     queueTimeout(() => {
         if (!mapInstance) return;
         mapInstance.invalidateSize();
@@ -363,17 +739,10 @@ const renderCurrentRoute = () => {
     }, 100);
 };
 
-const setRoute = (targetType) => {
+const setRoute = () => {
     if (!leaflet || !mapInstance) return;
-    if (!currentRoute || currentRoute.type !== targetType) {
-        currentRoute = {
-            type: targetType,
-            target: [coordsSantiago[0] + ((Math.random() - 0.5) * 0.02), coordsSantiago[1] + ((Math.random() - 0.5) * 0.02)],
-            color: targetType === 'restaurant' ? '#f97316' : '#22c55e',
-            emoji: targetType === 'restaurant' ? '🏪' : '🏠',
-        };
-    }
-    renderCurrentRoute();
+    currentRoute = resolveActiveRoute();
+    void renderCurrentRoute();
 };
 
 const syncRouteFromState = () => {
@@ -381,7 +750,7 @@ const syncRouteFromState = () => {
         clearRoute();
         return;
     }
-    setRoute(state.activeOrder.status === 'picked' ? 'customer' : 'restaurant');
+    setRoute();
 };
 
 const ensureLeaflet = () => new Promise((resolve, reject) => {
@@ -413,34 +782,51 @@ const initMap = () => {
     if (!mapEl.value || !leaflet || mapInstance) return;
     mapInstance = leaflet.map(mapEl.value, { zoomControl: false, attributionControl: false }).setView(coordsSantiago, 14);
     leaflet.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(mapInstance);
-    riderMarker = leaflet.marker(coordsSantiago, { icon: buildLeafletIcon('🛵') }).addTo(mapInstance);
-    void riderMarker;
     if (state.activeOrder) syncRouteFromState();
 };
 
+// Para presentar: refresca pedidos disponibles, activos e historial desde el dataset/backend.
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
-    const knownPendingIds = new Set(scopedOrders.filter((order) => normalize(order.statusKey) === 'pendiente').map((order) => String(order.id)));
-    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => knownPendingIds.has(String(id)));
+    const currentDriverEmail = normalize(session.userEmail);
+    const visibleNewOrders = scopedOrders.filter((order) => ['pendiente', 'preparando'].includes(orderStatusKey(order)));
+    const visibleNewIds = new Set(visibleNewOrders.map((order) => String(order.id)));
+    state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => visibleNewIds.has(String(id)));
+
+    if (!state.activeOrderId && currentDriverEmail) {
+        const claimedOrder = scopedOrders.find((order) => (
+            normalize(order.deliveryAssignment?.driverEmail) === currentDriverEmail &&
+            ['preparando', 'en camino'].includes(orderStatusKey(order))
+        ));
+        if (claimedOrder) state.activeOrderId = String(claimedOrder.id);
+    }
 
     const activeSource = state.activeOrderId ? (data.value.orders || []).find((order) => String(order.id) === String(state.activeOrderId)) : null;
-    if (activeSource && !['entregado', 'cancelado'].includes(normalize(activeSource.statusKey))) {
+    if (activeSource && !['entregado', 'cancelado'].includes(orderStatusKey(activeSource))) {
         const activeStage = deriveActiveStage(activeSource);
         state.activeStage = activeStage;
         state.activeOrder = buildOrderView(activeSource, activeStage);
+    } else if (state.activeOrderId && state.activeOrder) {
+        const preservedStage = state.activeStage || state.activeOrder.status || 'accepted';
+        state.activeStage = preservedStage;
+        state.activeOrder = buildOrderView(state.activeOrder, preservedStage);
     } else {
         state.activeOrderId = '';
         state.activeStage = '';
         state.activeOrder = null;
     }
 
-    state.availableOrders = scopedOrders
-        .filter((order) => normalize(order.statusKey) === 'pendiente')
+    state.availableOrders = visibleNewOrders
         .filter((order) => String(order.id) !== String(state.activeOrderId))
+        .filter((order) => {
+            const assignment = order.deliveryAssignment;
+            if (!assignment?.driverEmail) return true;
+            return normalize(assignment.driverEmail) === currentDriverEmail;
+        })
         .filter((order) => !state.dismissedOrderIds.includes(String(order.id)))
         .map((order) => buildOrderView(order, 'pending'));
 
-    if (state.activeOrder) currentTab.value = 'active';
+    if (state.activeOrder && currentTab.value !== 'history') currentTab.value = 'active';
     else if (currentTab.value === 'active') currentTab.value = 'available';
 
     nextTick(() => {
@@ -448,28 +834,74 @@ const syncOrdersFromBackend = () => {
     });
 };
 
+// Delivery lee el mismo dataset operacional que Administracion para que ambos paneles vean el mismo estado.
 const refreshData = async ({ silent = false } = {}) => {
-    if (silent) isRefreshing.value = true;
-    else {
-        isLoading.value = true;
-        errorMessage.value = '';
-    }
+    if (silent && document.visibilityState === 'hidden') return null;
+    if (refreshPromise) return refreshPromise;
 
-    try {
-        data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
-        if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
-            state.tenant = 'Global';
+    const task = (async () => {
+        if (silent) isRefreshing.value = true;
+        else {
+            isLoading.value = true;
+            errorMessage.value = '';
         }
-        lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
-        syncOrdersFromBackend();
-    } catch (error) {
-        console.error('No se pudo cargar delivery', error);
-        errorMessage.value = error.message || 'No se pudo cargar la vista de delivery.';
-        if (!silent) showToast(errorMessage.value, 'error');
-    } finally {
-        isLoading.value = false;
-        isRefreshing.value = false;
-    }
+
+        try {
+            data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
+            if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
+                state.tenant = 'Global';
+            }
+            lastUpdatedAt.value = new Date().toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' });
+            syncOrdersFromBackend();
+            return data.value;
+        } catch (error) {
+            console.error('No se pudo cargar delivery', error);
+            errorMessage.value = error.message || 'No se pudo cargar la vista de delivery.';
+            if (!silent) showToast(errorMessage.value, 'error');
+            return null;
+        } finally {
+            isLoading.value = false;
+            isRefreshing.value = false;
+        }
+    })();
+
+    refreshPromise = task;
+    task.finally(() => {
+        if (refreshPromise === task) refreshPromise = null;
+    });
+    return task;
+};
+
+const queueRealtimeRefresh = () => {
+    if (realtimeRefreshTimer) return;
+    realtimeRefreshTimer = window.setTimeout(() => {
+        realtimeRefreshTimer = null;
+        void refreshData({ silent: true });
+    }, REALTIME_REFRESH_DEBOUNCE_MS);
+};
+
+const closeRealtimeConnections = () => {
+    realtimeConnections.forEach((connection) => connection.close());
+    realtimeConnections = [];
+};
+
+const setupRealtimeConnections = () => {
+    closeRealtimeConnections();
+    realtimeConnections = (data.value.tenants || []).map((tenant) =>
+        connectRealtime({
+            tenantId: tenant.id,
+            onEvent(message) {
+                if (['order-created', 'order-updated', 'order-cancelled', 'delivery-assigned'].includes(message.event)) {
+                    realtimeWarning.value = '';
+                    queueRealtimeRefresh();
+                }
+            },
+            onError(error) {
+                console.warn('Realtime delivery no disponible', error);
+                realtimeWarning.value = 'Actualizacion en vivo no disponible. Seguimos revisando pedidos automaticamente cada 20 segundos.';
+            },
+        }),
+    );
 };
 
 const toggleShift = async () => {
@@ -511,6 +943,8 @@ const toggleShift = async () => {
     showToast('Turno finalizado. ¡Buen trabajo!');
 };
 
+// El repartidor toma un viaje: se guarda asignacion y se notifica al resto del flujo.
+// Para presentar: aceptar viaje; mueve el pedido a activo y avisa al flujo operativo.
 const acceptOrder = async (id) => {
     if (!isShiftOnline.value) {
         showToast('Inicia tu turno antes de aceptar un viaje.', 'error');
@@ -530,7 +964,33 @@ const acceptOrder = async (id) => {
 
     isAdvancing.value = true;
     try {
-        await api.updateOrder(order.id, { estado_id: ORDER_STATUS_IDS.preparing }, buildTenantHeaders(order.tenantId));
+        const identity = driverIdentity();
+        if (isQaOrder(order)) {
+            await syncDeliveryAssignment(order, 'accepted', 'accepted');
+            const updatedOrder = buildQaOrderWithStatus(order, ORDER_STATUS_CODES.preparing);
+            setQaOrderOverride(order.id, {
+                ...getQaOrderStatusPatch(ORDER_STATUS_CODES.preparing),
+                driverName: identity.driverName,
+                driverEmail: identity.driverEmail,
+            });
+            state.activeOrderId = String(order.id);
+            state.activeStage = 'accepted';
+            state.activeOrder = buildOrderView(updatedOrder, 'accepted');
+            state.lastWorkDate = Date.now();
+            state.dismissedOrderIds = state.dismissedOrderIds.filter((candidate) => String(candidate) !== String(order.id));
+            currentTab.value = 'active';
+            saveState();
+            await refreshData({ silent: true });
+            showToast('Pedido QA aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
+            return;
+        }
+
+        const response = await api.updateOrder(order.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(order.tenantId));
+        await syncDeliveryAssignment(order, 'accepted', 'accepted');
+        updateCachedOrderStatus(order.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing, null, {
+            repartidor_nombre: identity.driverName,
+            repartidor_email: identity.driverEmail,
+        });
         state.activeOrderId = String(order.id);
         state.activeStage = 'accepted';
         state.lastWorkDate = Date.now();
@@ -538,7 +998,7 @@ const acceptOrder = async (id) => {
         currentTab.value = 'active';
         saveState();
         await refreshData({ silent: true });
-        showToast(`Pedido aceptado. Código de seguridad: ${resolveSecurityCode(order)}`);
+        showToast('Pedido aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
     } catch (error) {
         console.error('No se pudo aceptar el pedido', error);
         showToast(error.message || 'No se pudo aceptar el pedido.', 'error');
@@ -554,11 +1014,32 @@ const rejectOrder = (id) => {
     saveState();
 };
 
+const handleActiveOrderPrimaryAction = () => {
+    if (!state.activeOrder) return;
+    if (state.activeOrder.status === 'accepted') {
+        void updateOrderStatus('arrived');
+        return;
+    }
+    if (state.activeOrder.status === 'arrived') {
+        void updateOrderStatus('picked');
+        return;
+    }
+    if (state.activeOrder.status === 'picked') {
+        void updateOrderStatus('arrived_customer');
+        return;
+    }
+    openDeliveryConfirmation();
+};
+
+// Para presentar: avanza el viaje de recogida a camino y sincroniza estado para cliente/admin.
 const updateOrderStatus = async (status) => {
     if (!state.activeOrder) return;
     if (status === 'arrived') {
         state.activeStage = 'arrived';
         state.activeOrder = buildOrderView(state.activeOrder, 'arrived');
+        void syncDeliveryAssignment(state.activeOrder, 'arrived', 'arrived').catch((error) => {
+            console.warn('No se pudo sincronizar llegada al local', error);
+        });
         saveState();
         syncRouteFromState();
         showToast('Llegaste al local. Espera la comida.');
@@ -568,7 +1049,29 @@ const updateOrderStatus = async (status) => {
     if (status === 'picked') {
         isAdvancing.value = true;
         try {
-            await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
+            const identity = driverIdentity();
+            if (isQaOrder(state.activeOrder)) {
+                const updatedOrder = buildQaOrderWithStatus(state.activeOrder, ORDER_STATUS_CODES.inTransit);
+                setQaOrderOverride(state.activeOrder.id, {
+                    ...getQaOrderStatusPatch(ORDER_STATUS_CODES.inTransit),
+                    driverName: identity.driverName,
+                    driverEmail: identity.driverEmail,
+                });
+                await syncDeliveryAssignment(updatedOrder, 'picked', 'picked');
+                state.activeStage = 'picked';
+                state.activeOrder = buildOrderView(updatedOrder, 'picked');
+                saveState();
+                await refreshData({ silent: true });
+                showToast('Comida QA recibida. Ruta activada hacia el cliente.');
+                return;
+            }
+
+            const response = await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_CODES.inTransit }, buildTenantHeaders(state.activeOrder.tenantId));
+            await syncDeliveryAssignment(state.activeOrder, 'picked', 'picked');
+            updateCachedOrderStatus(state.activeOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.inTransit, null, {
+                repartidor_nombre: identity.driverName,
+                repartidor_email: identity.driverEmail,
+            });
             state.activeStage = 'picked';
             state.activeOrder = buildOrderView(state.activeOrder, 'picked');
             saveState();
@@ -581,21 +1084,50 @@ const updateOrderStatus = async (status) => {
             isAdvancing.value = false;
         }
     }
+
+    if (status === 'arrived_customer') {
+        state.activeStage = 'arrived_customer';
+        state.activeOrder = buildOrderView(state.activeOrder, 'arrived_customer');
+        void syncDeliveryAssignment(state.activeOrder, 'arrived_customer', 'arrived_customer').catch((error) => {
+            console.warn('No se pudo sincronizar llegada al cliente', error);
+        });
+        saveState();
+        syncRouteFromState();
+        showToast('Llegaste al destino. Pide el codigo al cliente para confirmar.');
+    }
 };
 
 const cancelOrder = async () => {
     if (!state.activeOrder) return;
-    if (state.activeStage === 'picked') {
-        showToast('No puedes cancelar después de recoger la comida.', 'error');
+    if (['picked', 'arrived_customer'].includes(state.activeStage)) {
+        showToast('No puedes cancelar despues de recoger la comida. Reporta el problema a soporte.', 'error');
         return;
     }
 
+    const releasedOrder = state.activeOrder;
+
     try {
-        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.pending }, buildTenantHeaders(state.activeOrder.tenantId));
+        if (isQaOrder(releasedOrder)) {
+            setQaOrderOverride(releasedOrder.id, getQaOrderStatusPatch(ORDER_STATUS_CODES.preparing));
+            await syncDeliveryAssignment(releasedOrder, 'released', 'released');
+        } else {
+            const response = await api.updateOrder(releasedOrder.id, { estado_id: ORDER_STATUS_CODES.preparing }, buildTenantHeaders(releasedOrder.tenantId));
+            await syncDeliveryAssignment(releasedOrder, 'released', 'released');
+            updateCachedOrderStatus(releasedOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.preparing);
+        }
     } catch (error) {
-        console.warn('No se pudo devolver el pedido a pendiente', error);
+        console.warn('No se pudo devolver el pedido a preparacion', error);
     }
 
+    appendTripHistory({
+        kind: 'released',
+        orderId: releasedOrder.id,
+        franchiseName: releasedOrder.franchise.name,
+        status: 'Liberado por incidencia',
+        amount: 0,
+        address: releasedOrder.dropoff,
+    });
+    clearDeliveryAssignment(releasedOrder.id);
     state.activeOrder = null;
     state.activeOrderId = '';
     state.activeStage = '';
@@ -606,27 +1138,95 @@ const cancelOrder = async () => {
     showToast('Pedido liberado.');
 };
 
-const triggerCamera = () => {
+const resetDeliveryConfirmation = () => {
+    deliveryConfirmCode.value = '';
+    deliveryProofFile.value = null;
+    deliveryProofFileName.value = 'Toca para tomar foto de entrega';
+    deliveryProofAccepted.value = false;
+    if (cameraInput.value) cameraInput.value.value = '';
+};
+
+const openDeliveryConfirmation = () => {
+    if (!state.activeOrder) return;
+    if (state.activeOrder.status !== 'arrived_customer') {
+        showToast('Primero marca que llegaste al destino.', 'error');
+        return;
+    }
+    resetDeliveryConfirmation();
+    openModal('modal-delivery-confirm');
+};
+
+const triggerDeliveryProof = () => {
     cameraInput.value?.click();
 };
 
-const handleDeliveryPhoto = async (event) => {
+const handleDeliveryPhoto = (event) => {
     const file = event.target.files?.[0];
-    if (!file || !state.activeOrder) return;
+    if (!file) return;
+    deliveryProofFile.value = file;
+    deliveryProofFileName.value = file.name ? `${file.name} cargada` : 'Foto de entrega cargada';
+};
 
+// Para presentar: entrega segura; compara codigo del cliente, evidencia y marca el pedido entregado.
+const completeDelivery = async () => {
+    if (!state.activeOrder) return;
+    if (!deliveryCodeMatches.value) {
+        showToast('Codigo de entrega incorrecto.', 'error');
+        return;
+    }
+    if (!deliveryProofFile.value) {
+        showToast('Toma o sube una foto de entrega.', 'error');
+        return;
+    }
+    if (!deliveryProofAccepted.value) {
+        showToast('Confirma que entregaste el pedido al cliente correcto.', 'error');
+        return;
+    }
     isAdvancing.value = true;
     showToast('Registrando entrega...', 'info');
 
     try {
-        await api.updateOrder(state.activeOrder.id, { estado_id: ORDER_STATUS_IDS.delivered }, buildTenantHeaders(state.activeOrder.tenantId));
-        const payment = Number(state.activeOrder.price || 0);
+        const deliveredOrder = state.activeOrder;
+        const identity = driverIdentity();
+        if (isQaOrder(deliveredOrder)) {
+            setQaOrderOverride(deliveredOrder.id, {
+                ...getQaOrderStatusPatch(ORDER_STATUS_CODES.delivered),
+                driverName: identity.driverName,
+                driverEmail: identity.driverEmail,
+                deliveryProof: deliveryProofFile.value?.name || 'foto',
+                confirmedCode: normalizedDeliveryCode.value,
+            });
+            await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
+        } else {
+            const response = await api.updateOrder(deliveredOrder.id, {
+                estado_id: ORDER_STATUS_CODES.delivered,
+                nota: `Entrega confirmada con codigo ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
+            }, buildTenantHeaders(deliveredOrder.tenantId));
+            await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
+            updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
+                repartidor_nombre: identity.driverName,
+                repartidor_email: identity.driverEmail,
+            });
+        }
+        const payment = Number(deliveredOrder.price || 0);
         state.earnings += payment;
         state.trips += 1;
-        state.history.push({ emoji: state.activeOrder.franchise.emoji, desc: `Entrega ${state.activeOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+        appendTripHistory({
+            kind: 'delivered',
+            orderId: deliveredOrder.id,
+            franchiseName: deliveredOrder.franchise.name,
+            status: 'Entregado',
+            amount: payment,
+            address: deliveredOrder.dropoff,
+            proof: deliveryProofFile.value?.name || 'foto de entrega',
+            confirmationCode: normalizedDeliveryCode.value,
+        });
+        state.history.push({ emoji: deliveredOrder.franchise.emoji, desc: `Entrega ${deliveredOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         state.activeOrder = null;
         state.activeOrderId = '';
         state.activeStage = '';
         currentTab.value = 'available';
+        closeModal('modal-delivery-confirm');
         clearRoute();
         saveState();
         await refreshData({ silent: true });
@@ -635,7 +1235,7 @@ const handleDeliveryPhoto = async (event) => {
         console.error('No se pudo completar la entrega', error);
         showToast(error.message || 'No se pudo marcar la entrega.', 'error');
     } finally {
-        if (cameraInput.value) cameraInput.value.value = '';
+        resetDeliveryConfirmation();
         isAdvancing.value = false;
     }
 };
@@ -704,16 +1304,34 @@ const changeTenant = () => {
     saveState();
 };
 
+const refreshWhenVisible = () => {
+    if (document.visibilityState === 'visible') {
+        void refreshData({ silent: true });
+    }
+};
+
+const refreshFromStorageEvent = () => {
+    void refreshData({ silent: true });
+};
+
 const logout = () => {
     if (window.confirm('¿Cerrar sesión? Tendrás que volver a iniciar sesión para entrar al panel de delivery.')) {
+        saveState();
         clearSession();
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TUTORIAL_KEY);
         router.replace('/login');
     }
 };
 
-watch(() => state.tenant, changeTenant);
+watch(() => state.tenant, () => {
+    availablePage.value = 1;
+    changeTenant();
+});
+
+watch(() => state.availableOrders.length, () => {
+    if (availablePage.value > availableTotalPages.value) {
+        availablePage.value = availableTotalPages.value;
+    }
+});
 
 onMounted(async () => {
     loadState();
@@ -722,6 +1340,10 @@ onMounted(async () => {
     checkOnboarding();
     checkAbsence();
     await refreshData();
+    setupRealtimeConnections();
+    window.addEventListener('visibilitychange', refreshWhenVisible);
+    window.addEventListener('focus', refreshWhenVisible);
+    window.addEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
 
     try {
         leaflet = await ensureLeaflet();
@@ -733,13 +1355,19 @@ onMounted(async () => {
 
     refreshTimer = window.setInterval(() => {
         void refreshData({ silent: true });
-    }, 15000);
+    }, AUTO_REFRESH_INTERVAL_MS);
 });
 
 onBeforeUnmount(() => {
+    routeAbortController?.abort();
     stopShiftTimer();
     clearScheduledTimeouts();
     if (refreshTimer) window.clearInterval(refreshTimer);
+    if (realtimeRefreshTimer) window.clearTimeout(realtimeRefreshTimer);
+    window.removeEventListener('visibilitychange', refreshWhenVisible);
+    window.removeEventListener('focus', refreshWhenVisible);
+    window.removeEventListener(APP_EVENTS.ordersChanged, refreshFromStorageEvent);
+    closeRealtimeConnections();
     if (mapInstance) {
         mapInstance.remove();
         mapInstance = null;
@@ -748,11 +1376,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700">
+    <div class="delivery-pro relative flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-700" :class="{ 'delivery-dark': isDarkMode }">
         <div
+            v-if="onboardingVisible"
             :class="[
-                'fixed inset-0 z-[200] flex flex-col bg-white transition-opacity duration-500',
-                onboardingVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+                'delivery-onboarding fixed inset-0 flex flex-col bg-white transition-opacity duration-500',
+                'pointer-events-auto opacity-100'
             ]"
         >
             <div class="flex-none bg-[#f97316] px-6 pb-4 pt-12 text-white shadow-md">
@@ -772,7 +1401,7 @@ onBeforeUnmount(() => {
                 </div>
             </div>
 
-            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white to-transparent p-6">
+            <div class="absolute bottom-0 left-0 right-0 z-10 bg-gradient-to-t from-white via-white to-transparent p-6">
                 <button
                     type="button"
                     class="flex w-full items-center justify-center gap-2 rounded-xl bg-[#f97316] py-4 text-sm font-black text-white shadow-xl shadow-orange-500/40 active:bg-[#ea580c]"
@@ -797,41 +1426,80 @@ onBeforeUnmount(() => {
         </div>
 
         <header class="relative z-40 flex flex-none items-center justify-between bg-white px-4 py-3 shadow-sm">
-            <div class="flex items-center gap-3">
+            <div class="delivery-header-brand flex min-w-0 items-center gap-3">
                 <div class="relative">
                     <div class="flex h-10 w-10 items-center justify-center rounded-xl border border-orange-100 bg-orange-50 text-xl text-[#f97316]">
                         <i class="fa-solid fa-motorcycle"></i>
                     </div>
                     <div
                         :class="[
-                            'absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white transition-colors',
+                            'delivery-shift-dot absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white transition-colors',
                             isShiftOnline ? 'bg-[#22c55e]' : 'bg-slate-400'
                         ]"
                     ></div>
                 </div>
-                <div>
+                <div class="min-w-0">
                     <h1 class="leading-none text-lg font-black text-slate-800">
                         Food<span class="text-[#f97316]">Rush</span>
                     </h1>
-                    <p class="mt-0.5 flex items-center gap-1 text-[10px] font-bold text-slate-500">
-                        <span>{{ tenantDisplay }}</span>
+                    <p class="delivery-header-meta mt-0.5 flex min-w-0 flex-wrap items-center gap-x-1 gap-y-0.5 text-[10px] font-bold text-slate-500">
+                        <span class="min-w-0 break-words">{{ tenantDisplay }}</span>
                         <span v-if="lastUpdatedAt">• {{ lastUpdatedAt }}</span>
                     </p>
                 </div>
             </div>
 
-            <button
-                type="button"
-                class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-[#f97316] shadow-sm transition active:bg-orange-100"
-                @click="refreshData({ silent: true })"
-            >
-                <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': isRefreshing }"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-lg text-slate-600 shadow-sm transition active:bg-slate-200"
+                    :aria-label="isDarkMode ? 'Activar modo claro' : 'Activar modo oscuro'"
+                    @click="toggleTheme"
+                >
+                    <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+                </button>
+                <button
+                    type="button"
+                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-lg text-[#f97316] shadow-sm transition active:bg-orange-100"
+                    @click="refreshData({ silent: true })"
+                >
+                    <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': isRefreshing }"></i>
+                </button>
+            </div>
         </header>
 
         <main class="hide-scrollbar relative mx-auto w-full max-w-md flex-1 overflow-y-auto pb-20">
             <section :class="['view px-4 pt-4', currentView === 'orders' ? 'active' : '']">
-                <div class="mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
+                <div class="mb-4 grid grid-cols-2 gap-2">
+                    <div
+                        v-for="card in driverPerformanceCards"
+                        :key="card.label"
+                        class="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm"
+                    >
+                        <div class="mb-2 flex items-center justify-between gap-2">
+                            <span :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-sm', card.class]">
+                                <i :class="card.icon"></i>
+                            </span>
+                            <p class="truncate text-right text-lg font-black leading-none text-slate-800">{{ card.value }}</p>
+                        </div>
+                        <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">{{ card.label }}</p>
+                        <p class="mt-0.5 truncate text-[10px] font-bold text-slate-500">{{ card.hint }}</p>
+                    </div>
+                </div>
+
+                <div v-if="realtimeWarning" class="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-700 shadow-sm" role="status" aria-live="polite">
+                    <div class="flex gap-2">
+                        <i class="fa-solid fa-triangle-exclamation mt-0.5"></i>
+                        <div>
+                            <p>{{ realtimeWarning }}</p>
+                            <button type="button" class="mt-2 text-[11px] font-black uppercase text-amber-800 underline" @click="refreshData({ silent: false })">
+                                Actualizar pedidos
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="delivery-order-tabs sticky top-0 z-30 mb-4 flex shrink-0 rounded-xl bg-slate-100 p-1">
                     <button
                         type="button"
                         :class="[
@@ -851,6 +1519,16 @@ onBeforeUnmount(() => {
                         @click="switchTab('active')"
                     >
                         En Curso ({{ badgeActive }})
+                    </button>
+                    <button
+                        type="button"
+                        :class="[
+                            'flex-1 rounded-lg py-2.5 text-sm font-bold',
+                            currentTab === 'history' ? 'bg-white text-[#f97316] shadow-sm' : 'text-slate-400'
+                        ]"
+                        @click="switchTab('history')"
+                    >
+                        Historial ({{ badgeHistory }})
                     </button>
                 </div>
 
@@ -873,7 +1551,50 @@ onBeforeUnmount(() => {
                         <p class="text-xs text-slate-500">No hay pedidos pendientes por ahora.</p>
                     </div>
 
-                    <div v-for="order in state.availableOrders" :key="order.id" class="card-shadow rounded-2xl border border-slate-50 bg-white p-4">
+                    <div v-if="state.availableOrders.length > 0" class="delivery-available-pager rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+                        <div class="mb-3 flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-[10px] font-black uppercase tracking-wide text-slate-400">Pedidos nuevos</p>
+                                <p class="text-xs font-bold text-slate-600">{{ availablePageLabel }}</p>
+                            </div>
+                            <p class="rounded-full bg-orange-50 px-3 py-1 text-[10px] font-black text-[#f97316]">
+                                Pagina {{ currentAvailablePage }} / {{ availableTotalPages }}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+                            <button
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl border border-slate-100 bg-slate-50 px-3 text-xs font-black text-slate-500 disabled:opacity-40"
+                                :disabled="currentAvailablePage === 1"
+                                @click="setAvailablePage(currentAvailablePage - 1)"
+                            >
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </button>
+                            <span v-if="availablePageNumbers[0] > 1" class="px-1 text-xs font-black text-slate-400">...</span>
+                            <button
+                                v-for="page in availablePageNumbers"
+                                :key="page"
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl px-3 text-xs font-black transition"
+                                :class="page === currentAvailablePage ? 'bg-[#f97316] text-white shadow-md shadow-orange-500/20' : 'border border-slate-100 bg-slate-50 text-slate-500'"
+                                @click="setAvailablePage(page)"
+                            >
+                                {{ page }}
+                            </button>
+                            <span v-if="availablePageNumbers[availablePageNumbers.length - 1] < availableTotalPages" class="px-1 text-xs font-black text-slate-400">...</span>
+                            <button
+                                type="button"
+                                class="h-9 min-w-9 rounded-xl border border-slate-100 bg-slate-50 px-3 text-xs font-black text-slate-500 disabled:opacity-40"
+                                :disabled="currentAvailablePage === availableTotalPages"
+                                @click="setAvailablePage(currentAvailablePage + 1)"
+                            >
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div v-for="order in paginatedAvailableOrders" :key="order.id" class="card-shadow rounded-2xl border border-slate-50 bg-white p-4">
                         <div class="mb-3 flex items-start justify-between">
                             <div class="flex items-center gap-2">
                                 <div :class="['flex h-10 w-10 items-center justify-center rounded-full text-xl', order.franchise.color]">
@@ -895,6 +1616,14 @@ onBeforeUnmount(() => {
                             <p class="text-xs font-black text-slate-700">{{ order.dropoff }}</p>
                         </div>
 
+                        <div
+                            class="mb-3 rounded-xl px-3 py-2 text-[11px] font-black"
+                            :class="order.backendStatusKey === 'preparando' ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'"
+                        >
+                            <i class="fa-solid mr-1" :class="order.canAccept ? 'fa-circle-check' : 'fa-clock'"></i>
+                            {{ order.backendStatusKey === 'preparando' ? 'Listo para aceptar' : 'Nuevo pedido: valida en el local' }}
+                        </div>
+
                         <div class="flex gap-2">
                             <button
                                 type="button"
@@ -905,13 +1634,34 @@ onBeforeUnmount(() => {
                             </button>
                             <button
                                 type="button"
-                                class="h-10 flex-1 rounded-lg bg-[#f97316] text-xs font-black text-white shadow-md active:bg-[#ea580c]"
-                                :disabled="isAdvancing"
+                                class="h-10 flex-1 rounded-lg text-xs font-black text-white shadow-md transition"
+                                :class="order.canAccept ? 'bg-[#f97316] active:bg-[#ea580c]' : 'cursor-not-allowed bg-slate-300 text-slate-500 shadow-none'"
+                                :disabled="isAdvancing || !order.canAccept"
                                 @click="acceptOrder(order.id)"
                             >
-                                ACEPTAR VIAJE
+                                {{ order.backendStatusKey === 'preparando' ? 'ACEPTAR VIAJE' : 'ACEPTAR Y VALIDAR' }}
                             </button>
                         </div>
+                    </div>
+
+                    <div v-if="availableTotalPages > 1" class="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+                        <button
+                            type="button"
+                            class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-600 disabled:opacity-40"
+                            :disabled="currentAvailablePage === 1"
+                            @click="setAvailablePage(currentAvailablePage - 1)"
+                        >
+                            Anterior
+                        </button>
+                        <span class="text-xs font-black text-slate-500">Pagina {{ currentAvailablePage }} de {{ availableTotalPages }}</span>
+                        <button
+                            type="button"
+                            class="rounded-xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-600 disabled:opacity-40"
+                            :disabled="currentAvailablePage === availableTotalPages"
+                            @click="setAvailablePage(currentAvailablePage + 1)"
+                        >
+                            Siguiente
+                        </button>
                     </div>
                 </div>
 
@@ -949,9 +1699,9 @@ onBeforeUnmount(() => {
 
                                 <div class="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 shadow-sm">
                                     <div class="mb-2 flex items-center justify-between border-b border-orange-200/50 pb-2">
-                                        <p class="text-[10px] font-bold uppercase text-slate-500">Código de Seguridad</p>
-                                        <p class="rounded-lg bg-white px-3 py-1 text-sm font-black tracking-widest text-[#f97316] shadow-sm">
-                                            {{ state.activeOrder.codigoDelivery }}
+                                        <p class="text-[10px] font-bold uppercase text-slate-500">Codigo de entrega</p>
+                                        <p class="rounded-lg bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#f97316] shadow-sm">
+                                            Pidelo al cliente
                                         </p>
                                     </div>
                                     <div>
@@ -961,12 +1711,13 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <button
-                                    v-if="state.activeOrder.status !== 'picked'"
+                                    v-if="state.activeOrder.status !== 'arrived_customer'"
                                     type="button"
-                                    :class="['w-full rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
+                                    :class="['flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
                                     :disabled="isAdvancing"
-                                    @click="updateOrderStatus(state.activeOrder.status === 'accepted' ? 'arrived' : 'picked')"
+                                    @click="handleActiveOrderPrimaryAction"
                                 >
+                                    <i class="fa-solid fa-location-arrow"></i>
                                     {{ activeOrderMeta?.buttonLabel }}
                                 </button>
 
@@ -975,9 +1726,9 @@ onBeforeUnmount(() => {
                                     type="button"
                                     :class="['flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-black shadow-md', activeOrderMeta?.buttonClass]"
                                     :disabled="isAdvancing"
-                                    @click="triggerCamera"
+                                    @click="openDeliveryConfirmation"
                                 >
-                                    <i class="fa-solid fa-camera"></i>
+                                    <i class="fa-solid fa-check-double"></i>
                                     {{ activeOrderMeta?.buttonLabel }}
                                 </button>
 
@@ -1003,6 +1754,49 @@ onBeforeUnmount(() => {
 
                     <div :class="['relative min-h-[250px] flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-200 shadow-inner', showMapWrapper ? '' : 'hidden']">
                         <div ref="mapEl" class="delivery-map absolute inset-0"></div>
+                    </div>
+                </div>
+
+                <div :class="['space-y-3 pb-4', currentTab === 'history' ? '' : 'hidden']">
+                    <div class="rounded-2xl border border-orange-100 bg-orange-50 p-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#f97316] shadow-sm">
+                                <i class="fa-solid fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-black text-slate-800">Resumen del repartidor</h3>
+                                <p class="text-[11px] font-bold text-slate-500">Viajes activos, completados, cancelados e ingresos aproximados.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-if="driverHistoryRows.length === 0" class="rounded-2xl border border-slate-100 bg-white p-6 text-center">
+                        <div class="mb-2 text-4xl"><i class="fa-regular fa-clipboard text-slate-300"></i></div>
+                        <h3 class="text-sm font-black text-slate-800">Sin historial todavia</h3>
+                        <p class="text-xs text-slate-500">Cuando aceptes o completes viajes apareceran aqui.</p>
+                    </div>
+
+                    <div
+                        v-for="item in driverHistoryRows"
+                        :key="item.id"
+                        class="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex min-w-0 items-start gap-3">
+                                <div :class="['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm', item.iconClass]">
+                                    <i :class="item.icon"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="truncate text-sm font-black text-slate-800">{{ item.title }}</h3>
+                                    <p class="text-[10px] font-black uppercase tracking-wide text-[#f97316]">{{ item.subtitle }}</p>
+                                    <p class="mt-1 line-clamp-2 text-xs font-bold leading-snug text-slate-500">{{ item.detail }}</p>
+                                </div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                                <p :class="['text-sm font-black', item.amountClass]">{{ item.amountText }}</p>
+                                <p class="mt-1 text-[9px] font-bold text-slate-400">{{ item.time }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1135,7 +1929,7 @@ onBeforeUnmount(() => {
 
                 <button
                     type="button"
-                    class="mb-4 w-full rounded-xl bg-slate-200 py-4 text-sm font-black text-slate-600 active:bg-slate-300"
+                    class="delivery-logout-button mb-4 w-full rounded-xl py-4 text-sm font-black transition active:scale-[0.99]"
                     @click="logout"
                 >
                     Cerrar sesión
@@ -1143,7 +1937,7 @@ onBeforeUnmount(() => {
             </section>
         </main>
 
-        <nav class="relative z-40 flex-none border-t border-slate-100 bg-white px-4 py-2 pb-safe">
+        <nav class="delivery-bottom-nav relative z-40 flex-none border-t border-slate-100 bg-white px-4 py-2 pb-safe">
             <div class="mx-auto flex w-full max-w-sm items-center justify-between">
                 <button type="button" :class="['flex flex-1 flex-col items-center gap-1', currentView === 'orders' ? 'text-[#f97316]' : 'text-slate-300']" @click="navigate('orders')">
                     <i class="fa-solid fa-motorcycle text-xl"></i>
@@ -1295,6 +2089,66 @@ onBeforeUnmount(() => {
         <div
             :class="[
                 'fixed inset-0 z-[100] flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm transition-opacity',
+                isDeliveryConfirmModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+            ]"
+        >
+            <div :class="['mx-auto w-full max-w-md rounded-t-2xl bg-white p-5 shadow-2xl transition-transform duration-300', isDeliveryConfirmModalOpen ? 'translate-y-0' : 'translate-y-full']">
+                <div class="mb-4 flex items-center justify-between">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-[#f97316]">Entrega segura</p>
+                        <h3 class="text-lg font-black text-slate-800">Confirmar entrega</h3>
+                    </div>
+                    <button type="button" class="h-8 w-8 rounded-full bg-slate-100 text-sm font-bold text-slate-500" @click="closeModal('modal-delivery-confirm')">X</button>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="rounded-2xl border border-orange-100 bg-orange-50 p-3 text-xs font-bold text-slate-600">
+                        Pide al cliente el codigo del pedido, toma una evidencia y confirma solo cuando el pedido ya este en sus manos.
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-[11px] font-black uppercase tracking-wide text-slate-500">Codigo del cliente</label>
+                        <input
+                            v-model="deliveryConfirmCode"
+                            type="text"
+                            inputmode="numeric"
+                            autocomplete="one-time-code"
+                            placeholder="Ej. 001234"
+                            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xl font-black tracking-[0.25em] text-slate-800 outline-none focus:border-[#f97316] focus:bg-white"
+                        >
+                        <p v-if="deliveryConfirmCode && !deliveryCodeMatches" class="mt-2 text-[11px] font-bold text-red-500">
+                            Ese codigo no coincide con el pedido activo.
+                        </p>
+                    </div>
+
+                    <button type="button" class="w-full rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-4 text-center transition active:bg-slate-100" @click="triggerDeliveryProof">
+                        <i class="fa-solid fa-camera mb-2 text-2xl text-[#f97316]"></i>
+                        <p :class="['text-xs font-black', deliveryProofFile ? 'text-[#22c55e]' : 'text-slate-500']">
+                            {{ deliveryProofFileName }}
+                        </p>
+                    </button>
+
+                    <label class="flex items-start gap-3 rounded-2xl border border-slate-100 bg-white p-3 text-xs font-bold text-slate-600 shadow-sm">
+                        <input v-model="deliveryProofAccepted" type="checkbox" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#22c55e]">
+                        <span>Confirmo que entregue el pedido al cliente correcto y que la evidencia corresponde a esta entrega.</span>
+                    </label>
+
+                    <button
+                        type="button"
+                        class="w-full rounded-xl bg-[#22c55e] py-3.5 text-sm font-black text-white shadow-lg shadow-green-500/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                        :disabled="!canSubmitDeliveryConfirmation"
+                        @click="completeDelivery"
+                    >
+                        <span v-if="isAdvancing"><i class="fa-solid fa-spinner fa-spin"></i> CONFIRMANDO...</span>
+                        <span v-else>CONFIRMAR ENTREGA</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+            :class="[
+                'fixed inset-0 z-[100] flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm transition-opacity',
                 isWithdrawModalOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
             ]"
         >
@@ -1366,7 +2220,83 @@ onBeforeUnmount(() => {
 
 .delivery-pro {
     font-family: 'Inter', sans-serif;
+    height: 100dvh;
+    max-height: 100dvh;
     -webkit-tap-highlight-color: transparent;
+}
+
+.delivery-header-brand {
+    max-width: calc(100% - 6rem);
+}
+
+.delivery-header-meta span:last-child {
+    white-space: nowrap;
+}
+
+.delivery-shift-dot {
+    box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08);
+}
+
+.delivery-dark .delivery-shift-dot {
+    border-color: #101827 !important;
+    box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.28);
+}
+
+.delivery-dark .delivery-shift-dot.bg-slate-400 {
+    background-color: #64748b !important;
+}
+
+.delivery-order-tabs {
+    backdrop-filter: blur(16px);
+}
+
+.delivery-dark .delivery-order-tabs {
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    background: rgba(16, 24, 39, 0.92) !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.24);
+}
+
+.delivery-bottom-nav {
+    position: sticky;
+    bottom: 0;
+    box-shadow: 0 -10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.delivery-dark .delivery-bottom-nav {
+    box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.38);
+}
+
+.delivery-logout-button {
+    border: 1px solid #fecaca;
+    background: #fee2e2;
+    color: #b91c1c;
+    box-shadow: 0 12px 26px rgba(239, 68, 68, 0.12);
+}
+
+.delivery-logout-button:active {
+    background: #fecaca;
+}
+
+.delivery-dark .delivery-logout-button {
+    border-color: rgba(248, 113, 113, 0.38);
+    background: linear-gradient(135deg, rgba(127, 29, 29, 0.92), rgba(185, 28, 28, 0.76));
+    color: #fff1f2;
+    box-shadow: 0 18px 36px rgba(127, 29, 29, 0.32);
+}
+
+.delivery-dark .delivery-logout-button:active {
+    background: linear-gradient(135deg, rgba(153, 27, 27, 0.96), rgba(220, 38, 38, 0.82));
+}
+
+@supports not (height: 100dvh) {
+    .delivery-pro {
+        height: 100vh;
+        max-height: 100vh;
+    }
+}
+
+.delivery-onboarding {
+    z-index: 200;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -1380,7 +2310,7 @@ onBeforeUnmount(() => {
 
 .view {
     display: none;
-    height: 100%;
+    min-height: 100%;
     animation: fade-in 0.2s ease-in-out forwards;
 }
 

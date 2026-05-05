@@ -1,3 +1,9 @@
+<!--
+  Guia rapida para presentar:
+  Vista de About. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: sobre nosotros, equipo, empresa, presentacion.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -302,7 +308,7 @@ const cultureValues = [
                     <div class="grid grid-cols-2 gap-3 md:gap-6">
                         <img src="https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Dashboard operativo">
                         <img src="https://images.unsplash.com/photo-1512132411229-c30391241dd8?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cocina eficiente">
-                        <img src="https://images.unsplash.com/photo-1610411726713-17b587b1c4b2?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Repartidor en movimiento">
+                        <img src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Repartidor en movimiento">
                         <img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cliente satisfecho">
                     </div>
                 </div>

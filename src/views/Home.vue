@@ -1,8 +1,14 @@
+<!--
+  Guia rapida para presentar:
+  Pantalla principal del cliente. Reune busqueda, filtros, ofertas y tarjetas de franquicias.
+  Buscar en VS Code: home, inicio, busqueda, categorias, ofertas, filtros, franquicias, goToFranchise.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
-import { APP_EVENTS, clearSession, getCartCount, getSession } from '../services/storage';
+import { APP_EVENTS, clearSession, getCartCount, getSession, getUnreadNotificationsCount } from '../services/storage';
 
 // Image Imports
 import heroBg from '@/assets/images/hero-bg.png';
@@ -29,17 +35,29 @@ const error = ref(null);
 const searchTerm = ref('');
 const currentCategory = ref('all');
 
+const OFFER_MESSAGES = [
+    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rapido sin revisar todo el menu.' },
+    { title: 'Favorito FoodRush', badge: 'Popular', copy: 'Franquicias con ofertas y productos ideales para compartir.' },
+    { title: 'Delivery recomendado', badge: 'Envio agil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
+];
+
 const router = useRouter();
 const userName = ref(getSession().userName || '');
 
 // Cart State
 const cartCount = ref(0);
+const notificationCount = ref(0);
 const updateCartCount = () => {
     cartCount.value = getCartCount();
+};
+const updateNotificationCount = () => {
+    const session = getSession();
+    notificationCount.value = session.isAuthenticated ? getUnreadNotificationsCount(session.userEmail) : 0;
 };
 const syncSessionState = () => {
     userName.value = getSession().userName || '';
     updateCartCount();
+    updateNotificationCount();
 };
 
 // Carousel
@@ -84,19 +102,25 @@ const franchiseMetadata = {
     "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
 };
 
+// Para presentar: fallback visual; mantiene la home viva aunque Render tarde o falle temporalmente.
 const buildFallbackFranchises = () =>
     Object.entries(franchiseMetadata).map(([name, meta], index) => ({
         id: index + 1,
         name,
         category: meta.category || 'General',
         rating: meta.rating || 4,
-        img: meta.img || "https://via.placeholder.com/150",
+        img: meta.img || logoStarbucks,
         pickup: meta.pickup !== undefined ? meta.pickup : true,
         promo: meta.promo !== undefined ? meta.promo : false
     }));
 
+// Carga franquicias desde Render. Si la nube esta dormida, deja una lista local para que la portada no quede vacia.
+// Para presentar: llamada principal al backend para traer franquicias reales desde /api/tenants.
 const fetchFranchises = async () => {
-    loading.value = true;
+    if (franchises.value.length === 0) {
+        franchises.value = buildFallbackFranchises();
+    }
+    loading.value = false;
     error.value = null;
     try {
         const response = await api.getFranchises();
@@ -110,7 +134,7 @@ const fetchFranchises = async () => {
                     name: tenant.nombre,
                     category: meta.category || 'General',
                     rating: meta.rating || 4.0,
-                    img: meta.img || "https://via.placeholder.com/150",
+                    img: meta.img || logoStarbucks,
                     pickup: meta.pickup !== undefined ? meta.pickup : true,
                     promo: meta.promo !== undefined ? meta.promo : false
                 };
@@ -119,7 +143,9 @@ const fetchFranchises = async () => {
         franchises.value = mappedFranchises.length > 0 ? mappedFranchises : buildFallbackFranchises();
     } catch (err) {
         console.warn('Falling back to local franchises list', err);
-        franchises.value = buildFallbackFranchises();
+        if (franchises.value.length === 0) {
+            franchises.value = buildFallbackFranchises();
+        }
     } finally {
         loading.value = false;
     }
@@ -128,9 +154,11 @@ const fetchFranchises = async () => {
 onMounted(async () => {
     syncSessionState();
     updateCartCount();
-    window.addEventListener('storage', updateCartCount);
+    updateNotificationCount();
+    window.addEventListener('storage', syncSessionState);
     window.addEventListener(APP_EVENTS.cartChanged, updateCartCount);
     window.addEventListener(APP_EVENTS.authChanged, syncSessionState);
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 
     await fetchFranchises();
     startCarousel();
@@ -138,15 +166,14 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     clearInterval(carouselInterval);
-    window.removeEventListener('storage', updateCartCount);
+    window.removeEventListener('storage', syncSessionState);
     window.removeEventListener(APP_EVENTS.cartChanged, updateCartCount);
     window.removeEventListener(APP_EVENTS.authChanged, syncSessionState);
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
-const setCategory = (category) => {
-    currentCategory.value = category;
-};
-
+// Todo filtro de Home termina aqui: categoria, texto de busqueda, promos, pickup y ordenamiento.
+// Para presentar: aqui se cruzan busqueda, categoria, filtros y promos antes de pintar tarjetas.
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
 
@@ -174,6 +201,16 @@ const filteredFranchises = computed(() => {
     return result;
 });
 
+// Las ofertas se derivan de franquicias con promo para no mantener otra lista manual.
+const offerCards = computed(() =>
+    franchises.value
+        .filter((item) => item.promo)
+        .map((item, index) => ({
+            ...item,
+            offer: OFFER_MESSAGES[index % OFFER_MESSAGES.length],
+        })),
+);
+
 const toggleModalFilter = (filter) => {
     if (activeFilters.value.includes(filter)) {
         activeFilters.value = activeFilters.value.filter(f => f !== filter);
@@ -200,6 +237,7 @@ const franchiseRoutes = {
     "Panda Express": "/franchise/panda-express"
 };
 
+// Para presentar: esta funcion traduce la franquicia elegida a su ruta /franchise/... y guarda tenant_id.
 const goToFranchise = (id, name) => {
     const route = franchiseRoutes[name];
     if (route) {
@@ -211,8 +249,48 @@ const goToFranchise = (id, name) => {
 
 const scrollToSection = (id) => {
     const element = document.getElementById(id);
-    if (element) element.scrollIntoView({ behavior: 'smooth' });
+    if (!element) return;
+
+    const stickyOffset = id === 'top' ? 0 : 96;
+    const top = element.getBoundingClientRect().top + window.scrollY - stickyOffset;
+    window.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' });
 };
+
+const selectCategorySection = (category) => {
+    searchTerm.value = '';
+    currentCategory.value = category;
+};
+
+const clearHomeFilters = () => {
+    searchTerm.value = '';
+    currentCategory.value = 'all';
+    activeFilters.value = [];
+};
+
+const showPromoResults = () => {
+    searchTerm.value = '';
+    currentCategory.value = 'all';
+    if (!activeFilters.value.includes('descuentos')) {
+        activeFilters.value = [...activeFilters.value, 'descuentos'];
+    }
+    requestAnimationFrame(() => scrollToSection('franchises'));
+};
+
+const applyModalFilters = () => {
+    showFilters.value = false;
+    requestAnimationFrame(() => scrollToSection('franchises'));
+};
+
+const hasActiveRestaurantFilters = computed(() =>
+    currentCategory.value !== 'all' || searchTerm.value.trim() || activeFilters.value.length > 0,
+);
+
+const filterResultText = computed(() => {
+    const count = filteredFranchises.value.length;
+    if (count === 0) return 'Sin resultados con estos filtros';
+    if (count === 1) return '1 franquicia disponible';
+    return `${count} franquicias disponibles`;
+});
 </script>
 
 <template>
@@ -221,50 +299,48 @@ const scrollToSection = (id) => {
         <span class="text-accent">⚡</span> ¡Tu Gusto Nuestra Felicidad! <span class="text-accent">⚡</span>
     </div>
     <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
-        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 md:px-12">
+        <div class="max-w-screen-xl flex items-center justify-between mx-auto px-3 sm:px-4 md:px-12 gap-3">
             <a href="#" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
-                <i class="fas fa-bolt text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
-                <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
+                <i class="fas fa-bolt text-xl sm:text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
+                <span class="self-center text-xl sm:text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
                     FOOD<span class="text-primary">RUSH</span>
                 </span>
             </a>
 
             <nav class="hidden md:flex gap-8 font-medium">
                 <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
-                <a href="#" @click.prevent="scrollToSection('franchises')" class="text-gray-500 hover:text-primary transition font-medium">Categorías</a>
-                <a href="#" @click.prevent="scrollToSection('contact')" class="text-gray-500 hover:text-primary transition font-medium">Ofertas</a>
             </nav>
 
-            <div class="flex items-center gap-5">
-                <button class="md:hidden text-gray-600 text-xl"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button @click="scrollToSection('top')" class="md:hidden text-gray-500 text-lg h-9 w-9 rounded-full flex items-center justify-center hover:bg-gray-50" aria-label="Buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
 
-                <div v-if="userName" class="flex items-center gap-5">
-                    <div class="flex items-center gap-4 mr-2">
-                        <button class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
-                            <i class="fa-regular fa-bell text-xl"></i>
-                            <span class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full font-bold border-2 border-white">2</span>
+                <div v-if="userName" class="flex items-center gap-2 sm:gap-4">
+                    <div class="flex items-center gap-3 sm:mr-1">
+                        <button @click="router.push('/notifications')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Notificaciones">
+                            <i class="fa-regular fa-bell text-lg sm:text-xl"></i>
+                            <span v-if="notificationCount > 0" class="absolute -top-1.5 -right-1 bg-red-500 text-white text-[10px] min-w-4 h-4 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ notificationCount }}</span>
                         </button>
                         <button @click="router.push('/cart')" class="relative text-gray-400 hover:text-slate-800 transition" aria-label="Carrito de compras">
-                            <i class="fa-solid fa-cart-shopping text-xl"></i>
+                            <i class="fa-solid fa-cart-shopping text-lg sm:text-xl"></i>
                             <span v-if="cartCount > 0" class="absolute -top-1.5 -right-2 bg-orange-500 text-white text-[10px] w-4.5 h-4.5 px-1 flex items-center justify-center rounded-full font-bold border-2 border-white">{{ cartCount }}</span>
                         </button>
                     </div>
 
-                    <div class="h-8 w-px bg-gray-200"></div>
+                    <div class="hidden sm:block h-8 w-px bg-gray-200"></div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="flex flex-col items-end">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="hidden sm:flex flex-col items-end">
                             <span class="font-bold text-slate-700 text-sm">{{ userName.split(' ')[0] }}</span>
                             <button @click="handleLogout" class="text-[11px] text-red-500 font-bold hover:underline">Cerrar sesión</button>
                         </div>
-                        <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
+                        <div @click="router.push('/profile')" class="w-9 h-9 sm:w-10 sm:h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
                             <i class="fa-regular fa-user"></i>
                         </div>
                     </div>
                 </div>
 
-                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-sm">
-                    <i class="fa-solid fa-user text-xs"></i> Iniciar Sesión
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-3 sm:px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-xs sm:text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-user text-xs"></i> <span class="hidden sm:inline">Iniciar Sesión</span><span class="sm:hidden">Entrar</span>
                 </button>
             </div>
         </div>
@@ -286,7 +362,7 @@ const scrollToSection = (id) => {
                         <i class="fa-solid fa-magnifying-glass text-accent"></i>
                     </div>
                     <input type="text" v-model="searchTerm" placeholder="Buscar franquicia o comida...">
-                    <button>Buscar</button>
+                    <button @click="scrollToSection('franchises')">Buscar</button>
                 </div>
             </div>
         </div>
@@ -299,8 +375,8 @@ const scrollToSection = (id) => {
         </div>
     </div>
 
-    <section id="franchises" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
-        <div class="flex flex-col md:flex-row gap-4 items-start md:items-center mb-8">
+    <section id="categories" class="container mx-auto px-4 md:px-12 py-8 md:py-10">
+        <div id="category-filters" class="flex flex-col gap-4 md:flex-row md:items-center">
             <button @click="showFilters = true" class="bg-dark hover:bg-gray-800 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-lg transition flex-shrink-0">
                 <i class="fa-solid fa-sliders"></i>
                 <span>Filtros</span>
@@ -308,19 +384,83 @@ const scrollToSection = (id) => {
 
             <div class="w-full overflow-x-auto no-scrollbar pb-2">
                 <div class="flex flex-wrap md:flex-nowrap gap-3 min-w-max">
-                    <button @click="setCategory('all')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'all' ? 'active' : '']">Todos</button>
-                    <button @click="setCategory('Hamburguesa')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Hamburguesa' ? 'active' : '']"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
-                    <button @click="setCategory('Pizza')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pizza' ? 'active' : '']"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
-                    <button @click="setCategory('Pollo')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pollo' ? 'active' : '']"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
-                    <button @click="setCategory('Bebidas')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Bebidas' ? 'active' : '']"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
-                    <button @click="setCategory('Tacos')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Tacos' ? 'active' : '']"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
-                    <button @click="setCategory('Postres')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Postres' ? 'active' : '']"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
-                    <button @click="setCategory('Criolla')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Criolla' ? 'active' : '']"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
+                    <button @click="selectCategorySection('all')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'all' ? 'active' : '']">Todos</button>
+                    <button @click="selectCategorySection('Hamburguesa')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Hamburguesa' ? 'active' : '']"><i class="fa-solid fa-burger mr-1"></i> Hamburguesas</button>
+                    <button @click="selectCategorySection('Pizza')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pizza' ? 'active' : '']"><i class="fa-solid fa-pizza-slice mr-1"></i> Pizza</button>
+                    <button @click="selectCategorySection('Pollo')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Pollo' ? 'active' : '']"><i class="fa-solid fa-drumstick-bite mr-1"></i> Pollo</button>
+                    <button @click="selectCategorySection('Bebidas')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Bebidas' ? 'active' : '']"><i class="fa-solid fa-mug-hot mr-1"></i> Bebidas</button>
+                    <button @click="selectCategorySection('Tacos')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Tacos' ? 'active' : '']"><i class="fa-solid fa-pepper-hot mr-1"></i> Tacos</button>
+                    <button @click="selectCategorySection('Postres')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Postres' ? 'active' : '']"><i class="fa-solid fa-ice-cream mr-1"></i> Postres</button>
+                    <button @click="selectCategorySection('Criolla')" :class="['filter-btn px-5 py-2 rounded-full font-bold text-sm whitespace-nowrap', currentCategory === 'Criolla' ? 'active' : '']"><i class="fa-solid fa-utensils mr-1"></i> Criolla</button>
                 </div>
             </div>
         </div>
 
-        <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div v-if="hasActiveRestaurantFilters" class="filter-action-bar">
+            <div class="min-w-0">
+                <p class="text-xs font-black uppercase tracking-[0.18em] text-primary">Filtro aplicado</p>
+                <p class="truncate text-sm font-bold text-slate-700">{{ filterResultText }}</p>
+            </div>
+            <div class="flex flex-shrink-0 items-center gap-2">
+                <button @click="clearHomeFilters" class="filter-secondary-action">Limpiar</button>
+                <button @click="scrollToSection('franchises')" class="filter-primary-action">
+                    Ver resultados
+                    <i class="fa-solid fa-arrow-down"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section id="offers" class="bg-white py-8 md:py-12">
+        <div class="container mx-auto px-4 md:px-12">
+            <div class="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-xs font-black uppercase tracking-[0.25em] text-accent">Ofertas</p>
+                    <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Promos activas hoy</h2>
+                </div>
+                <button @click="showPromoResults" class="w-fit rounded-full bg-dark px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:bg-black">
+                    Ver todas las promos
+                </button>
+            </div>
+
+            <div v-if="offerCards.length === 0" class="rounded-2xl border border-dashed border-orange-200 bg-orange-50 p-6 text-sm font-bold text-orange-700">
+                No hay ofertas activas ahora mismo.
+            </div>
+
+            <div v-else class="grid gap-4 md:grid-cols-3">
+                <article
+                    v-for="item in offerCards.slice(0, 3)"
+                    :key="`offer-${item.id}`"
+                    class="offer-card overflow-hidden rounded-2xl border border-orange-100 bg-[#fffaf3] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                >
+                    <div class="flex items-center gap-4 p-4">
+                        <div class="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
+                            <img :src="item.img" :alt="item.name" class="max-h-full max-w-full object-contain">
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <span class="inline-flex rounded-full bg-accent px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white">{{ item.offer.badge }}</span>
+                            <h3 class="mt-2 truncate text-lg font-black text-dark">{{ item.name }}</h3>
+                            <p class="mt-1 text-xs font-semibold text-gray-500">{{ item.offer.copy }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between border-t border-orange-100 bg-white/70 px-4 py-3">
+                        <span class="text-xs font-bold uppercase tracking-wide text-gray-400">{{ item.offer.title }}</span>
+                        <button @click="goToFranchise(item.id, item.name)" class="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition hover:bg-red-700">
+                            Ver oferta
+                        </button>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section id="franchises" class="container mx-auto px-4 md:px-12 py-8 md:py-12">
+        <div class="mb-6">
+            <p class="text-xs font-black uppercase tracking-[0.25em] text-primary">Restaurantes</p>
+            <h2 class="mt-2 text-2xl md:text-4xl font-black text-dark">Franquicias disponibles</h2>
+        </div>
+
+        <div v-if="loading" class="franchise-grid">
             <div v-for="i in 8" :key="i" class="bg-white rounded-2xl p-5 shadow-sm space-y-4 animate-pulse border border-gray-100 flex flex-col items-center justify-center h-[230px]">
                 <div class="w-24 h-24 bg-gray-200 rounded-full mb-2"></div>
                 <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -340,29 +480,31 @@ const scrollToSection = (id) => {
             </div>
             <h3 class="text-2xl font-bold text-slate-800 mb-2 font-display">Ups, no hay resultados</h3>
             <p class="text-gray-500 max-w-md mx-auto mb-6">No encontramos restaurantes que coincidan con tu búsqueda. Intenta con otros términos o quita los filtros activos.</p>
-            <button @click="searchTerm = ''; currentCategory = 'all'; activeFilters = []" class="bg-orange-50 text-orange-600 px-6 py-2.5 rounded-full font-bold border border-orange-200 hover:bg-orange-100 transition shadow-sm">
+            <button @click="clearHomeFilters" class="bg-orange-50 text-orange-600 px-6 py-2.5 rounded-full font-bold border border-orange-200 hover:bg-orange-100 transition shadow-sm">
                 Limpiar Filtros
             </button>
         </div>
 
-        <div v-else class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div v-else class="franchise-grid">
             <div v-for="(item, idx) in filteredFranchises" :key="item.id"
-                 class="card-franchise flex flex-col items-center justify-center text-center p-5 cursor-pointer group fade-in"
+                 class="card-franchise flex flex-col items-center text-center cursor-pointer group fade-in"
                  :style="{ animationDelay: `${Math.min(idx, 10) * 55}ms` }"
                  @click="goToFranchise(item.id, item.name)">
-                
-                <span v-if="item.promo" class="absolute top-3 right-3 bg-accent text-white text-[10px] uppercase tracking-wide px-2 py-1 rounded-md font-bold shadow-sm z-10">Promo</span>
 
-                <div class="w-28 h-28 mb-4 flex items-center justify-center relative z-10 transition-transform duration-300 group-hover:scale-110">
-                    <img :src="item.img" :alt="item.name" class="max-w-full max-h-full object-contain drop-shadow-sm" loading="lazy">
+                <div class="mb-2 flex h-6 w-full justify-end">
+                    <span v-if="item.promo" class="promo-chip">Promo</span>
                 </div>
 
-                <h3 class="font-bold text-lg text-dark mb-1 group-hover:text-primary transition line-clamp-1">{{ item.name }}</h3>
+                <div class="franchise-logo-frame relative z-10 transition-transform duration-300 group-hover:scale-[1.03]">
+                    <img :src="item.img" :alt="item.name" class="franchise-logo-img" loading="lazy">
+                </div>
 
-                <div class="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
-                    <div class="flex items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>{{ item.rating }}</div>
-                    <span class="text-gray-300">|</span>
-                    <span class="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">{{ item.category }}</span>
+                <h3 class="franchise-title group-hover:text-primary">{{ item.name }}</h3>
+
+                <div class="franchise-meta">
+                    <div class="flex shrink-0 items-center text-accent"><i class="fa-solid fa-star text-xs mr-1"></i>{{ item.rating }}</div>
+                    <span class="text-gray-300" aria-hidden="true">|</span>
+                    <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
                 <div v-if="item.pickup" class="w-full mt-2 pt-2 border-t border-gray-50 text-[11px] text-green-600 font-bold flex items-center justify-center gap-1">
@@ -441,7 +583,7 @@ const scrollToSection = (id) => {
                 </div>
             </div>
 
-            <button @click="showFilters = false" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
+            <button @click="applyModalFilters" class="w-full bg-dark hover:bg-black text-white font-bold py-3.5 rounded-xl transition shadow-lg text-lg mt-8 flex justify-center items-center gap-2">
                 <span>Ver Resultados</span>
                 <i class="fa-solid fa-arrow-right"></i>
             </button>
@@ -497,16 +639,103 @@ const scrollToSection = (id) => {
 .search-icon { padding-left: 20px; color: #9CA3AF; font-size: 18px; }
 
 /* ── Franchise Cards ── */
+.franchise-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 .card-franchise {
-    background: white; border-radius: 16px;
+    background: white;
+    border-radius: 16px;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 1px solid #f3f4f6; position: relative; overflow: hidden;
+    border: 1px solid #f3f4f6;
+    position: relative;
+    overflow: hidden;
+    min-height: 250px;
+    padding: 18px;
 }
 .card-franchise:hover {
     transform: translateY(-5px);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border-color: #F48C06;
+}
+.promo-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    border-radius: 9999px;
+    background: #F48C06;
+    color: #fff;
+    padding: 4px 9px;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    box-shadow: 0 6px 12px rgba(244, 140, 6, 0.22);
+    white-space: nowrap;
+}
+.franchise-logo-frame {
+    width: 100%;
+    max-width: 128px;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    padding: 14px;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+}
+.franchise-logo-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.08));
+}
+.franchise-title {
+    width: 100%;
+    min-height: 2.5em;
+    margin-bottom: 8px;
+    color: #1a1a2e;
+    font-size: 1.05rem;
+    font-weight: 800;
+    line-height: 1.2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    transition: color 0.2s ease;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+.franchise-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-width: 0;
+    margin-bottom: 8px;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.franchise-category {
+    min-width: 0;
+    max-width: 100%;
+    border-radius: 7px;
+    background: #f3f4f6;
+    color: #4b5563;
+    padding: 3px 8px;
+    font-size: 12px;
+    line-height: 1.15;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* ── Filter Buttons ── */
@@ -516,6 +745,57 @@ const scrollToSection = (id) => {
 }
 .filter-btn:hover { border-color: #D90429; color: #D90429; }
 .filter-btn.active { background-color: #D90429; color: white; border-color: #D90429; box-shadow: 0 4px 6px rgba(217, 4, 41, 0.2); }
+
+.filter-action-bar {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid rgba(217, 4, 41, 0.12);
+    border-radius: 18px;
+    background: #fff;
+    padding: 12px 14px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.filter-primary-action,
+.filter-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.filter-primary-action {
+    gap: 8px;
+    background: #D90429;
+    color: #fff;
+    padding: 11px 16px;
+    box-shadow: 0 8px 18px rgba(217, 4, 41, 0.18);
+}
+
+.filter-primary-action:hover {
+    transform: translateY(-1px);
+    background: #b90323;
+    box-shadow: 0 12px 22px rgba(217, 4, 41, 0.22);
+}
+
+.filter-secondary-action {
+    border: 1px solid rgba(217, 4, 41, 0.16);
+    background: #fff5f6;
+    color: #D90429;
+    padding: 10px 14px;
+}
+
+.filter-secondary-action:hover {
+    background: #ffe9ed;
+}
 
 /* ── Modal Chips ── */
 .modal-chip {
@@ -533,4 +813,145 @@ const scrollToSection = (id) => {
 /* ── Scrollbar Hide ── */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+@media (max-width: 640px) {
+    .franchise-grid {
+        gap: 0.75rem;
+    }
+
+    .clean-search {
+        height: 50px;
+        border-radius: 14px;
+    }
+
+    .clean-search input {
+        min-width: 0;
+        padding-left: 10px;
+        font-size: 14px;
+    }
+
+    .clean-search button {
+        padding: 0 14px;
+        font-size: 12px;
+        letter-spacing: 0;
+    }
+
+    .search-icon {
+        padding-left: 14px;
+        font-size: 16px;
+    }
+
+    .card-franchise {
+        min-height: 220px;
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    .promo-chip {
+        padding: 4px 7px;
+        font-size: 9px;
+    }
+
+    .franchise-logo-frame {
+        max-width: 96px;
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 14px;
+    }
+
+    .franchise-title {
+        min-height: 2.45em;
+        margin-bottom: 6px;
+        font-size: 0.98rem;
+    }
+
+    .franchise-meta {
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 6px;
+        font-size: 0.8rem;
+    }
+
+    .franchise-meta > .text-gray-300 {
+        display: none;
+    }
+
+    .franchise-category {
+        max-width: 100%;
+        font-size: 11px;
+    }
+
+    .filter-action-bar {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 10px;
+        border-radius: 16px;
+    }
+
+    .filter-action-bar > div:last-child {
+        width: 100%;
+    }
+
+    .filter-primary-action,
+    .filter-secondary-action {
+        min-height: 42px;
+        flex: 1;
+    }
+
+    .offer-card {
+        border-radius: 18px;
+    }
+}
+
+@media (max-width: 360px) {
+    .franchise-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.625rem;
+    }
+
+    .card-franchise {
+        min-height: 205px;
+        padding: 9px;
+        border-radius: 13px;
+    }
+
+    .promo-chip {
+        padding: 3px 6px;
+        font-size: 8px;
+    }
+
+    .franchise-logo-frame {
+        max-width: 82px;
+        margin-bottom: 10px;
+        padding: 8px;
+    }
+
+    .franchise-title {
+        min-height: 2.35em;
+        font-size: 0.88rem;
+    }
+
+    .franchise-meta {
+        gap: 4px;
+        font-size: 0.72rem;
+    }
+
+    .franchise-category {
+        padding: 3px 6px;
+        font-size: 10px;
+    }
+}
+
+@media (min-width: 768px) {
+    .franchise-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .franchise-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
 </style>

@@ -1,20 +1,40 @@
+/*
+  Guia rapida para presentar:
+  Une datos reales del backend con datos QA para que Admin, Delivery y Tracking hablen el mismo idioma.
+  Buscar en VS Code: dataset operativo, administracion, delivery, estados de pedido, tenant.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 import { api } from './api';
+import { getDeliveryAssignment, getSession } from './storage';
+import { enrichOperationalDatasetWithQaData } from '../data/qaOperationalDataset';
 import { franchiseConfigs } from '../views/franchiseConfigs';
+import { resolveDeliveryCode } from '../utils/deliveryCode';
 
+// Estados compartidos entre pantallas. Si cambian en la DB, este mapa ayuda a mantener la UI coherente.
 export const ORDER_STATUS_IDS = {
   pending: 1,
-  preparing: 2,
-  inTransit: 3,
-  delivered: 4,
-  cancelled: 5,
+  confirmed: 2,
+  preparing: 3,
+  inTransit: 4,
+  delivered: 5,
+  cancelled: 6,
+};
+
+export const ORDER_STATUS_CODES = {
+  pending: 'pendiente',
+  preparing: 'preparando',
+  inTransit: 'en camino',
+  delivered: 'entregado',
+  cancelled: 'cancelado',
 };
 
 export const ORDER_STATUS_LABELS = {
-  1: 'Pendiente',
-  2: 'Preparando',
-  3: 'En camino',
-  4: 'Entregado',
-  5: 'Cancelado',
+  1: 'Pendiente de confirmacion',
+  2: 'Pedido confirmado por el restaurante',
+  3: 'Pedido en preparación',
+  4: 'Pedido en camino',
+  5: 'Pedido entregado',
+  6: 'Pedido cancelado',
 };
 
 const STATUS_VARIANTS = {
@@ -55,6 +75,30 @@ const safeText = (value, fallback = '') => {
   return normalized || fallback;
 };
 
+const normalizeText = (value = '') =>
+  safeText(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+
+export const normalizeStatusKey = (value = '') => {
+  const rawValue = safeText(value);
+  const numericValue = Number.parseInt(rawValue, 10);
+  if (Number.isFinite(numericValue) && rawValue === String(numericValue) && ORDER_STATUS_LABELS[numericValue]) {
+    return normalizeStatusKey(ORDER_STATUS_LABELS[numericValue]);
+  }
+
+  const normalized = normalizeText(rawValue);
+  if (!normalized) return 'pendiente';
+  if (normalized.includes('cancel')) return 'cancelado';
+  if (normalized.includes('entreg')) return 'entregado';
+  if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
+  if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
+  return normalized;
+};
+
 const toNumber = (value, fallback = 0) => {
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -77,15 +121,42 @@ const dedupeBy = (items = [], getKey) => {
 export const buildTenantHeaders = (tenantId) =>
   tenantId ? { 'X-Tenant-ID': String(tenantId) } : {};
 
+const buildFallbackTenantsFromConfigs = () =>
+  Object.values(franchiseConfigs).map((config, index) =>
+    normalizeTenant(
+      {
+        id: config.tenantId || index + 1,
+        codigo: config.slug || `tenant-${index + 1}`,
+        nombre: config.name || `Franquicia ${index + 1}`,
+        activo: true,
+      },
+      index,
+    ),
+  );
+
 export const getStatusLabel = (order = {}) => {
-  const explicit = safeText(order?.estado?.descripcion || order?.status || order?.estado);
+  const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
+  const explicit = safeText(order?.statusLabel || order?.status || order?.estado?.descripcion || order?.estado);
+  const explicitKey = normalizeStatusKey(explicit);
+  const statusIdLabel = ORDER_STATUS_LABELS[statusId];
+  const statusIdKey = statusIdLabel ? normalizeStatusKey(statusIdLabel) : '';
+
+  if (statusId === ORDER_STATUS_IDS.pending && explicitKey === 'pendiente') {
+    return ORDER_STATUS_LABELS[ORDER_STATUS_IDS.pending];
+  }
+
+  if (statusIdLabel && statusId !== ORDER_STATUS_IDS.pending) {
+    if (!explicit || explicitKey === 'pendiente' || explicitKey !== statusIdKey) {
+      return statusIdLabel;
+    }
+  }
+
   if (explicit) return explicit;
 
-  const statusId = Number.parseInt(order?.estado_id ?? order?.estado?.id, 10);
-  return ORDER_STATUS_LABELS[statusId] || 'Pendiente';
+  return statusIdLabel || 'Pendiente';
 };
 
-const getStatusKey = (label = '') => safeText(label, 'Pendiente').toLowerCase();
+const getStatusKey = (label = '') => normalizeStatusKey(label || 'Pendiente');
 
 export const getStatusVariant = (label = '') =>
   STATUS_VARIANTS[getStatusKey(label)] || 'bg-slate-50 text-slate-700 border-slate-200';
@@ -107,6 +178,7 @@ export const isSessionActive = (session = {}) => {
   return Number.isFinite(expirationMs) && expirationMs > Date.now();
 };
 
+// Normaliza franquicias para que Admin, Delivery y Tracking reciban los mismos nombres y colores.
 export const normalizeTenant = (tenant = {}, index = 0) => {
   const id = safeText(tenant.id, `tenant-${index + 1}`);
   const meta = franchiseMetaByTenantId.get(id) || {};
@@ -125,6 +197,7 @@ export const normalizeTenant = (tenant = {}, index = 0) => {
   };
 };
 
+// Producto enriquecido con datos de franquicia; Admin usa esto para filtros y tarjetas de catalogo.
 const normalizeProduct = (product = {}, tenant) => ({
   ...product,
   tenantId: safeText(tenant.id),
@@ -215,13 +288,45 @@ const buildClientsMap = (clients = []) =>
     ]),
   );
 
-const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap) => {
+const buildAssignmentsByOrderId = (assignments = []) =>
+  new Map(
+    assignments
+      .filter((assignment) => !['released', 'liberado'].includes(safeText(assignment.status || assignment.estado).toLowerCase()))
+      .map((assignment) => [
+        safeText(assignment.orderId || assignment.pedido_id),
+        {
+          orderId: safeText(assignment.orderId || assignment.pedido_id),
+          tenantId: safeText(assignment.tenantId || assignment.tenant_id),
+          driverId: safeText(assignment.driverId || assignment.repartidor_id),
+          repartidor_id: safeText(assignment.repartidor_id || assignment.driverId),
+          driverName: safeText(assignment.driverName || assignment.repartidor_nombre, 'Repartidor FoodRush'),
+          driverEmail: safeText(assignment.driverEmail || assignment.repartidor_email),
+          status: safeText(assignment.status || assignment.estado, 'accepted'),
+          stage: safeText(assignment.stage || assignment.status, 'accepted'),
+          assignedAt: safeText(assignment.assignedAt || assignment.asignado_en),
+          updatedAt: safeText(assignment.updatedAt),
+        },
+      ]),
+  );
+
+// Convertimos pedidos de varias fuentes al mismo formato para que Admin, Delivery y Tracking no dupliquen reglas.
+const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId) => {
   const id = safeText(order.id);
   const statusLabel = getStatusLabel(order);
-  const statusKey = getStatusKey(statusLabel);
-  const relatedItems = (itemsByOrderId.get(id) || []).map((item, index) => {
+  const statusKey = getStatusKey(order.estado?.codigo || order.statusKey || order.status_key || statusLabel);
+  const explicitItems = Array.isArray(order.items) ? order.items : [];
+  const itemCandidates = dedupeBy(
+    [...(itemsByOrderId.get(id) || []), ...explicitItems],
+    (item, index) => safeText(item.id, `${safeText(item.producto_id || item.productId || item.producto?.id)}:${index}`),
+  );
+
+  const relatedItems = itemCandidates.map((item, index) => {
     const productId = safeText(item.producto_id || item.productoId);
-    const product = productsMap.get(productId);
+    const product = productsMap.get(productId) || {
+      id: productId,
+      name: safeText(item.producto?.nombre || item.product?.name),
+      price: toNumber(item.producto?.precio ?? item.product?.price),
+    };
     const quantity = toNumber(item.cantidad ?? item.qty, 1);
     const unitPrice = toNumber(item.precio_unitario ?? item.price ?? product?.price, 0);
 
@@ -244,6 +349,7 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
       }
     : null;
   const customer = clientsMap.get(customerId) || customerFromOrder || {};
+  const deliveryAssignment = assignmentsByOrderId.get(id) || getDeliveryAssignment(id);
 
   return {
     ...order,
@@ -266,8 +372,10 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     statusKey,
     statusVariant: getStatusVariant(statusLabel),
     progressStep: getOrderProgressStep(statusLabel),
-    securityCode: safeText(order.codigo_seguridad || order.securityCode),
-    driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName),
+    securityCode: resolveDeliveryCode(order, id),
+    driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName || deliveryAssignment?.driverName),
+    driverEmail: safeText(order.repartidor_email || order.driverEmail || deliveryAssignment?.driverEmail),
+    deliveryAssignment,
     itemsDetailed: relatedItems,
     itemCount: relatedItems.reduce((total, item) => total + item.quantity, 0),
     itemSummary: relatedItems.length
@@ -291,12 +399,13 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   const headers = buildTenantHeaders(tenant.id);
   const warnings = [];
 
-  const [ordersResult, productsResult, usersResult, clientsResult, orderItemsResult] = await Promise.allSettled([
+  const [ordersResult, productsResult, usersResult, clientsResult, orderItemsResult, assignmentsResult] = await Promise.allSettled([
     api.getOrders({}, headers),
     api.getProducts({ limite: 200 }, headers),
     api.getUsers({}, headers),
     api.getClients({}, headers),
     api.getOrderItems({}, headers),
+    api.getDeliveryAssignments({}, headers),
   ]);
 
   collectWarning(warnings, ordersResult, `Pedidos ${tenant.name}`);
@@ -304,6 +413,7 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   collectWarning(warnings, usersResult, `Usuarios ${tenant.name}`);
   collectWarning(warnings, clientsResult, `Clientes ${tenant.name}`);
   collectWarning(warnings, orderItemsResult, `Detalle de pedidos ${tenant.name}`);
+  collectWarning(warnings, assignmentsResult, `Delivery ${tenant.name}`);
 
   const products = collectResultOrDefault(productsResult).map((product) => normalizeProduct(product, tenant));
   const users = collectResultOrDefault(usersResult).map((user) => normalizeUser(user, tenant, connectedUserKeys));
@@ -317,9 +427,10 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   const productsMap = buildProductsMap(products);
   const clientsMap = buildClientsMap(clients);
   const itemsByOrderId = buildItemsByOrderId(orderItems, orderIds);
+  const assignmentsByOrderId = buildAssignmentsByOrderId(collectResultOrDefault(assignmentsResult));
 
   const orders = rawOrders
-    .map((order) => normalizeOrder(order, tenant, itemsByOrderId, productsMap, clientsMap))
+    .map((order) => normalizeOrder(order, tenant, itemsByOrderId, productsMap, clientsMap, assignmentsByOrderId))
     .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
   return {
@@ -331,21 +442,36 @@ async function fetchTenantSlice(tenant, connectedUserKeys) {
   };
 }
 
+// Esta funcion es el tablero de control: junta backend, cache local y datos QA en una sola respuesta.
 export async function fetchOperationalDataset({ selectedTenantId = 'Global', includeSessions = true } = {}) {
   const warnings = [];
-  const tenantsResponse = await api.getFranchises();
-  const tenants = (tenantsResponse?.data || []).map((tenant, index) => normalizeTenant(tenant, index));
+  let tenants = [];
+
+  try {
+    const tenantsResponse = await api.getFranchises();
+    tenants = (tenantsResponse?.data || []).map((tenant, index) => normalizeTenant(tenant, index));
+  } catch (error) {
+    warnings.push(`Franquicias: ${error.message || 'No disponible'}`);
+    tenants = buildFallbackTenantsFromConfigs();
+  }
+  const sessionTenantId = safeText(getSession().tenantId);
+  const requestedTenantId = safeText(selectedTenantId, 'Global');
+  const effectiveTenantId =
+    requestedTenantId === 'Global' && sessionTenantId && tenants.some((tenant) => safeText(tenant.id) === sessionTenantId)
+      ? sessionTenantId
+      : requestedTenantId;
   const scopedTenants =
-    safeText(selectedTenantId, 'Global') === 'Global'
+    effectiveTenantId === 'Global'
       ? tenants
-      : tenants.filter((tenant) => safeText(tenant.id) === safeText(selectedTenantId));
+      : tenants.filter((tenant) => safeText(tenant.id) === effectiveTenantId);
 
   let sessions = [];
   let connectedUserKeys = new Set();
 
   if (includeSessions && tenants.length > 0) {
+    const sessionTenants = sessionTenantId ? scopedTenants : tenants;
     const sessionResults = await Promise.allSettled(
-      tenants.map(async (tenant) => {
+      sessionTenants.map(async (tenant) => {
         try {
           return {
             tenant,
@@ -400,14 +526,16 @@ export async function fetchOperationalDataset({ selectedTenantId = 'Global', inc
     (session) => `${session.tenantId}:${session.userId}:${session.id}`,
   );
 
-  return {
+  return enrichOperationalDatasetWithQaData({
     tenants,
     scopedTenants,
+    requestedTenantId,
+    effectiveTenantId,
     orders,
     products,
     users,
     connectedUsers,
     sessions: uniqueSessions,
     warnings: dedupeBy(warnings.filter(Boolean), (warning) => warning),
-  };
+  });
 }

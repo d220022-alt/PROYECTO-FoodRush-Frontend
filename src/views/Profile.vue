@@ -1,9 +1,27 @@
+<!--
+  Guia rapida para presentar:
+  Perfil del cliente. Muestra datos guardados, direccion y acciones de cuenta.
+  Buscar en VS Code: perfil, direccion, telefono, cerrar sesion, updateUser, updateSessionProfile.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import { clearSession, getSession, updateSessionProfile } from '../services/storage';
+import {
+    countDominicanPhoneDigits,
+    formatDominicanPhone,
+    normalizeDominicanPhone,
+    validateDominicanPhone,
+} from '../utils/phoneValidation';
+import {
+    APP_EVENTS,
+    clearSession,
+    getSession,
+    getUnreadNotificationsCount,
+    updateSessionProfile,
+} from '../services/storage';
 
 const router = useRouter();
 const session = getSession();
@@ -18,8 +36,16 @@ const user = ref({
 });
 
 const isLoading = ref(true);
+const notificationCount = ref(getUnreadNotificationsCount(session.userEmail));
+
+const updateNotificationCount = () => {
+    notificationCount.value = getUnreadNotificationsCount(getSession().userEmail);
+};
 
 onMounted(async () => {
+    updateNotificationCount();
+    window.addEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
+
     const userId = localStorage.getItem('user_id');
     if (userId) {
         try {
@@ -44,6 +70,10 @@ onMounted(async () => {
         isLoading.value = false;
         if (!user.value.address) user.value.address = "Sin dirección registrada";
     }
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
 // Navigation Handlers
@@ -90,7 +120,7 @@ const openEditModal = () => {
     editForm.value = {
         name: user.value.name,
         email: user.value.email,
-        phone: user.value.phone,
+        phone: formatDominicanPhone(user.value.phone),
         address: user.value.address !== "Sin dirección registrada" ? user.value.address : '',
         zone: localStorage.getItem('user_zone') || ''
     };
@@ -98,9 +128,24 @@ const openEditModal = () => {
 };
 
 const closeEditModal = () => isEditModalOpen.value = false;
+const editPhoneDigitsCount = computed(() => countDominicanPhoneDigits(editForm.value.phone));
+const editPhoneValidation = computed(() => validateDominicanPhone(editForm.value.phone));
 
+const onEditPhoneInput = (event) => {
+    editForm.value.phone = formatDominicanPhone(event.target.value);
+};
+
+// Para presentar: guarda datos del perfil remoto si hay usuario_id y siempre actualiza la sesion local.
 const saveProfile = async () => {
     let savedRemotely = false;
+    const phoneValidation = validateDominicanPhone(editForm.value.phone);
+
+    if (!phoneValidation.valid) {
+        Swal.fire('Telefono invalido', phoneValidation.message, 'error');
+        return;
+    }
+
+    editForm.value.phone = normalizeDominicanPhone(editForm.value.phone);
 
     try {
         const userId = localStorage.getItem('user_id');
@@ -259,6 +304,7 @@ const saveProfile = async () => {
                              <i :class="item.icon"></i>
                          </div>
                          <span class="font-semibold text-slate-700 text-sm">{{ item.title }}</span>
+                         <span v-if="item.route === '/notifications' && notificationCount > 0" class="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-[10px] font-bold text-white">{{ notificationCount }}</span>
                      </div>
                      <i class="fa-solid fa-chevron-right text-gray-400 text-xs"></i>
                  </button>
@@ -307,7 +353,18 @@ const saveProfile = async () => {
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Teléfono</label>
-                    <input v-model="editForm.phone" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <input
+                        :value="editForm.phone"
+                        @input="onEditPhoneInput"
+                        type="tel"
+                        inputmode="numeric"
+                        autocomplete="tel"
+                        maxlength="12"
+                        class="w-full border rounded-lg p-3 outline-none focus:border-orange-500"
+                        :class="{ 'border-red-400 bg-red-50': editForm.phone && !editPhoneValidation.valid }"
+                    >
+                    <p v-if="editForm.phone && !editPhoneValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editPhoneValidation.message }}</p>
+                    <p v-else class="mt-1 text-xs font-bold text-gray-400">Digitos: {{ editPhoneDigitsCount }}/10</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Dirección</label>

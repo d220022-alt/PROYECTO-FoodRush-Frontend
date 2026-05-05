@@ -1,3 +1,9 @@
+<!--
+  Guia rapida para presentar:
+  Favoritos del cliente. Guarda franquicias o productos que quiere repetir rapido.
+  Buscar en VS Code: favoritos, localStorage, productos guardados.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';

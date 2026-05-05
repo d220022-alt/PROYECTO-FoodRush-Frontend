@@ -1,3 +1,9 @@
+<!--
+  Guia rapida para presentar:
+  Metodos de pago guardados. Deja preparada la UI para pagos sin tocar datos sensibles.
+  Buscar en VS Code: metodos de pago, efectivo, tarjeta, paypal, preferred payment.
+  Mantener estos comentarios actualizados si cambia el flujo.
+-->
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -220,6 +226,7 @@ const connectPayPal = async () => {
   });
 };
 
+// Para presentar: guarda el metodo preferido de pago que luego usa Checkout.
 const selectMethod = async (method) => {
   if (method === 'cash') {
     showCardPickerModal.value = false;

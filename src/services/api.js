@@ -1,8 +1,23 @@
+/*
+  Guia rapida para presentar:
+  Cliente HTTP principal. Centraliza llamadas al backend, headers de tenant, token y mensajes de error.
+  Buscar en VS Code: api, backend, fetch, token, X-Tenant-ID, login, register, pedidos, productos.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 const API_URL = (import.meta.env.VITE_API_URL || 'https://proyecto-foodrush.onrender.com').trim();
 const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').trim();
 const REQUEST_TIMEOUT_MS = 60000;
 const TENANT_HEADER_KEYS = ['X-Tenant-ID', 'x-tenant-id', 'tenant-id'];
 let cachedOrderStatusesPromise = null;
+
+// IDs de respaldo por si el backend tarda o no devuelve el catalogo de estados.
+const FALLBACK_ORDER_STATUS_IDS = {
+  pendiente: 1,
+  preparando: 3,
+  'en camino': 4,
+  entregado: 5,
+  cancelado: 6,
+};
 
 const inferPayloadData = (payload, preferredKeys = []) => {
   if (payload === null || payload === undefined) return null;
@@ -35,6 +50,7 @@ const inferPayloadData = (payload, preferredKeys = []) => {
   return null;
 };
 
+// El backend mezcla respuestas tipo array, objeto plano y { data }. Estas funciones uniforman todo.
 const normalizeResult = (payload, preferredKeys = []) => {
   if (payload === null || payload === undefined) {
     return { success: true, data: null };
@@ -87,6 +103,40 @@ const normalizeEntityResult = (payload, preferredKeys = []) => {
 
 const hasMeaningfulValue = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 const isLocalOnlyOrderId = (value) => String(value || '').trim().toLowerCase().startsWith('local-');
+
+const normalizeStatusToken = (value = '') =>
+  String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+
+const getStatusSemanticKey = (value = '') => {
+  const normalized = normalizeStatusToken(value);
+  if (!normalized) return '';
+  if (normalized.includes('cancel')) return 'cancelado';
+  if (normalized.includes('entreg')) return 'entregado';
+  if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
+  if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
+  if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
+  return normalized;
+};
+
+const getStatusSearchValues = (status = {}) => [
+  status.codigo,
+  status.descripcion,
+  status.nombre,
+  status.label,
+  status.estado,
+].map(getStatusSemanticKey).filter(Boolean);
+
+const getFallbackOrderStatusId = (value = '') => {
+  const requestedId = Number.parseInt(value, 10);
+  if (Number.isFinite(requestedId)) return requestedId;
+  const key = getStatusSemanticKey(value);
+  return FALLBACK_ORDER_STATUS_IDS[key] || null;
+};
 
 const sanitizeParams = (params = {}) =>
   Object.fromEntries(
@@ -242,6 +292,7 @@ const resolveTenantHeaderValue = () => {
   return DEFAULT_TENANT_ID;
 };
 
+// Preparamos headers en un solo lugar para no olvidar tenant ni token en llamadas nuevas.
 const createHeaders = (extraHeaders = {}) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -274,26 +325,43 @@ const parseResponseBody = async (response) => {
   }
 };
 
+const createApiError = (message, details = {}) => {
+  const error = new Error(message || 'No se pudo completar la solicitud.');
+  Object.assign(error, details);
+  return error;
+};
+
+// Fachada publica: las vistas usan estos metodos y no tienen que saber URLs exactas del backend.
 export const api = {
   async resolveOrderStatusId(preferredId = null, headers = {}) {
+    const fallbackStatusId = getFallbackOrderStatusId(preferredId);
+
     if (!cachedOrderStatusesPromise) {
       cachedOrderStatusesPromise = this.request('/api/estadospedidos', { headers })
         .then((payload) => normalizeCollectionResult(payload, ['data']).data)
         .catch((error) => {
           cachedOrderStatusesPromise = null;
+          if (fallbackStatusId) return [];
           throw error;
         });
     }
 
     const statuses = await cachedOrderStatusesPromise;
     if (!Array.isArray(statuses) || statuses.length === 0) {
-      return null;
+      return fallbackStatusId;
     }
 
     const requestedId = Number.parseInt(preferredId, 10);
     if (Number.isFinite(requestedId)) {
       const existingStatus = statuses.find((status) => Number.parseInt(status?.id, 10) === requestedId);
       if (existingStatus) return requestedId;
+    }
+
+    const requestedStatusKey = getStatusSemanticKey(preferredId);
+    if (requestedStatusKey) {
+      const matchingStatus = statuses.find((status) => getStatusSearchValues(status).includes(requestedStatusKey));
+      const matchingStatusId = Number.parseInt(matchingStatus?.id, 10);
+      if (Number.isFinite(matchingStatusId)) return matchingStatusId;
     }
 
     const firstStatusId = Number.parseInt(statuses[0]?.id, 10);
@@ -304,6 +372,7 @@ export const api = {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+    // Todas las llamadas pasan por aqui: timeout, bearer token, tenant y errores legibles para la UI.
     const config = {
       ...options,
       signal: controller.signal,
@@ -320,13 +389,32 @@ export const api = {
           payload?.error ||
           `Error ${response.status}: ${response.statusText}`;
 
-        throw new Error(message);
+        throw createApiError(message, {
+          status: response.status,
+          code: payload?.error || payload?.code || null,
+          payload,
+          retryAfter: response.headers.get('retry-after'),
+        });
       }
 
       return payload;
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('El servidor tardo demasiado en responder. Intenta nuevamente.');
+        throw createApiError('El servidor tardó demasiado en responder. Intenta nuevamente.', {
+          code: 'REQUEST_TIMEOUT',
+          status: 0,
+        });
+      }
+
+      if (error instanceof TypeError && /failed to fetch|networkerror|load failed/i.test(error.message || '')) {
+        throw createApiError('No pudimos conectar con el servidor de FoodRush. Revisa tu conexión e intenta nuevamente.', {
+          code: 'NETWORK_ERROR',
+          status: 0,
+        });
+      }
+
+      if (error.status) {
+        throw error;
       }
 
       console.error('API Error:', error);
@@ -352,15 +440,29 @@ export const api = {
     return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'productos']);
   },
 
-  async login(email, password, headers = {}) {
+  // Login acepta correo o usuario; si falta tenant, usamos el default para evitar errores confusos.
+  async login(identifier, password, headers = {}) {
+    const loginHeaders = { ...headers };
+    if (!hasTenantHeader(loginHeaders)) {
+      loginHeaders['X-Tenant-ID'] = DEFAULT_TENANT_ID;
+    }
+
+    const rawIdentifier = String(identifier || '').trim();
+    const normalizedIdentifier = rawIdentifier.includes('@')
+      ? rawIdentifier.toLowerCase()
+      : rawIdentifier;
+
     return normalizeAuthResult(
       await this.request('/api/usuarios/login', {
         method: 'POST',
-        headers,
+        headers: loginHeaders,
         body: JSON.stringify({
-          email,
+          identifier: normalizedIdentifier,
+          usuario: normalizedIdentifier,
+          username: normalizedIdentifier,
+          email: normalizedIdentifier,
           password,
-          correo: email,
+          correo: normalizedIdentifier,
           contrasena: password,
         }),
       }),
@@ -398,6 +500,7 @@ export const api = {
     throw new Error('No se pudo resolver un tenant válido para registrar el usuario.');
   },
 
+  // Registro envia X-Tenant-ID de forma explicita porque el backend lo exige para crear usuarios.
   async register(userData, headers = {}) {
     const tenantId = await this.ensureTenantId(userData.tenantId || 1, headers);
 
@@ -488,6 +591,7 @@ export const api = {
     );
   },
 
+  // Checkout termina aqui: arma el pedido remoto y deja el backend como fuente principal.
   async createOrder(orderData, headers = {}) {
     const resolvedStatusId = await this.resolveOrderStatusId(orderData?.estado_id, headers);
     if (!resolvedStatusId) {
@@ -612,6 +716,42 @@ export const api = {
     };
   },
 
+  async getServerNotifications(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/notificaciones?${query}` : '/api/notificaciones';
+    return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'notificaciones']);
+  },
+
+  async getDeliveryAssignments(params = {}, headers = {}) {
+    const queryParams = sanitizeParams(params);
+    const query = new URLSearchParams(queryParams).toString();
+    const endpoint = query ? `/api/realtime/assignments?${query}` : '/api/realtime/assignments';
+    return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'assignments']);
+  },
+
+  async upsertDeliveryAssignment(data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/realtime/assignments', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data', 'assignment'],
+    );
+  },
+
+  async recordDriverLocation(data, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/realtime/location', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      }),
+      ['data', 'location'],
+    );
+  },
+
   async getSessions(params = {}, headers = {}) {
     const queryParams = sanitizeParams(params);
     const query = new URLSearchParams(queryParams).toString();
@@ -624,6 +764,56 @@ export const api = {
         usuario_id: ['user_id'],
       }),
     };
+  },
+
+  async getAdminOperationsState(headers = {}) {
+    return normalizeEntityResult(await this.request('/api/admin/operations/state', { headers }), ['data']);
+  },
+
+  async getAdminOperationZones(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/zones', { headers }), ['data', 'zones']);
+  },
+
+  async upsertAdminOperationZone(zone, headers = {}) {
+    const zoneId = encodeURIComponent(String(zone?.id || '').trim());
+    return normalizeEntityResult(
+      await this.request(`/api/admin/operations/zones/${zoneId}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(zone),
+      }),
+      ['data', 'zone'],
+    );
+  },
+
+  async getAdminOperationClosures(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/closures', { headers }), ['data', 'closures']);
+  },
+
+  async createAdminOperationClosure(record, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/admin/operations/closures', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(record),
+      }),
+      ['data', 'closure'],
+    );
+  },
+
+  async getAdminOperationAudit(headers = {}) {
+    return normalizeCollectionResult(await this.request('/api/admin/operations/audit', { headers }), ['data', 'audit']);
+  },
+
+  async createAdminOperationAudit(entry, headers = {}) {
+    return normalizeEntityResult(
+      await this.request('/api/admin/operations/audit', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(entry),
+      }),
+      ['data', 'entry'],
+    );
   },
 
   async createResource(resource, data, headers = {}) {

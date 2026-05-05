@@ -1,3 +1,9 @@
+/*
+  Guia rapida para presentar:
+  Catalogo local de respaldo. Sirve cuando Render tarda o una franquicia no devuelve productos.
+  Buscar en VS Code: productos mock, fallback, franquicias, imagenes, categorias.
+  Mantener estos comentarios actualizados si cambia el flujo.
+*/
 export const mockProducts = [
   {
     "id": "prod_1_1",
@@ -500,7 +506,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 230,
     "description": "Delicioso producto de la categoria Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1585325701165-351af045e581?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -524,7 +530,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 320,
     "description": "Delicioso producto de la categoria Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1585325701165-351af045e581?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1928,7 +1934,7 @@ export const mockProducts = [
     "type": "Clasico",
     "price": 120,
     "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1612392166886-ee8475b03f6c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1940,7 +1946,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 150,
     "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1534312954071-88812fca3c40?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1952,7 +1958,7 @@ export const mockProducts = [
     "type": "Bacon",
     "price": 180,
     "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1612392166886-ee8475b03f6c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1964,7 +1970,7 @@ export const mockProducts = [
     "type": "Clasico",
     "price": 210,
     "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1534312954071-88812fca3c40?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1976,7 +1982,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 240,
     "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1612392166886-ee8475b03f6c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3380,7 +3386,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 230,
     "description": "Delicioso producto de la categoria Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1585325701165-351af045e581?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3404,7 +3410,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 320,
     "description": "Delicioso producto de la categoria Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1585325701165-351af045e581?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
