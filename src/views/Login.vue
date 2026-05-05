@@ -49,9 +49,7 @@ const loginError = ref('');
 const registerError = ref('');
 const isSubmitting = ref(false);
 
-const redirectToPortal = (email) => {
-    router.replace(getPortalRouteByEmail(email));
-};
+const redirectToPortal = (email) => router.replace(getPortalRouteByEmail(email));
 
 const formatRetryAfter = (retryAfter) => {
     const seconds = Number.parseInt(retryAfter, 10);
@@ -114,6 +112,12 @@ const registerWebSession = async (session) => {
     } catch (error) {
         console.warn('No se pudo registrar la sesion web', error);
     }
+};
+
+const finishAuthenticatedFlow = async (session, fallbackEmail) => {
+    const redirectEmail = session.userEmail || fallbackEmail;
+    void registerWebSession(session);
+    await redirectToPortal(redirectEmail);
 };
 
 const goToTerms = () => {
@@ -185,8 +189,7 @@ const handleLogin = async () => {
         if (response.success) {
             const resolvedEmail = response.user?.correo || response.user?.email || identifier;
             const session = setSessionFromAuth({ ...response, email: resolvedEmail, userEmail: resolvedEmail });
-            await registerWebSession(session);
-            redirectToPortal(session.userEmail || resolvedEmail);
+            await finishAuthenticatedFlow(session, resolvedEmail);
         } else {
             loginError.value = formatAuthError(response);
         }
@@ -248,8 +251,7 @@ const handleRegister = async () => {
         if (registerRes?.success && registerRes?.user && registerRes?.token) {
             localStorage.removeItem('register_draft');
             const session = setSessionFromAuth({ ...registerRes, email, userEmail: email });
-            await registerWebSession(session);
-            redirectToPortal(session.userEmail || email);
+            await finishAuthenticatedFlow(session, email);
             return;
         }
 
@@ -257,8 +259,7 @@ const handleRegister = async () => {
         if (loginRes.success) {
             localStorage.removeItem('register_draft');
             const session = setSessionFromAuth({ ...loginRes, email, userEmail: email });
-            await registerWebSession(session);
-            redirectToPortal(session.userEmail || email);
+            await finishAuthenticatedFlow(session, email);
         } else {
             alert('Registro exitoso. Por favor inicia sesión.');
             togglePanel(false);

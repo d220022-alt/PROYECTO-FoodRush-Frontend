@@ -434,8 +434,8 @@ const filterResultText = computed(() => {
                     class="offer-card overflow-hidden rounded-2xl border border-orange-100 bg-[#fffaf3] shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                 >
                     <div class="flex items-center gap-4 p-4">
-                        <div class="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
-                            <img :src="item.img" :alt="item.name" class="max-h-full max-w-full object-contain">
+                        <div class="offer-logo-frame flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-2xl bg-white p-3 shadow-sm">
+                            <img :src="item.img" :alt="item.name" class="offer-logo-img max-h-full max-w-full object-contain">
                         </div>
                         <div class="min-w-0 flex-1">
                             <span class="inline-flex rounded-full bg-accent px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-white">{{ item.offer.badge }}</span>
@@ -689,12 +689,25 @@ const filterResultText = computed(() => {
     padding: 14px;
     border-radius: 18px;
     background: linear-gradient(180deg, #fff 0%, #fafafa 100%);
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    box-shadow: 0 16px 28px rgba(15, 23, 42, 0.06);
 }
 .franchise-logo-img {
     display: block;
     width: 100%;
     height: 100%;
     object-fit: contain;
+    border-radius: 12px;
+    filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.08));
+}
+
+.offer-logo-frame {
+    border: 1px solid rgba(15, 23, 42, 0.04);
+    background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+}
+
+.offer-logo-img {
+    border-radius: 10px;
     filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.08));
 }
 .franchise-title {
