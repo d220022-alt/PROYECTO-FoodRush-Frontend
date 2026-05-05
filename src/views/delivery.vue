@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   App del repartidor. Muestra viajes disponibles, viajes activos, wallet y perfil.
+  Buscar en VS Code: delivery, repartidor, nuevos, paginacion, aceptar viaje, mapa, confirmar entrega, wallet.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -155,6 +156,7 @@ const driverIdentity = () => ({
     driverEmail: session.userEmail || '',
 });
 
+// Para presentar: enlaza un pedido con un repartidor y guarda la asignacion para que Admin/Tracking la vean.
 const syncDeliveryAssignment = async (order, stage, status = stage) => {
     const identity = driverIdentity();
     if (isQaOrder(order)) {
@@ -247,6 +249,7 @@ const buildOrderDescription = (order = {}) => {
     return [`Pedido #${order.id}`, `Local: ${order.tenantName}`, `Cliente: ${order.customerName}`, `Telefono: ${order.customerPhone || 'Sin telefono'}`, 'Artículos:', itemLines].join('\n');
 };
 
+// Para presentar: normaliza cada pedido para que la app del repartidor tenga un formato unico.
 const buildOrderView = (order = {}, status = 'pending') => {
     const presentation = resolveFranchisePresentation(order.tenantName);
     const backendStatusKey = orderStatusKey(order);
@@ -289,6 +292,7 @@ const tenantDisplay = computed(() => {
 const badgeAvail = computed(() => state.availableOrders.length);
 const availableTotalPages = computed(() => Math.max(1, Math.ceil(state.availableOrders.length / AVAILABLE_ORDERS_PAGE_SIZE)));
 const currentAvailablePage = computed(() => Math.min(Math.max(availablePage.value, 1), availableTotalPages.value));
+// Para presentar: paginacion de Nuevos; evita renderizar decenas de pedidos al mismo tiempo en telefono.
 const paginatedAvailableOrders = computed(() => {
     const startIndex = (currentAvailablePage.value - 1) * AVAILABLE_ORDERS_PAGE_SIZE;
     return state.availableOrders.slice(startIndex, startIndex + AVAILABLE_ORDERS_PAGE_SIZE);
@@ -781,6 +785,7 @@ const initMap = () => {
     if (state.activeOrder) syncRouteFromState();
 };
 
+// Para presentar: refresca pedidos disponibles, activos e historial desde el dataset/backend.
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
     const currentDriverEmail = normalize(session.userEmail);
@@ -939,6 +944,7 @@ const toggleShift = async () => {
 };
 
 // El repartidor toma un viaje: se guarda asignacion y se notifica al resto del flujo.
+// Para presentar: aceptar viaje; mueve el pedido a activo y avisa al flujo operativo.
 const acceptOrder = async (id) => {
     if (!isShiftOnline.value) {
         showToast('Inicia tu turno antes de aceptar un viaje.', 'error');
@@ -1025,6 +1031,7 @@ const handleActiveOrderPrimaryAction = () => {
     openDeliveryConfirmation();
 };
 
+// Para presentar: avanza el viaje de recogida a camino y sincroniza estado para cliente/admin.
 const updateOrderStatus = async (status) => {
     if (!state.activeOrder) return;
     if (status === 'arrived') {
@@ -1160,6 +1167,7 @@ const handleDeliveryPhoto = (event) => {
     deliveryProofFileName.value = file.name ? `${file.name} cargada` : 'Foto de entrega cargada';
 };
 
+// Para presentar: entrega segura; compara codigo del cliente, evidencia y marca el pedido entregado.
 const completeDelivery = async () => {
     if (!state.activeOrder) return;
     if (!deliveryCodeMatches.value) {

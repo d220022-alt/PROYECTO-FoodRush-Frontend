@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Genera y normaliza el codigo que conecta al cliente con el repartidor al entregar.
+  Buscar en VS Code: codigo de entrega, confirmacion cliente, delivery.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 const safeString = (value, fallback = '') => {
@@ -18,6 +19,7 @@ const normalizeCode = (value = '') =>
 const fallbackCodeFromId = (id = '') =>
   normalizeCode(id).slice(-6).padStart(6, '0');
 
+// Para presentar: codigo que ve cliente y delivery para confirmar entrega segura.
 export const resolveDeliveryCode = (order = {}, fallbackId = '') => {
   const provided = normalizeCode(
     order.securityCode ||

@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de Little Caesars. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: franquicia, menu, productos, fetchProducts, filtros, modal producto, addToCart, carrito.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -430,6 +431,7 @@ const buildFilteredList = ({
   return applySort(result);
 };
 
+// Para presentar: aplica filtros visibles, busqueda y orden antes de pintar productos.
 const filteredProducts = computed(() => buildFilteredList());
 
 const fallbackProducts = computed(() => {
@@ -888,6 +890,7 @@ const getFallbackProducts = () => {
   return source.map((product, index) => parseProduct(product, index)).filter(Boolean);
 };
 
+// Para presentar: carga productos de la franquicia; usa backend y fallback local si la nube tarda.
 const fetchProducts = async () => {
   try {
     isLoading.value = true;
@@ -1034,6 +1037,7 @@ const toggleFavorite = () => {
   }
 };
 
+// Para presentar: abre el modal de producto, donde se eligen variantes, extras y cantidad.
 const openProductDetail = (product) => {
   selectedProduct.value = product;
   currentQty.value = 1;
@@ -1121,6 +1125,7 @@ const createCartItem = () => {
   };
 };
 
+// Para presentar: agrega el producto personalizado al carrito compartido por Checkout.
 const addToCart = async ({ silent = false } = {}) => {
   if (!selectedProduct.value) return false;
 

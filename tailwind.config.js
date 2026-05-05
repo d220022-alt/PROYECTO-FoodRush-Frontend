@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Paleta y extensiones de Tailwind. De aqui salen colores de marca como el naranja de FoodRush.
+  Buscar en VS Code: estructura, flujo, UI, datos, presentacion.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 /** @type {import('tailwindcss').Config} */

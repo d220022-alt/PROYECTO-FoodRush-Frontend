@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Cliente HTTP principal. Centraliza llamadas al backend, headers de tenant, token y mensajes de error.
+  Buscar en VS Code: api, backend, fetch, token, X-Tenant-ID, login, register, pedidos, productos.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 const API_URL = (import.meta.env.VITE_API_URL || 'https://proyecto-foodrush.onrender.com').trim();

@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Configuracion visual de franquicias: logos, categorias, slides y textos de apoyo.
+  Buscar en VS Code: configuracion franquicias, logos, colores, slides, rutas.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import logoMcDonalds from "../assets/images/logo-mcdonalds.png";

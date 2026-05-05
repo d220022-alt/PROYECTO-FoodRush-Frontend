@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de Change Password. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: cambio de contrasena, password, api.changePassword.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>

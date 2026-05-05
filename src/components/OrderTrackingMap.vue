@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Mapa que ve el cliente durante el seguimiento. Dibuja local, cliente, repartidor y ruta por calles.
+  Buscar en VS Code: mapa tracking, ruta por calles, OSRM, repartidor, cliente.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -75,6 +76,7 @@ const resolveRoutePoints = async (model, requestId) => {
   return model.route;
 };
 
+// Para presentar: mapa del cliente; intenta ruta por calles y muestra fallback si OSRM falla.
 const renderRoute = async () => {
   if (!mapEl.value || !props.order || !leaflet) return;
 

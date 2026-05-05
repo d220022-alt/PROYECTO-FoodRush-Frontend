@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Utilidades de mapas y rutas. Calcula puntos, fallback y rutas por calles sobre OpenStreetMap/OSRM.
+  Buscar en VS Code: OpenStreetMap, Leaflet, OSRM, ruta, coordenadas, ubicacion cliente.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';

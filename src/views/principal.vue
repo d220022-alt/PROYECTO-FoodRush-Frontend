@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de Principal. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: afiliacion, landing empresa, registro de locales.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>

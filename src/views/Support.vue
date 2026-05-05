@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de Support. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: soporte, preguntas frecuentes, ticket, asistente, buildSupportReply.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -165,6 +166,7 @@ const openTicketModal = () => {
     isTicketModalOpen.value = true;
 };
 
+// Para presentar: flujo de ticket; valida datos, simula envio y deja confirmacion al usuario.
 const submitTicket = () => {
     isTicketModalOpen.value = false;
     Swal.fire({
@@ -222,6 +224,7 @@ const sendChatMessage = async () => {
 };
 
 // Respuestas locales del chat de soporte. No depende de servicios externos: solo orienta y manda a rutas internas.
+// Para presentar: respuesta del asistente de soporte con reglas locales, sin depender de servicios externos.
 const buildSupportReply = async (userMessage) => {
     const lowerInput = userMessage.toLowerCase();
 

@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de Terminos Condiciones. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: terminos, condiciones, registro, privacidad.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>

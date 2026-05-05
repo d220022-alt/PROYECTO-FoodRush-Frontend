@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Vista de About. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Buscar en VS Code: sobre nosotros, equipo, empresa, presentacion.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>

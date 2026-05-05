@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Datos operativos de apoyo para el panel admin: alertas, metricas y movimientos de prueba.
+  Buscar en VS Code: admin phase two, auditoria, cierre operativo, zonas legacy, operaciones.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { api } from './api';

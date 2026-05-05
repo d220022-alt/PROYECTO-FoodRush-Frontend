@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Panel operativo de administracion. Controla pedidos, catalogos, locales, alertas, mapa y metricas.
+  Buscar en VS Code: administracion, dashboard, pedidos, mapa, delivery, metricas, paginacion, QA dataset.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -240,6 +241,7 @@ const connectedSessionsCount = computed(() => activeSessions.value.filter((sessi
   selectedTenant.value === 'Global' || String(sessionItem.tenantId) === String(selectedTenant.value)
 )).length);
 
+// Para presentar: filtro central de pedidos; combina busqueda, estado y delivery asignado.
 const filteredOrders = computed(() => {
   const term = normalize(search.value.orders);
   return scopedOrders.value.filter((order) => {
@@ -644,6 +646,7 @@ const refreshData = async ({ silent = false } = {}) => {
 };
 
 // Accion clave de Administracion: cambia estado del pedido y sincroniza cache local para Delivery/Tracking.
+// Para presentar: accion clave de Admin; cambia estado del pedido y sincroniza cache para Delivery/Tracking.
 const updateOrderStatus = async (order, nextStatusId) => {
   const statusKey = normalizeStatusKey(nextStatusId);
   if (!statusKey || statusKey === orderStatusKey(order)) return;

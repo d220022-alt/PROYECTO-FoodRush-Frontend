@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Carrito del cliente. Resume productos agregados antes de pasar al checkout.
+  Buscar en VS Code: carrito, cantidades, total, checkout, remove item, updateQty.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -22,6 +23,7 @@ const formatCurrency = (value) => {
     }).format(value || 0);
 };
 
+// Para presentar: carga el carrito desde storage local y recalcula total antes del checkout.
 const loadCart = () => {
     // Previene errores si getCart() devuelve null/undefined
     cart.value = getCart() || []; 
@@ -38,6 +40,7 @@ onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.authChanged, loadCart);
 });
 
+// Para presentar: cambia cantidades y vuelve a guardar el carrito en localStorage.
 const updateQty = (item, change) => {
     const newQty = item.qty + change;
     if (newQty >= 1) {

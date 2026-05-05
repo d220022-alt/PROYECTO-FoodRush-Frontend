@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Decide a que portal enviar cada sesion: cliente, administracion o delivery.
+  Buscar en VS Code: redireccion por rol, admin, delivery, cliente, correo.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 const ADMIN_EMAIL_SUFFIX = '@admin.com.do';

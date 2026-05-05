@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Perfil del cliente. Muestra datos guardados, direccion y acciones de cuenta.
+  Buscar en VS Code: perfil, direccion, telefono, cerrar sesion, updateUser, updateSessionProfile.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -134,6 +135,7 @@ const onEditPhoneInput = (event) => {
     editForm.value.phone = formatDominicanPhone(event.target.value);
 };
 
+// Para presentar: guarda datos del perfil remoto si hay usuario_id y siempre actualiza la sesion local.
 const saveProfile = async () => {
     let savedRemotely = false;
     const phoneValidation = validateDominicanPhone(editForm.value.phone);

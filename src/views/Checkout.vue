@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Flujo de pago y entrega. El cliente confirma direccion, metodo de entrega y crea el pedido.
+  Buscar en VS Code: checkout, pago, delivery, pickup, ubicacion real, crear pedido, tracking, api.createOrder.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -80,6 +81,7 @@ const savedPayPalAccount = ref(null);
 
 // Load saved methods for user
 // Carga metodo preferido del usuario antes de pintar el resumen de pago.
+// Para presentar: hidrata metodos guardados de pago antes de mostrar efectivo/tarjeta/PayPal.
 const loadUserPaymentMethods = () => {
     const email = currentUserEmail.value;
     const storedCard = getSavedCard(email);
@@ -139,6 +141,7 @@ const isDominicanLocation = (lat, lng) =>
   && lng >= DOMINICAN_BOUNDS.minLng
   && lng <= DOMINICAN_BOUNDS.maxLng;
 
+// Para presentar: entrada del checkout; sin carrito no hay pedido que pagar.
 const loadCart = () => {
   cartItems.value = getCart();
 };
@@ -416,6 +419,7 @@ const resolveUserIdentity = () => {
   };
 };
 
+// Para presentar: conecta usuario frontend con cliente backend; si no existe, lo crea.
 const resolveClientId = async (identity) => {
   const cachedClientId = getLastClientId(identity.email);
   if (cachedClientId) {
@@ -450,6 +454,7 @@ const resolveClientId = async (identity) => {
   return cachedClientId || null;
 };
 
+// Para presentar: convierte items del carrito a productos reales del backend cuando es posible.
 const resolveRemoteOrderItems = async () => {
   const tenantHeaders = resolveTenantHeaders();
   const productsResponse = await api.getProducts({ limit: 300 }, tenantHeaders);
@@ -520,6 +525,7 @@ const resolveOrderLocationPayload = () => {
 };
 
 // Payload final que viaja al backend: cliente, items, entrega, pago y ubicacion salen de aqui.
+// Para presentar: arma el objeto final que se manda a /api/pedidos al pagar.
 const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.value } = {}) => {
   const methodMap = {
       'cash': 'Efectivo',
@@ -776,6 +782,7 @@ const ensureLeaflet = () =>
   });
 
 // El mapa del checkout se actualiza con direccion guardada, pickup o ubicacion real del usuario.
+// Para presentar: pinta la ubicacion elegida en el mapa Leaflet del checkout.
 const updateMap = (lat, lng, label, isUser) => {
   if (!mapInstance || !leaflet) return;
 

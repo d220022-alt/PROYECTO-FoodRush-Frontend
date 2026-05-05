@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Componente reutilizable de interfaz. Se mantiene pequeno para poder entenderlo rapido en la demo.
+  Buscar en VS Code: estructura, flujo, UI, datos, presentacion.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <template>

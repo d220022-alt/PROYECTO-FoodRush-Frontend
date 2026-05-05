@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Centro de notificaciones. Ordena avisos del pedido y eventos importantes del usuario.
+  Buscar en VS Code: notificaciones, leidas, servidor, mergeNotifications, pedido actualizado.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -35,6 +36,7 @@ const loadNotifications = () => {
   notifications.value = getNotifications(currentEmail.value);
 };
 
+// Para presentar: mezcla notificaciones del backend con las guardadas localmente.
 const syncServerNotifications = async () => {
   const session = getSession();
   if (!session.isAuthenticated) return;

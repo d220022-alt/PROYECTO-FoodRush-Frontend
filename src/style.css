@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Estilos globales compartidos por cliente, tracking, admin y delivery. Tambien vive aqui el tema oscuro global.
+  Buscar en VS Code: CSS global, responsive, dark mode, layout, Tailwind.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 @tailwind base;

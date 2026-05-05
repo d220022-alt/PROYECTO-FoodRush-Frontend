@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Historial de pedidos del cliente. Desde aqui se vuelve al tracking de cada orden.
+  Buscar en VS Code: mis pedidos, historial, cache de pedidos, tracking, fetchOperationalDataset.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -53,6 +54,7 @@ const getStatusColor = (status) => {
 
 const getProgressStep = (status) => getOrderProgressStep(status);
 
+// Para presentar: junta pedidos cacheados y pedidos del dataset operativo para mostrar historial del cliente.
 const fetchOrders = async () => {
     const liveSession = getSession();
     const email = normalize(liveSession.userEmail || session.userEmail || localStorage.getItem('user_email'));

@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Resuelve imagenes de productos y evita placeholders rotos en produccion.
+  Buscar en VS Code: imagenes productos, fallback, CDN, placeholders, franquicias.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 /**

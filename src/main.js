@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Arranque de Vue. Aqui se registran router, estilos y librerias globales antes de montar la app.
+  Buscar en VS Code: bootstrap Vue, router, estilos globales, montaje app.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { createApp } from 'vue'

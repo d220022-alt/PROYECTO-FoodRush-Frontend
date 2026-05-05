@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Catalogo local de respaldo. Sirve cuando Render tarda o una franquicia no devuelve productos.
+  Buscar en VS Code: productos mock, fallback, franquicias, imagenes, categorias.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 export const mockProducts = [

@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Configuracion de Vite. Mantiene el build rapido y deja lista la app para Vercel.
+  Buscar en VS Code: estructura, flujo, UI, datos, presentacion.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { defineConfig } from 'vite'

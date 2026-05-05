@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Pantalla principal del cliente. Reune busqueda, filtros, ofertas y tarjetas de franquicias.
+  Buscar en VS Code: home, inicio, busqueda, categorias, ofertas, filtros, franquicias, goToFranchise.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -101,6 +102,7 @@ const franchiseMetadata = {
     "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
 };
 
+// Para presentar: fallback visual; mantiene la home viva aunque Render tarde o falle temporalmente.
 const buildFallbackFranchises = () =>
     Object.entries(franchiseMetadata).map(([name, meta], index) => ({
         id: index + 1,
@@ -113,6 +115,7 @@ const buildFallbackFranchises = () =>
     }));
 
 // Carga franquicias desde Render. Si la nube esta dormida, deja una lista local para que la portada no quede vacia.
+// Para presentar: llamada principal al backend para traer franquicias reales desde /api/tenants.
 const fetchFranchises = async () => {
     if (franchises.value.length === 0) {
         franchises.value = buildFallbackFranchises();
@@ -170,6 +173,7 @@ onBeforeUnmount(() => {
 });
 
 // Todo filtro de Home termina aqui: categoria, texto de busqueda, promos, pickup y ordenamiento.
+// Para presentar: aqui se cruzan busqueda, categoria, filtros y promos antes de pintar tarjetas.
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
 
@@ -233,6 +237,7 @@ const franchiseRoutes = {
     "Panda Express": "/franchise/panda-express"
 };
 
+// Para presentar: esta funcion traduce la franquicia elegida a su ruta /franchise/... y guarda tenant_id.
 const goToFranchise = (id, name) => {
     const route = franchiseRoutes[name];
     if (route) {

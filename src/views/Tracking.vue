@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Seguimiento del pedido. Mezcla backend, cache local y dataset QA para mostrar estado, mapa y codigo.
+  Buscar en VS Code: tracking, seguimiento, mapa, codigo de entrega, pedido local, pedido remoto, realtime.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -172,6 +173,7 @@ const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta
 };
 
 // Carga el pedido sin romper la pantalla: primero cache/dataset, y solo consulta backend si el ID es real.
+// Para presentar: recupera el pedido para tracking; prueba cache local, dataset QA y backend segun el ID.
 const fetchOrder = async ({ silent = false } = {}) => {
     if (silent && document.visibilityState === 'hidden') return null;
     if (fetchOrderPromise) return fetchOrderPromise;
@@ -273,6 +275,7 @@ const fetchOrder = async ({ silent = false } = {}) => {
     return task;
 };
 
+// Para presentar: cierra SSE para que el tracking no deje conexiones vivas al salir.
 const closeRealtimeConnection = () => {
     realtimeConnection?.close();
     realtimeConnection = null;

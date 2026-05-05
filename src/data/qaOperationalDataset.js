@@ -1,6 +1,7 @@
 /*
   Guia rapida para presentar:
   Dataset de QA para presentar flujos completos sin depender de que la DB tenga pedidos perfectos.
+  Buscar en VS Code: datos QA, pedidos de prueba, graficos, administracion, delivery.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { getDeliveryAssignment } from '../services/storage';

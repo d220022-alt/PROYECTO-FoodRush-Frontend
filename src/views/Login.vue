@@ -1,6 +1,7 @@
 <!--
   Guia rapida para presentar:
   Entrada de usuarios. Maneja login, registro, autodeteccion de zona y redireccion por rol.
+  Buscar en VS Code: login, registro, usuario o correo, api.login, api.register, zona, redireccion por rol.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -18,6 +19,7 @@ import {
 
 const router = useRouter();
 
+// Para presentar: zonas simples usadas para detectar envio desde la direccion escrita en registro.
 const DELIVERY_ZONES = [
     { key: 'pekin', label: 'Pekín', fee: 25, keywords: ['pekin', 'pekín'] },
     { key: 'gurabo', label: 'Gurabo', fee: 50, keywords: ['gurabo'] },
@@ -32,6 +34,7 @@ const loginForm = ref({ email: '', password: '' });
 const registerForm = ref({ email: '', name: '', phone: '', password: '', confirmPassword: '', address: '' });
 const termsAccepted = ref(false);
 
+// Para presentar: autodeteccion de zona; busca palabras como Gurabo, Pekin o Villa Olga en la direccion.
 const detectedZone = computed(() => {
     const normalized = String(registerForm.value.address || '').toLowerCase();
     if (!normalized.trim()) return null;
@@ -92,6 +95,7 @@ const formatAuthError = (error) => {
     return error?.message || 'No se pudo iniciar sesión. Revisa los datos e intenta nuevamente.';
 };
 
+// Para presentar: registra una sesion web en el backend para que Administracion vea usuarios conectados.
 const registerWebSession = async (session) => {
     if (!session?.userId) return;
 
@@ -162,6 +166,7 @@ const onRegisterPhoneInput = (event) => {
     registerForm.value.phone = formatDominicanPhone(event.target.value);
 };
 
+// Para presentar: flujo de inicio de sesion; llama api.login, guarda token y redirige segun rol/correo.
 const handleLogin = async () => {
     loginError.value = '';
     const identifier = String(loginForm.value.email || '').trim();
@@ -193,6 +198,7 @@ const handleLogin = async () => {
     }
 };
 
+// Para presentar: flujo de registro de cliente; valida telefono, crea usuario y luego inicia sesion.
 const handleRegister = async () => {
     registerError.value = '';
     const email = String(registerForm.value.email || '').trim().toLowerCase();
