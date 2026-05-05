@@ -112,6 +112,7 @@ const buildFallbackFranchises = () =>
         promo: meta.promo !== undefined ? meta.promo : false
     }));
 
+// Carga franquicias desde Render. Si la nube esta dormida, deja una lista local para que la portada no quede vacia.
 const fetchFranchises = async () => {
     if (franchises.value.length === 0) {
         franchises.value = buildFallbackFranchises();
@@ -168,6 +169,7 @@ onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
+// Todo filtro de Home termina aqui: categoria, texto de busqueda, promos, pickup y ordenamiento.
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
 
@@ -195,6 +197,7 @@ const filteredFranchises = computed(() => {
     return result;
 });
 
+// Las ofertas se derivan de franquicias con promo para no mantener otra lista manual.
 const offerCards = computed(() =>
     franchises.value
         .filter((item) => item.promo)

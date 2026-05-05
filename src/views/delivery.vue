@@ -63,6 +63,8 @@ const session = getSession();
 const router = useRouter();
 const { isDarkMode, toggleTheme } = useTheme();
 const state = reactive(defaultState());
+
+// Dataset operativo recibido desde services/operations: pedidos, franquicias y sesiones conectadas.
 const data = ref({ tenants: [], orders: [], warnings: [], connectedUsers: [], sessions: [] });
 const currentView = ref('orders');
 const currentTab = ref('available');
@@ -827,6 +829,7 @@ const syncOrdersFromBackend = () => {
     });
 };
 
+// Delivery lee el mismo dataset operacional que Administracion para que ambos paneles vean el mismo estado.
 const refreshData = async ({ silent = false } = {}) => {
     if (silent && document.visibilityState === 'hidden') return null;
     if (refreshPromise) return refreshPromise;

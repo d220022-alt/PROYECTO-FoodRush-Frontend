@@ -177,6 +177,7 @@ export const isSessionActive = (session = {}) => {
   return Number.isFinite(expirationMs) && expirationMs > Date.now();
 };
 
+// Normaliza franquicias para que Admin, Delivery y Tracking reciban los mismos nombres y colores.
 export const normalizeTenant = (tenant = {}, index = 0) => {
   const id = safeText(tenant.id, `tenant-${index + 1}`);
   const meta = franchiseMetaByTenantId.get(id) || {};
@@ -195,6 +196,7 @@ export const normalizeTenant = (tenant = {}, index = 0) => {
   };
 };
 
+// Producto enriquecido con datos de franquicia; Admin usa esto para filtros y tarjetas de catalogo.
 const normalizeProduct = (product = {}, tenant) => ({
   ...product,
   tenantId: safeText(tenant.id),

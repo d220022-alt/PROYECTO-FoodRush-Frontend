@@ -25,6 +25,7 @@ const STORAGE_KEYS = {
   notifications: 'foodrush_notifications',
 };
 
+// Eventos internos para que Home, carrito, checkout, perfil y notificaciones se actualicen sin recargar.
 export const APP_EVENTS = {
   authChanged: 'foodrush:auth-changed',
   cartChanged: 'foodrush:cart-changed',
@@ -328,6 +329,7 @@ const normalizeFavoriteItem = (item = {}) => ({
   tenantId: safeString(item.tenantId) || null,
 });
 
+// Punto unico para leer sesion: evita que cada vista interprete localStorage de forma distinta.
 export const getSession = () => {
   const storage = getStorage();
   if (!storage) {
@@ -463,6 +465,7 @@ const resolveAccountScope = (scope = null) => {
 // Todas las claves quedan separadas por usuario para que una sesion no contamine otra.
 const scopedStorageKey = (baseKey, scope = null) => `${baseKey}::${resolveAccountScope(scope)}`;
 
+// Carrito persistido por usuario. Checkout consume esta estructura directamente.
 export const getCart = (scope = null) => {
   const key = scopedStorageKey(STORAGE_KEYS.cart, scope);
   return readJson(key, []).map(normalizeCartItem);
@@ -762,6 +765,7 @@ const ensureNotificationsForEmail = (email = '') => {
   return { bucket, emailKey };
 };
 
+// Notificaciones locales: se usan para avisos de pedido y badges del header.
 export const getNotifications = (email = '') => {
   const { bucket, emailKey } = ensureNotificationsForEmail(email);
   return sortNotificationsByDate((bucket[emailKey] || []).map(normalizeNotification));
@@ -924,6 +928,7 @@ export const getCachedOrderById = (orderId, email) => {
   return null;
 };
 
+// Cache de pedidos: permite que Tracking muestre ordenes recien creadas aunque el backend tarde en sincronizar.
 export const saveCachedOrder = (order, email) => {
   const normalizedOrder = normalizeOrder(order, email);
   const bucket = readOrdersBucket();

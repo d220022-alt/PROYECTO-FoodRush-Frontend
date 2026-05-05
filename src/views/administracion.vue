@@ -113,6 +113,7 @@ const liveMapFilterOptions = [
 const orderPageSizeOptions = [5, 10, 20, 50];
 const recordPageSizeOptions = [8, 12, 24, 48];
 
+// Timers y promesas compartidas: evitan refrescos dobles cuando llegan eventos realtime y polling.
 let refreshTimer = null;
 let realtimeRefreshTimer = null;
 let realtimeConnections = [];
@@ -610,6 +611,7 @@ const generateDailyClosure = async () => {
   await refreshPhaseTwoState({ remote: true });
 };
 
+// Refresca el tablero completo: tenants, pedidos, productos, usuarios y sesiones conectadas.
 const refreshData = async ({ silent = false } = {}) => {
   if (silent && document.visibilityState === 'hidden') return null;
   if (refreshPromise) return refreshPromise;
@@ -641,6 +643,7 @@ const refreshData = async ({ silent = false } = {}) => {
   return task;
 };
 
+// Accion clave de Administracion: cambia estado del pedido y sincroniza cache local para Delivery/Tracking.
 const updateOrderStatus = async (order, nextStatusId) => {
   const statusKey = normalizeStatusKey(nextStatusId);
   if (!statusKey || statusKey === orderStatusKey(order)) return;

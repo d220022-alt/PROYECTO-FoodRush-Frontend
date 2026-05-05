@@ -179,7 +179,7 @@ const submitTicket = () => {
 };
 
 // ==========================================
-// 4. FOODRUSH AI - LÓGICA CORREGIDA
+// 4. ASISTENTE DE SOPORTE
 // ==========================================
 const isChatOpen = ref(false);
 const chatInput = ref('');
@@ -187,7 +187,7 @@ const chatContainer = ref(null);
 const isBotTyping = ref(false);
 
 const chatMessages = ref([
-    { text: '¡Hola! 👋 Soy FoodRush AI. Mi único propósito en la vida es que comas delicioso. ¿Qué se te antoja hoy?', sender: 'bot' }
+    { text: 'Hola. Soy el Asistente FoodRush y puedo orientarte con pedidos, restaurantes, pagos y tiempos de entrega. ¿Qué necesitas revisar?', sender: 'bot' }
 ]);
 
 const scrollToBottom = async () => {
@@ -214,53 +214,31 @@ const sendChatMessage = async () => {
     isBotTyping.value = true;
     scrollToBottom();
 
-    const response = await thinkLikeAI(text);
+    const response = await buildSupportReply(text);
     
     isBotTyping.value = false;
     chatMessages.value.push({ text: response, sender: 'bot' });
     scrollToBottom();
 };
 
-const thinkLikeAI = async (userMessage) => {
-    const API_KEY = ""; // Pon aquí tu clave de API si tienes una.
+// Respuestas locales del chat de soporte. No depende de servicios externos: solo orienta y manda a rutas internas.
+const buildSupportReply = async (userMessage) => {
+    const lowerInput = userMessage.toLowerCase();
 
-    const systemPrompt = `Eres FoodRush AI, el asistente virtual de FoodRush (app de delivery dominicana)...`;
+    if (/(mac|mc|mak)\s*(donal|donald|donalz)/i.test(lowerInput)) return "McDonald's está disponible en FoodRush. Puedes revisar su menú aquí: [Menú McDonald's](/franchise/mcdonalds).";
+    if (/(buerger|burgel|burger)\s*(kin|king)/i.test(lowerInput)) return "Burger King está en la sección de franquicias. Entra desde aquí: [Pedir Burger King](/franchise/burger-king).";
+    if (/(pisa|pizza|piza)\s*(hut|hut|jot)/i.test(lowerInput)) return "Pizza Hut está lista para pedir desde FoodRush: [Pedir Pizza Hut](/franchise/pizza-hut).";
+    if (/(pollo|kfc|kefc|kefec)/i.test(lowerInput)) return "Para pollo frito, puedes abrir el menú de KFC aquí: [Pedir KFC](/franchise/kfc).";
+    if (/(starbuck|cafe|estarbu|estarvuc)/i.test(lowerInput)) return "Si quieres café o bebidas, revisa Starbucks aquí: [Ir a Starbucks](/franchise/starbucks).";
+    if (/(pedido|orden|rastrear|llega|tiempo)/i.test(lowerInput)) return "El tiempo promedio de entrega es de 30 a 45 minutos. Entra a Mis Pedidos para abrir el seguimiento del pedido activo.";
 
-    if (API_KEY) {
-        try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nUsuario dice: ${userMessage}` }]}],
-                    generationConfig: { temperature: 0.8, maxOutputTokens: 250 }
-                })
-            });
-            const data = await response.json();
-            return data.candidates[0].content.parts[0].text;
-        } catch (error) {
-            console.error("Error conectando a la IA:", error);
-            return "Mis circuitos tienen hambre, pero igual te ayudaré a pedir en FoodRush...";
-        }
-    } else {
-        // Corrección: Asegurarnos de evaluar contra el mensaje correcto
-        const lowerInput = userMessage.toLowerCase();
-        
-        if (/(mac|mc|mak)\s*(donal|donald|donalz)/i.test(lowerInput)) return "¡Me encanta **McDonald's**! Ofrecemos su menú completo con envío rápido. Puedes hacer tu pedido directamente aquí: [Menú McDonald's](/restaurant/mcdonalds). 🍔🍟";
-        if (/(buerger|burgel|burger)\s*(kin|king)/i.test(lowerInput)) return "¡Las hamburguesas a la parrilla son un clásico! Tenemos a **Burger King**. [Pedir Burger King](/restaurant/burger-king). 👑🍔";
-        if (/(pisa|pizza|piza)\s*(hut|hut|jot)/i.test(lowerInput)) return "¡Claro! **Pizza Hut** lista para llevar calientita a tu casa. [Pedir Pizza Hut](/restaurant/pizza-hut). 🍕";
-        if (/(pollo|kfc|kefc|kefec)/i.test(lowerInput)) return "¿Antojo de pollo frito? ¡Tenemos **KFC**! Aquí tienes el menú para chuparse los dedos: [Pedir KFC](/restaurant/kfc). 🍗🤤";
-        if (/(starbuck|cafe|estarbu|estarvuc)/i.test(lowerInput)) return "¿Necesitas energía? Pide tu café favorito en **Starbucks**. [Ir a Starbucks](/restaurant/starbucks). ☕✨";
-        if (/(pedido|orden|rastrear|llega|tiempo)/i.test(lowerInput)) return "El tiempo promedio de FoodRush es de 30-45 minutos. Ve a 'Mis Pedidos' en tu perfil para rastrearlo. 🛵💨";
-
-        const fallbacks = [
-            `Mencionaste "${userMessage}", ¡muy interesante! Pero la verdad, mi programación solo me deja pensar en comida. 😅 ¿Qué tal si te pides una pizza en FoodRush?`,
-            `No sé mucho de "${userMessage}", pero sí sé que hoy tenemos envío gratis en varias franquicias. ¿Miramos el menú de FoodRush? 🍔🚀`,
-            `¡Jaja! Podríamos hablar de "${userMessage}" todo el día, pero me está dando hambre. 🤤 Mejor dime, ¿te provoca pollo frito o unos taquitos?`,
-            `Mi cerebro artificial de FoodRush procesó "${userMessage}" y llegó a la conclusión de que necesitas una buena hamburguesa. ¿Qué dices, pedimos algo? 🍟`
-        ];
-        return fallbacks[Math.floor(Math.random() * fallbacks.length)];
-    }
+    const fallbacks = [
+        `Entiendo tu consulta sobre "${userMessage}". Para resolverla más rápido, revisa las preguntas frecuentes o genera un ticket desde esta misma pantalla.`,
+        `Sobre "${userMessage}", lo más recomendable es abrir un ticket si se trata de un pedido, cobro o incidencia técnica.`,
+        `Puedo ayudarte con pedidos, restaurantes, pagos y tiempos de entrega. Si tu caso requiere revisión humana, usa el formulario de ticket.`,
+        `Para "${userMessage}", puedes escribir más detalles en la consulta general o contactar al soporte por WhatsApp.`
+    ];
+    return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 };
 </script>
 
@@ -380,10 +358,10 @@ const thinkLikeAI = async (userMessage) => {
             
             <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white cursor-pointer group">
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
-                    <i class="fas fa-brain"></i>
+                    <i class="fas fa-headset"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-slate-800">FoodRush AI Inteligente</h3>
-                <p class="text-gray-500 text-base mb-6 leading-relaxed">Asistencia inmediata propulsada por IA. Resolvemos dudas rápidas o te ayudamos a elegir qué comer.</p>
+                <h3 class="text-2xl font-bold mb-3 text-slate-800">Asistente FoodRush</h3>
+                <p class="text-gray-500 text-base mb-6 leading-relaxed">Respuestas rápidas para dudas sobre pedidos, pagos, tiempos de entrega o restaurantes disponibles.</p>
                 <span class="text-blue-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Interactuar <i class="fas fa-arrow-right"></i></span>
             </div>
 
@@ -505,10 +483,10 @@ const thinkLikeAI = async (userMessage) => {
             <div class="bg-gradient-to-r from-[#0f172a] to-[#1e293b] text-white p-5 font-bold flex justify-between items-center shadow-md z-10">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                        <i class="fas fa-robot text-[#fbbf24]"></i>
+                        <i class="fas fa-headset text-[#fbbf24]"></i>
                     </div>
                     <div>
-                        <h4 class="leading-none text-lg">FoodRush AI</h4>
+                        <h4 class="leading-none text-lg">Asistente FoodRush</h4>
                         <span class="text-xs text-green-400 font-normal flex items-center gap-1 mt-1"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> En línea</span>
                     </div>
                 </div>

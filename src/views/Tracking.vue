@@ -81,6 +81,7 @@ const formatDate = (value) => {
     return parsedDate.toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' });
 };
 
+// Los pedidos locales nacen en Checkout; aqui se adaptan al mismo formato que un pedido remoto.
 const normalizeCachedOrder = (cachedOrder) => {
     if (!cachedOrder) return null;
 
@@ -112,6 +113,7 @@ const normalizeCachedOrder = (cachedOrder) => {
     };
 };
 
+// Cuando el backend responde, esta funcion combina sus datos con cache/QA para no perder mapa ni codigo.
 const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta = {}) => {
     const mergedOrder = { ...baseOrder, ...remoteOrder };
     const id = safeText(remoteOrder.id || baseOrder.id || orderId.value);

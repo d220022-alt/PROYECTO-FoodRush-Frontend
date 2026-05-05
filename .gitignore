@@ -39,11 +39,7 @@ __screenshots__/
 *.timestamp-*-*.mjs
 
 # Archivos locales (no compartidos con el equipo)
-.claude/
-.playwright-mcp/
 .playwright-cli/
 test-results/
-AGENTS.md
-CLAUDE.md
 docs/
 .vercel

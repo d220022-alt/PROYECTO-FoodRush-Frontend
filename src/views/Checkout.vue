@@ -79,6 +79,7 @@ const savedCard = ref(null);
 const savedPayPalAccount = ref(null);
 
 // Load saved methods for user
+// Carga metodo preferido del usuario antes de pintar el resumen de pago.
 const loadUserPaymentMethods = () => {
     const email = currentUserEmail.value;
     const storedCard = getSavedCard(email);
@@ -142,6 +143,7 @@ const loadCart = () => {
   cartItems.value = getCart();
 };
 
+// Cambia entre delivery y pickup; este valor tambien decide tarifa y coordenadas del mapa.
 const setMode = (mode) => {
   currentMode.value = mode;
 };

@@ -8,6 +8,8 @@ const DEFAULT_TENANT_ID = String(import.meta.env.VITE_DEFAULT_TENANT_ID || '1').
 const REQUEST_TIMEOUT_MS = 60000;
 const TENANT_HEADER_KEYS = ['X-Tenant-ID', 'x-tenant-id', 'tenant-id'];
 let cachedOrderStatusesPromise = null;
+
+// IDs de respaldo por si el backend tarda o no devuelve el catalogo de estados.
 const FALLBACK_ORDER_STATUS_IDS = {
   pendiente: 1,
   preparando: 3,
@@ -47,6 +49,7 @@ const inferPayloadData = (payload, preferredKeys = []) => {
   return null;
 };
 
+// El backend mezcla respuestas tipo array, objeto plano y { data }. Estas funciones uniforman todo.
 const normalizeResult = (payload, preferredKeys = []) => {
   if (payload === null || payload === undefined) {
     return { success: true, data: null };
@@ -368,6 +371,7 @@ export const api = {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+    // Todas las llamadas pasan por aqui: timeout, bearer token, tenant y errores legibles para la UI.
     const config = {
       ...options,
       signal: controller.signal,
