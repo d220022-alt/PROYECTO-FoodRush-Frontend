@@ -33,12 +33,16 @@ const virtualHtmlEntry = () => ({
     name: 'foodrush-virtual-html-entry',
     configureServer(server) {
         server.middlewares.use(async (req, res, next) => {
-            if (req.url !== '/' && req.url !== '/index.html') {
+            const pathName = (req.url || '/').split('?')[0]
+            const acceptsHtml = String(req.headers.accept || '').includes('text/html')
+            const hasFileExtension = /\.[a-zA-Z0-9]+$/.test(pathName)
+
+            if (pathName !== '/' && pathName !== '/index.html' && (hasFileExtension || !acceptsHtml)) {
                 next()
                 return
             }
 
-            const html = await server.transformIndexHtml(req.url, buildHtml())
+            const html = await server.transformIndexHtml(pathName, buildHtml())
             res.statusCode = 200
             res.setHeader('Content-Type', 'text/html')
             res.end(html)

@@ -30,8 +30,6 @@ import {
 import { SANTIAGO_CENTER, getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
 import { useCurrency } from '../utils/currency';
 import {
-  DEFAULT_DELIVERY_FEE,
-  getDeliveryFeeForZone,
   normalizeDominicanAddressInput,
   resolveDominicanAddressZone,
   validateDominicanAddress,
@@ -43,6 +41,8 @@ const router = useRouter();
 const userName = ref('');
 const currentUserEmail = ref(getSession().userEmail || 'usuario_invitado');
 const { formatCurrency } = useCurrency();
+const BASE_DELIVERY_FEE = 15;
+const DELIVERY_FEE_PER_KM = 12;
 
 const goBack = () => {
     router.go(-1);
@@ -132,16 +132,48 @@ const subtotal = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0)
 );
 
+const deliveryTipInput = ref('');
+const deliveryTip = computed(() => {
+  const value = Number.parseFloat(deliveryTipInput.value);
+  return Number.isFinite(value) && value > 0 ? value : 0;
+});
+const distanceKm = (left, right) => {
+  if (!left || !right) return 0;
+  const toRadians = (value) => (Number(value) * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+  const latDiff = toRadians(right.lat - left.lat);
+  const lngDiff = toRadians(right.lng - left.lng);
+  const leftLat = toRadians(left.lat);
+  const rightLat = toRadians(right.lat);
+  const a = Math.sin(latDiff / 2) ** 2 + Math.cos(leftLat) * Math.cos(rightLat) * Math.sin(lngDiff / 2) ** 2;
+  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+const deliveryDistanceKm = computed(() => {
+  if (currentMode.value !== 'delivery') return 0;
+  const storeLocation = getStoreLocation({ tenant_id: resolveTenantId() });
+  const fallbackLocation = getCustomerLocation({ id: 'checkout', address: addressDetails.value });
+  const customerLocation = cachedPos || fallbackLocation;
+  const estimatedDistance = distanceKm(storeLocation, customerLocation);
+  return Number.isFinite(estimatedDistance) && estimatedDistance > 0 ? estimatedDistance : 0.1;
+});
 const detectedDeliveryZone = computed(() => {
   const session = getSession();
   return resolveDominicanAddressZone(addressDetails.value, session.userZone || localStorage.getItem('user_zone'));
 });
 const deliveryFee = computed(() => {
   if (currentMode.value !== 'delivery') return 0;
-  return detectedDeliveryZone.value?.fee || getDeliveryFeeForZone(getSession().userZone) || DEFAULT_DELIVERY_FEE;
+  return BASE_DELIVERY_FEE + Math.ceil(deliveryDistanceKm.value * DELIVERY_FEE_PER_KM);
 });
-const deliveryZoneLabel = computed(() => detectedDeliveryZone.value?.label || 'Zona RD');
-const total = computed(() => subtotal.value + deliveryFee.value);
+const deliveryFeeBreakdown = computed(() => {
+  if (currentMode.value !== 'delivery') return '';
+  const variableFee = Math.ceil(deliveryDistanceKm.value * DELIVERY_FEE_PER_KM);
+  return `${formatCurrency(BASE_DELIVERY_FEE)} base + ${formatCurrency(variableFee)} por distancia`;
+});
+const deliveryZoneLabel = computed(() => {
+  if (currentMode.value !== 'delivery') return 'Pickup';
+  return `${detectedDeliveryZone.value?.label || 'Distancia estimada'} - ${deliveryDistanceKm.value.toFixed(1)} km`;
+});
+const total = computed(() => subtotal.value + deliveryFee.value + deliveryTip.value);
 
 const DOMINICAN_BOUNDS = {
   minLat: 17.35,
@@ -571,6 +603,8 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
       `Instrucciones: ${instructionsText.value}`,
       currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      currentMode.value === 'delivery' ? `Delivery Fee: ${deliveryFee.value} DOP por ${deliveryDistanceKm.value.toFixed(1)} km` : '',
+      currentMode.value === 'delivery' ? `Propina delivery: ${deliveryTip.value} DOP` : '',
       deliveryType.value === 'scheduled' && scheduleDate.value ? `Programado para: ${scheduleDate.value}` : '',
   ].filter(Boolean).join('. ');
 
@@ -584,6 +618,10 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       items: items.map(normalizeOrderItemForPayload),
       metodo_pago: paymentMethod.value,
       tipo_entrega: currentMode.value,
+      delivery_fee: deliveryFee.value,
+      delivery_tip: deliveryTip.value,
+      driver_tip: deliveryTip.value,
+      delivery_distance_km: Number(deliveryDistanceKm.value.toFixed(2)),
       lat: deliveryLocation?.lat,
       lng: deliveryLocation?.lng,
   };
@@ -690,7 +728,7 @@ const processOrder = async () => {
             (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
             0,
           );
-          const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value : 0);
+          const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value + deliveryTip.value : 0);
           orderPayload = buildOrderPayload({
             clientId,
             items: syncedItems,
@@ -708,6 +746,10 @@ const processOrder = async () => {
                   user_email: identity.email,
                   user_name: identity.name,
                   tipo_entrega: orderParams.data.tipo_entrega || orderPayload.tipo_entrega,
+                  delivery_fee: orderParams.data.delivery_fee ?? orderPayload.delivery_fee,
+                  delivery_tip: orderParams.data.delivery_tip ?? orderPayload.delivery_tip,
+                  driver_tip: orderParams.data.driver_tip ?? orderPayload.driver_tip,
+                  delivery_distance_km: orderParams.data.delivery_distance_km ?? orderPayload.delivery_distance_km,
                   source: 'remote'
                 },
                 identity.email
@@ -1275,8 +1317,42 @@ onBeforeUnmount(() => {
                 <span>{{ formatCurrency(subtotal) }}</span>
               </div>
               <div class="flex justify-between" :class="currentMode === 'pickup' ? 'opacity-20 line-through' : ''">
-                <span>Delivery Fee <small v-if="currentMode === 'delivery'" class="text-[10px] font-bold text-slate-400">({{ deliveryZoneLabel }})</small></span>
+                <span class="flex items-center gap-1">
+                  Delivery Fee
+                  <i
+                    v-if="currentMode === 'delivery'"
+                    class="fa-solid fa-circle-info text-amber-500"
+                    title="Incluye RD$15 fijos mas una tarifa variable segun la distancia al local."
+                  ></i>
+                  <small v-if="currentMode === 'delivery'" class="text-[10px] font-bold text-slate-400">({{ deliveryZoneLabel }})</small>
+                </span>
                 <span>{{ formatCurrency(deliveryFee) }}</span>
+              </div>
+              <div v-if="currentMode === 'delivery'" class="flex justify-between text-xs text-slate-400">
+                <span>Tarifa</span>
+                <span class="text-right">{{ deliveryFeeBreakdown }} = {{ formatCurrency(deliveryFee) }}</span>
+              </div>
+              <div v-if="currentMode === 'delivery'" class="rounded-xl border border-orange-100 bg-orange-50/60 p-3">
+                <div class="mb-2 flex items-center justify-between gap-3">
+                  <div>
+                    <p class="text-xs font-black text-slate-700">Agregar propina al delivery</p>
+                    <p class="text-[10px] font-bold text-slate-400">Opcional</p>
+                  </div>
+                  <i class="fa-solid fa-hand-holding-heart text-[#f97316]"></i>
+                </div>
+                <input
+                  v-model="deliveryTipInput"
+                  type="number"
+                  min="0"
+                  step="5"
+                  inputmode="decimal"
+                  placeholder="0.00"
+                  class="w-full rounded-lg border border-orange-100 bg-white px-3 py-2 text-right text-sm font-black text-slate-700 outline-none focus:border-[#f97316]"
+                />
+              </div>
+              <div v-if="currentMode === 'delivery' && deliveryTip > 0" class="flex justify-between">
+                <span>Propina delivery</span>
+                <span>{{ formatCurrency(deliveryTip) }}</span>
               </div>
               <div class="flex justify-between text-lg font-bold text-slate-800 mt-2">
                 <span>Total</span>

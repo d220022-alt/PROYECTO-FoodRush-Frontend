@@ -104,6 +104,12 @@ const toNumber = (value, fallback = 0) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const extractMoneyFromNotes = (notes = '', label = '') => {
+  const pattern = new RegExp(`${label}:\\s*([0-9]+(?:\\.[0-9]+)?)`, 'i');
+  const match = safeText(notes).match(pattern);
+  return match ? toNumber(match[1]) : 0;
+};
+
 const dedupeBy = (items = [], getKey) => {
   const seen = new Set();
   const deduped = [];
@@ -353,6 +359,9 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     : null;
   const customer = clientsMap.get(customerId) || customerFromOrder || {};
   const deliveryAssignment = assignmentsByOrderId.get(id) || getDeliveryAssignment(id);
+  const notes = safeText(order.notas);
+  const deliveryFee = toNumber(order.delivery_fee ?? order.deliveryFee) || extractMoneyFromNotes(notes, 'Delivery Fee');
+  const deliveryTip = toNumber(order.delivery_tip ?? order.driver_tip ?? order.deliveryTip ?? order.driverTip) || extractMoneyFromNotes(notes, 'Propina delivery');
 
   return {
     ...order,
@@ -366,8 +375,12 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     customerPhone: safeText(customer.phone, 'Sin telefono'),
     customerEmail: safeText(customer.email),
     address: safeText(order.direccion_entrega || customer.address, 'Recogida en tienda'),
-    notes: safeText(order.notas),
+    notes,
     paymentMethod: safeText(order.metodo_pago),
+    deliveryFee,
+    deliveryTip,
+    driverTip: deliveryTip,
+    deliveryDistanceKm: toNumber(order.delivery_distance_km ?? order.deliveryDistanceKm),
     totalValue: toNumber(order.total),
     createdAt: safeText(order.creado_en || order.createdAt, new Date().toISOString()),
     statusId: Number.parseInt(order.estado_id ?? order.estado?.id, 10) || ORDER_STATUS_IDS.pending,

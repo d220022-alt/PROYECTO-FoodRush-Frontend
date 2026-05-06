@@ -30,6 +30,7 @@ const MAX_ACTIVE_DELIVERY_ORDERS = 3;
 const FIRST_ORDER_ZONE_RADIUS_KM = 4;
 const UNACCEPTED_ORDER_CANCEL_MS = 3 * 60 * 60 * 1000;
 const ACCEPTED_FREE_DELIVERY_MS = 60 * 60 * 1000;
+const DELIVERY_WALLET_PAYOUT_RATE = 0.3;
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -175,6 +176,12 @@ const resolveSecurityCode = (order = {}) => {
 };
 
 const hasFreeDelivery = (order = {}) => Boolean(order.deliveryFeeWaived || order.envioGratis || order.deliveryAssignment?.deliveryFeeWaived);
+const resolveDeliveryGrossPayment = (order = {}) => {
+    const deliveryFee = Number(order.deliveryFee ?? order.delivery_fee ?? 0);
+    const deliveryTip = Number(order.deliveryTip ?? order.delivery_tip ?? order.driverTip ?? order.driver_tip ?? 0);
+    const gross = Math.max(0, deliveryFee) + Math.max(0, deliveryTip);
+    return gross > 0 ? gross : Number(order.price || order.totalValue || 0);
+};
 
 const driverIdentity = () => ({
     driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
@@ -302,6 +309,8 @@ const buildOrderView = (order = {}, status = 'pending') => {
         backendStatusKey,
         canAccept: ['pendiente', 'preparando'].includes(backendStatusKey),
         deliveryFeeWaived: hasFreeDelivery(order),
+        deliveryFee: Number(order.deliveryFee ?? order.delivery_fee ?? 0),
+        deliveryTip: Number(order.deliveryTip ?? order.delivery_tip ?? order.driverTip ?? order.driver_tip ?? 0),
         codigoDelivery: resolveSecurityCode(order),
         descripcionDetallada: buildOrderDescription(order),
     };
@@ -1399,7 +1408,8 @@ const completeDelivery = async () => {
                 repartidor_email: identity.driverEmail,
             });
         }
-        const payment = Number(deliveredOrder.price || 0);
+        const grossDeliveryPayment = resolveDeliveryGrossPayment(deliveredOrder);
+        const payment = Math.max(0, grossDeliveryPayment * DELIVERY_WALLET_PAYOUT_RATE);
         state.earnings += payment;
         state.trips += 1;
         appendTripHistory({
@@ -1411,6 +1421,7 @@ const completeDelivery = async () => {
             address: deliveredOrder.dropoff,
             proof: deliveryProofFile.value?.name || 'foto de entrega',
             confirmationCode: normalizedDeliveryCode.value,
+            grossDeliveryPayment,
         });
         state.history.push({ emoji: deliveredOrder.franchise.emoji, desc: `Entrega ${deliveredOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
         state.activeOrderIds = state.activeOrderIds.filter((orderId) => String(orderId) !== String(deliveredOrder.id));
