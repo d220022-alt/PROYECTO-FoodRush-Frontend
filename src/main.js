@@ -19,6 +19,23 @@ import {
 
 initializeTheme()
 startCurrencyRateAutoRefresh()
+const loadUserWayWidget = () => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  if (document.querySelector('script[src="https://cdn.userway.org/widget.js"]')) return
+
+  window._userway_config = {
+    position: '3',
+  }
+
+  const script = document.createElement('script')
+  script.src = 'https://cdn.userway.org/widget.js'
+  script.async = true
+  script.onerror = () => {
+    console.warn('No se pudo cargar el widget de accesibilidad UserWay.')
+  }
+  document.body.appendChild(script)
+}
+
 const app = createApp(App)
 
 app.mixin({
@@ -54,3 +71,4 @@ app.mixin({
 })
 
 app.use(router).mount('#app')
+loadUserWayWidget()
