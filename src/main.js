@@ -9,6 +9,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css'
 import './style.css'
 import App from './App.vue'
 import router from './router'
+import { initializeAccessibility } from './services/accessibility'
 import { initializeTheme } from './services/theme'
 import {
   CURRENCY_CHANGED_EVENT,
@@ -17,6 +18,7 @@ import {
   startCurrencyRateAutoRefresh,
 } from './utils/currency'
 
+initializeAccessibility()
 initializeTheme()
 startCurrencyRateAutoRefresh()
 const loadUserWayWidget = () => {
