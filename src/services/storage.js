@@ -303,13 +303,16 @@ const buildCartLineKey = (item = {}) =>
   ].join('::');
 
 const normalizeCartItem = (item = {}) => {
+  const price = Math.max(0, toNumber(item.price ?? item.precio_unitario ?? item.precio ?? item.unitPrice, 0));
+  const qty = Math.max(1, toInteger(item.qty ?? item.cantidad ?? item.quantity, 1));
   const normalized = {
     ...item,
     id: safeString(item.productId || item.producto_id || item.id, `item-${Date.now()}`),
     name: safeString(item.name || item.nombre || item.producto?.nombre, 'Producto'),
     img: safeString(item.img),
-    price: Math.max(0, toNumber(item.price ?? item.precio_unitario ?? item.precio ?? item.unitPrice, 0)),
-    qty: Math.max(1, toInteger(item.qty ?? item.cantidad ?? item.quantity, 1)),
+    price,
+    qty,
+    subtotal: price * qty,
     details: safeString(item.details, 'Sin adicionales'),
     place: safeString(item.place),
     franchiseSlug: safeString(item.franchiseSlug),
@@ -517,6 +520,7 @@ export const addCartItem = (item, scope = null) => {
 
   if (existing) {
     existing.qty += normalizedItem.qty;
+    existing.subtotal = existing.price * existing.qty;
   } else {
     cart.push(normalizedItem);
   }
@@ -531,6 +535,7 @@ export const updateCartItemQuantity = (lineKey, nextQty, scope = null) => {
   if (!item) return null;
 
   item.qty = Math.max(1, toInteger(nextQty, 1));
+  item.subtotal = item.price * item.qty;
   saveCart(cart, scope);
   return item;
 };
@@ -689,11 +694,14 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
   const orderId = safeString(order.id, `local-${Date.now()}`);
   const deliveryCode = resolveDeliveryCode(order, orderId);
 
+  const normalizedItems = rawItems.map(normalizeCartItem);
+  const itemsTotal = normalizedItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
+
   return {
     ...order,
     id: orderId,
     cliente_id: order.cliente_id ?? order.client_id ?? order.customerId ?? null,
-    total: Math.max(0, toNumber(order.total ?? order.totalValue, 0)),
+    total: Math.max(0, toNumber(order.total ?? order.totalValue, itemsTotal)),
     direccion_entrega: safeString(order.direccion_entrega || order.address, 'Recogida en tienda'),
     notas: safeString(order.notas || order.notes),
     metodo_pago: safeString(order.metodo_pago || order.paymentMethod),
@@ -703,7 +711,7 @@ const normalizeOrder = (order = {}, fallbackEmail = '') => {
       ...(typeof order.estado === 'object' ? order.estado : {}),
       descripcion: statusLabel,
     },
-    items: rawItems.map(normalizeCartItem),
+    items: normalizedItems,
     user_email: normalizeEmailKey(order.user_email || order.customerEmail || order.cliente?.correo || fallbackEmail),
     user_name: safeString(order.user_name || order.userName || order.customerName || order.cliente?.nombre || order.nombre),
     repartidor_nombre: safeString(order.repartidor_nombre || order.driverName || order.repartidor?.nombre),
@@ -858,6 +866,9 @@ const normalizeDeliveryAssignment = (assignment = {}) => ({
   stage: safeString(assignment.stage, 'accepted'),
   assignedAt: safeString(assignment.assignedAt || assignment.creado_en, new Date().toISOString()),
   updatedAt: safeString(assignment.updatedAt, new Date().toISOString()),
+  deliveryFeeWaived: Boolean(assignment.deliveryFeeWaived || assignment.envioGratis),
+  deliveryFreeReason: safeString(assignment.deliveryFreeReason || assignment.motivo_envio_gratis),
+  deliveryFeeWaivedAt: safeString(assignment.deliveryFeeWaivedAt || assignment.envio_gratis_en),
 });
 
 const readDeliveryAssignments = () => readJson(STORAGE_KEYS.deliveryAssignments, {});

@@ -1400,9 +1400,9 @@ onBeforeUnmount(() => {
                 </div>
                 <div v-if="showPriceFilterSection" class="flex flex-wrap gap-2">
                   <button @click="setPriceFilter('all')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'all' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'all' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">Todos</button>
-                  <button @click="setPriceFilter('low')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'low' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'low' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">Hasta $150</button>
-                  <button @click="setPriceFilter('mid')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'mid' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'mid' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">$151-$300</button>
-                  <button @click="setPriceFilter('high')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'high' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'high' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">+$300</button>
+                  <button @click="setPriceFilter('low')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'low' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'low' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">Hasta {{ $money(150) }}</button>
+                  <button @click="setPriceFilter('mid')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'mid' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'mid' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">{{ $money(151) }}-{{ $money(300) }}</button>
+                  <button @click="setPriceFilter('high')" :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border', activePriceFilter === 'high' ? 'text-white shadow-md' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50']" :style="activePriceFilter === 'high' ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}">+{{ $money(300) }}</button>
                 </div>
               </div>
 
@@ -1506,7 +1506,7 @@ onBeforeUnmount(() => {
                   {{ product.category }}
                 </p>
                 <div class="product-footer flex justify-between items-center w-full bg-gray-50 p-2 rounded-xl transition border border-transparent">
-                  <span class="font-bold px-2 text-lg">${{ product.price }}</span>
+                  <span class="font-bold px-2 text-lg">{{ $money(product.price) }}</span>
                   <span class="plus-btn w-8 h-8 rounded-lg bg-white shadow-sm transition flex items-center justify-center border border-gray-100">
                     <i class="fa-solid fa-plus"></i>
                   </span>
@@ -1558,7 +1558,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="text-center leading-tight">
                   <span :class="['size-choice__label', modifierSelections[sizeModifier.id] === opt ? 'is-selected' : '']">{{ opt }}</span>
-                  <span class="size-choice__price">${{ getSizeOptionPrice(opt) }}</span>
+                  <span class="size-choice__price">{{ $money(getSizeOptionPrice(opt)) }}</span>
                 </div>
               </button>
             </div>
@@ -1589,11 +1589,11 @@ onBeforeUnmount(() => {
                 class="summary-card__price-line"
               >
                 <span>{{ item.label }}</span>
-                <strong>{{ idx === 0 ? '' : '+' }}${{ item.value }}</strong>
+                <strong>{{ idx === 0 ? $money(item.value) : $moneySigned(item.value) }}</strong>
               </div>
               <div class="summary-card__price-line summary-card__price-line--total">
                 <span>Extras</span>
-                <strong>{{ extrasTotal > 0 ? '+' : '' }}${{ extrasTotal }}</strong>
+                <strong>{{ $moneySigned(extrasTotal) }}</strong>
               </div>
             </div>
 
@@ -1648,8 +1648,7 @@ onBeforeUnmount(() => {
               <span class="studio-hero__eyebrow">Configuracion en vivo</span>
               <span class="studio-hero__label">Precio unitario</span>
               <div class="studio-hero__price">
-                <span class="studio-hero__currency">$</span>
-                <span>{{ currentUnitPrice }}</span>
+                <span>{{ $money(currentUnitPrice) }}</span>
               </div>
               <div class="studio-pill-row">
                 <span class="studio-status-pill">{{ selectedSizeLabel }}</span>
@@ -1690,7 +1689,7 @@ onBeforeUnmount(() => {
                 </div>
                 <div>
                   <span class="block text-sm font-bold text-slate-800">{{ mod.label }}</span>
-                  <span v-if="mod.type !== 'choice' && mod.price > 0" class="text-xs font-medium" :style="{ color: 'var(--brand-primary)' }">+${{ mod.price }}</span>
+                  <span v-if="mod.type !== 'choice' && mod.price > 0" class="text-xs font-medium" :style="{ color: 'var(--brand-primary)' }">{{ $moneySigned(mod.price) }}</span>
                   <span v-else class="text-xs text-slate-500">{{ mod.type === 'choice' ? 'Selecciona una opcion' : mod.type === 'counter' ? 'Ajusta la cantidad' : 'Activa si lo deseas' }}</span>
                 </div>
               </div>
@@ -1755,11 +1754,11 @@ onBeforeUnmount(() => {
                 class="summary-card__price-line"
               >
                 <span>{{ item.label }}</span>
-                <strong>{{ idx === 0 ? '' : '+' }}${{ item.value }}</strong>
+                <strong>{{ idx === 0 ? $money(item.value) : $moneySigned(item.value) }}</strong>
               </div>
               <div class="summary-card__price-line summary-card__price-line--total">
                 <span>Extras</span>
-                <strong>{{ extrasTotal > 0 ? '+' : '' }}${{ extrasTotal }}</strong>
+                <strong>{{ $moneySigned(extrasTotal) }}</strong>
               </div>
             </div>
 
@@ -1779,7 +1778,7 @@ onBeforeUnmount(() => {
             <div>
               <span>Total del pedido</span>
               <div>
-                <span class="studio-cta__price">${{ totalPrice }}</span>
+                <span class="studio-cta__price">{{ $money(totalPrice) }}</span>
               </div>
             </div>
             <div class="studio-cta__actions">

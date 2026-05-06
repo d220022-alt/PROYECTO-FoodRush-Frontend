@@ -10,6 +10,47 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import { initializeTheme } from './services/theme'
+import {
+  CURRENCY_CHANGED_EVENT,
+  formatCurrency,
+  formatSignedCurrency,
+  startCurrencyRateAutoRefresh,
+} from './utils/currency'
 
 initializeTheme()
-createApp(App).use(router).mount('#app')
+startCurrencyRateAutoRefresh()
+const app = createApp(App)
+
+app.mixin({
+  data() {
+    return {
+      foodrushCurrencyTick: 0,
+      foodrushCurrencyListener: null,
+    }
+  },
+  created() {
+    this.foodrushCurrencyListener = () => {
+      this.foodrushCurrencyTick += 1
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener(CURRENCY_CHANGED_EVENT, this.foodrushCurrencyListener)
+    }
+  },
+  beforeUnmount() {
+    if (typeof window !== 'undefined' && this.foodrushCurrencyListener) {
+      window.removeEventListener(CURRENCY_CHANGED_EVENT, this.foodrushCurrencyListener)
+    }
+  },
+  methods: {
+    $money(value, options = {}) {
+      this.foodrushCurrencyTick
+      return formatCurrency(value, options)
+    },
+    $moneySigned(value, options = {}) {
+      this.foodrushCurrencyTick
+      return formatSignedCurrency(value, options)
+    },
+  },
+})
+
+app.use(router).mount('#app')

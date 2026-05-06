@@ -12,11 +12,13 @@ import { buildTenantHeaders, fetchOperationalDataset, getOrderProgressStep, getS
 import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
 import { resolveDeliveryCode } from '../utils/deliveryCode';
+import { useCurrency } from '../utils/currency';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
 
 const route = useRoute();
 const router = useRouter();
 const session = getSession();
+const { formatCurrency } = useCurrency();
 
 const order = ref(null);
 const warnings = ref([]);
@@ -75,7 +77,6 @@ const deliverySecurityCode = computed(() => {
     return resolveDeliveryCode(order.value || {}, orderId.value);
 });
 
-const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
 const formatDate = (value) => {
     const parsedDate = new Date(value);
     if (Number.isNaN(parsedDate.getTime())) return 'Sin fecha';

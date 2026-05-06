@@ -16,6 +16,7 @@ import { ORDER_STATUS_CODES, buildTenantHeaders, fetchOperationalDataset, isSess
 import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, updateCachedOrderStatus } from '../services/storage';
 import { useTheme } from '../services/theme';
+import { useCurrency } from '../utils/currency';
 
 const router = useRouter();
 const session = getSession();
@@ -59,6 +60,7 @@ const auditEntries = ref(getAuditLog());
 const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 const { isDarkMode, toggleTheme } = useTheme();
+const { formatCurrency } = useCurrency();
 
 const menuGroups = [
   { name: 'SISTEMA GLOBAL', items: [{ id: 'dashboard', name: 'Dashboard Principal', icon: 'fa-solid fa-chart-pie' }] },
@@ -134,15 +136,10 @@ const isPreparingOrder = (order = {}) => orderStatusKey(order) === 'preparando';
 const isInTransitOrder = (order = {}) => orderStatusKey(order) === 'en camino';
 const isFinalOrder = (order = {}) => isDeliveredOrder(order) || isCancelledOrder(order);
 const hasAssignedDriver = (order = {}) => Boolean(order.driverName || order.driverEmail || order.deliveryAssignment?.driverName || order.deliveryAssignment?.driverId || order.deliveryAssignment?.driverEmail);
-const formatCurrency = (value) => `$${Number(value || 0).toFixed(2)}`;
 const formatChartCurrency = (value) => {
   const amount = Number(value || 0);
-  if (!amount) return '$0';
-  if (Math.abs(amount) >= 1000) {
-    const compact = amount / 1000;
-    return `$${compact >= 10 ? compact.toFixed(0) : compact.toFixed(1)}k`;
-  }
-  return `$${Math.round(amount)}`;
+  if (!amount) return formatCurrency(0, { decimals: 0 });
+  return formatCurrency(amount, { compact: true });
 };
 const formatDate = (value) => value ? new Date(value).toLocaleString('es-DO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Sin fecha';
 

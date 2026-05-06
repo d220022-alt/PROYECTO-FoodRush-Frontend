@@ -305,6 +305,9 @@ const buildAssignmentsByOrderId = (assignments = []) =>
           stage: safeText(assignment.stage || assignment.status, 'accepted'),
           assignedAt: safeText(assignment.assignedAt || assignment.asignado_en),
           updatedAt: safeText(assignment.updatedAt),
+          deliveryFeeWaived: Boolean(assignment.deliveryFeeWaived || assignment.envioGratis),
+          deliveryFreeReason: safeText(assignment.deliveryFreeReason || assignment.motivo_envio_gratis),
+          deliveryFeeWaivedAt: safeText(assignment.deliveryFeeWaivedAt || assignment.envio_gratis_en),
         },
       ]),
   );
@@ -376,6 +379,8 @@ const normalizeOrder = (order = {}, tenant, itemsByOrderId, productsMap, clients
     driverName: safeText(order.repartidor?.nombre || order.repartidor_nombre || order.driverName || deliveryAssignment?.driverName),
     driverEmail: safeText(order.repartidor_email || order.driverEmail || deliveryAssignment?.driverEmail),
     deliveryAssignment,
+    deliveryFeeWaived: Boolean(order.deliveryFeeWaived || order.envioGratis || deliveryAssignment?.deliveryFeeWaived),
+    deliveryFreeReason: safeText(order.deliveryFreeReason || deliveryAssignment?.deliveryFreeReason),
     itemsDetailed: relatedItems,
     itemCount: relatedItems.reduce((total, item) => total + item.quantity, 0),
     itemSummary: relatedItems.length

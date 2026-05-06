@@ -15,6 +15,7 @@ import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, clearDeliveryAssignment, clearSession, getSession, setDeliveryAssignment, updateCachedOrderStatus } from '../services/storage';
 import { useTheme } from '../services/theme';
 import { normalizeDeliveryCodeInput, resolveDeliveryCode } from '../utils/deliveryCode';
+import { useCurrency } from '../utils/currency';
 import { SANTIAGO_CENTER, buildFallbackRoute, fetchStreetRoute, getCustomerLocation, getPointAlongRoute, getStoreLocation } from '../utils/deliveryMap';
 
 const STORAGE_KEY = 'FoodRush_Delivery_Real_V2';
@@ -25,6 +26,10 @@ const coordsSantiago = [SANTIAGO_CENTER.lat, SANTIAGO_CENTER.lng];
 const AUTO_REFRESH_INTERVAL_MS = 20000;
 const REALTIME_REFRESH_DEBOUNCE_MS = 1500;
 const AVAILABLE_ORDERS_PAGE_SIZE = 8;
+const MAX_ACTIVE_DELIVERY_ORDERS = 3;
+const FIRST_ORDER_ZONE_RADIUS_KM = 4;
+const UNACCEPTED_ORDER_CANCEL_MS = 3 * 60 * 60 * 1000;
+const ACCEPTED_FREE_DELIVERY_MS = 60 * 60 * 1000;
 
 const onboardingSteps = [
     { number: 1, badgeClass: 'bg-[#ffedd5] text-[#ea580c]', title: 'Eres tu propio jefe', description: 'El horario es <b>100% flexible</b>. No es obligatorio trabajar en horas específicas. Tú decides cuándo conectarte y hacer dinero.' },
@@ -55,6 +60,9 @@ const defaultState = () => ({
     activeOrderId: '',
     activeStage: '',
     activeOrder: null,
+    activeOrderIds: [],
+    activeStagesById: {},
+    activeOrders: [],
     availableOrders: [],
     tripHistory: [],
     history: [],
@@ -63,6 +71,7 @@ const defaultState = () => ({
 const session = getSession();
 const router = useRouter();
 const { isDarkMode, toggleTheme } = useTheme();
+const { formatCurrency } = useCurrency();
 const state = reactive(defaultState());
 
 // Dataset operativo recibido desde services/operations: pedidos, franquicias y sesiones conectadas.
@@ -115,8 +124,22 @@ const scheduledTimeouts = [];
 const dedupeMessages = (values = []) => [...new Set(values.filter(Boolean))];
 const normalize = (value = '') => String(value || '').trim().toLowerCase();
 const orderStatusKey = (order = {}) => normalizeStatusKey(order.statusKey || order.statusLabel || order.estado?.codigo || order.estado?.descripcion);
-const formatCurrency = (amount) => `$${Number(amount || 0).toFixed(2)}`;
-
+const toTimestamp = (value) => {
+    const timestamp = new Date(value || '').getTime();
+    return Number.isFinite(timestamp) ? timestamp : 0;
+};
+const hasDriverAssignment = (order = {}) => Boolean(order.deliveryAssignment?.driverEmail || order.deliveryAssignment?.driverId || order.driverEmail || order.driverName);
+const distanceKm = (left, right) => {
+    if (!left || !right) return 0;
+    const toRadians = (value) => (Number(value) * Math.PI) / 180;
+    const earthRadiusKm = 6371;
+    const latDiff = toRadians(right.lat - left.lat);
+    const lngDiff = toRadians(right.lng - left.lng);
+    const leftLat = toRadians(left.lat);
+    const rightLat = toRadians(right.lat);
+    const a = Math.sin(latDiff / 2) ** 2 + Math.cos(leftLat) * Math.cos(rightLat) * Math.sin(lngDiff / 2) ** 2;
+    return 2 * earthRadiusKm * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 const queueTimeout = (callback, delay) => {
     const timeoutId = window.setTimeout(() => {
         const index = scheduledTimeouts.indexOf(timeoutId);
@@ -151,6 +174,8 @@ const resolveSecurityCode = (order = {}) => {
     return resolveDeliveryCode(order, order.id);
 };
 
+const hasFreeDelivery = (order = {}) => Boolean(order.deliveryFeeWaived || order.envioGratis || order.deliveryAssignment?.deliveryFeeWaived);
+
 const driverIdentity = () => ({
     driverName: session.userName || session.userEmail || 'Repartidor FoodRush',
     driverEmail: session.userEmail || '',
@@ -171,6 +196,9 @@ const syncDeliveryAssignment = async (order, stage, status = stage) => {
             status,
             assignedAt: order.deliveryAssignment?.assignedAt || new Date().toISOString(),
             updatedAt: new Date().toISOString(),
+            deliveryFeeWaived: Boolean(order.deliveryAssignment?.deliveryFeeWaived || order.deliveryFeeWaived),
+            deliveryFreeReason: order.deliveryAssignment?.deliveryFreeReason || order.deliveryFreeReason || '',
+            deliveryFeeWaivedAt: order.deliveryAssignment?.deliveryFeeWaivedAt || '',
             ...identity,
         };
 
@@ -188,6 +216,9 @@ const syncDeliveryAssignment = async (order, stage, status = stage) => {
         pedido_id: order.id,
         stage,
         status,
+        deliveryFeeWaived: Boolean(order.deliveryAssignment?.deliveryFeeWaived || order.deliveryFeeWaived),
+        deliveryFreeReason: order.deliveryAssignment?.deliveryFreeReason || order.deliveryFreeReason || '',
+        deliveryFeeWaivedAt: order.deliveryAssignment?.deliveryFeeWaivedAt || '',
         ...identity,
     }, buildTenantHeaders(order.tenantId));
 
@@ -197,6 +228,9 @@ const syncDeliveryAssignment = async (order, stage, status = stage) => {
         tenantId: order.tenantId,
         status,
         stage,
+        deliveryFeeWaived: Boolean(order.deliveryAssignment?.deliveryFeeWaived || order.deliveryFeeWaived),
+        deliveryFreeReason: order.deliveryAssignment?.deliveryFreeReason || order.deliveryFreeReason || '',
+        deliveryFeeWaivedAt: order.deliveryAssignment?.deliveryFeeWaivedAt || '',
         ...identity,
     });
 
@@ -233,7 +267,8 @@ const reportDriverLocation = async (point, stage = '') => {
 };
 
 const deriveActiveStage = (order = {}) => {
-    if (state.activeStage) return state.activeStage;
+    const orderId = String(order.id || '');
+    if (orderId && state.activeStagesById?.[orderId]) return state.activeStagesById[orderId];
     const assignmentStage = normalize(order.deliveryAssignment?.stage || order.deliveryAssignment?.status || order.assignmentStage || order.assignmentStatus);
     if (assignmentStage.includes('arrived_customer') || assignmentStage.includes('arrived customer')) return 'arrived_customer';
     if (assignmentStage.includes('picked') || assignmentStage.includes('en camino')) return 'picked';
@@ -266,6 +301,7 @@ const buildOrderView = (order = {}, status = 'pending') => {
         status,
         backendStatusKey,
         canAccept: ['pendiente', 'preparando'].includes(backendStatusKey),
+        deliveryFeeWaived: hasFreeDelivery(order),
         codigoDelivery: resolveSecurityCode(order),
         descripcionDetallada: buildOrderDescription(order),
     };
@@ -310,7 +346,8 @@ const availablePageNumbers = computed(() => {
     const end = Math.min(total, start + 4);
     return Array.from({ length: end - start + 1 }, (_, index) => start + index);
 });
-const badgeActive = computed(() => (state.activeOrder ? 1 : 0));
+const activeDeliveryOrders = computed(() => (Array.isArray(state.activeOrders) ? state.activeOrders : []).filter(Boolean));
+const badgeActive = computed(() => activeDeliveryOrders.value.length);
 const financeBalance = computed(() => formatCurrency(state.earnings));
 const statTips = computed(() => formatCurrency(state.tips));
 const modalMaxAmount = computed(() => formatCurrency(state.earnings));
@@ -388,8 +425,7 @@ const cancelledTripsCount = computed(() => {
 });
 
 const activeTripsCount = computed(() => {
-    if (state.activeOrder) return 1;
-    return assignedDriverOrders.value.filter((order) => ['preparando', 'en camino'].includes(orderStatusKey(order))).length;
+    return Math.max(activeDeliveryOrders.value.length, assignedDriverOrders.value.filter((order) => ['preparando', 'en camino'].includes(orderStatusKey(order))).length);
 });
 
 const estimatedActiveTime = computed(() => {
@@ -399,12 +435,38 @@ const estimatedActiveTime = computed(() => {
     return '18 min al cliente';
 });
 
+const firstActiveCustomerLocation = computed(() => {
+    const firstOrder = activeDeliveryOrders.value[0];
+    return firstOrder ? getCustomerLocation(firstOrder) : null;
+});
+
+const getOrderDistanceFromFirstActive = (order = {}) => {
+    const firstLocation = firstActiveCustomerLocation.value;
+    if (!firstLocation) return 0;
+    return distanceKm(firstLocation, getCustomerLocation(order));
+};
+
+const canAcceptOrder = (order = {}) => {
+    if (!order.canAccept) return false;
+    if (activeDeliveryOrders.value.length >= MAX_ACTIVE_DELIVERY_ORDERS) return false;
+    if (activeDeliveryOrders.value.length === 0) return true;
+    return getOrderDistanceFromFirstActive(order) <= FIRST_ORDER_ZONE_RADIUS_KM;
+};
+
+const getAcceptRestrictionMessage = (order = {}) => {
+    if (activeDeliveryOrders.value.length >= MAX_ACTIVE_DELIVERY_ORDERS) return 'Maximo 3 pedidos activos';
+    if (activeDeliveryOrders.value.length > 0 && getOrderDistanceFromFirstActive(order) > FIRST_ORDER_ZONE_RADIUS_KM) {
+        return 'Fuera de la zona del primer pedido';
+    }
+    return '';
+};
+
 const averageTripValue = computed(() => {
     const values = [
         ...completedDriverOrders.value.map((order) => Number(order.totalValue || 0)),
         ...localCompletedTrips.value.map((item) => Number(item.amount || 0)),
     ].filter((value) => value > 0);
-    if (values.length === 0) return '$0.00';
+    if (values.length === 0) return formatCurrency(0);
     return formatCurrency(values.reduce((sum, value) => sum + value, 0) / values.length);
 });
 
@@ -482,6 +544,18 @@ const activeTripRow = computed(() => {
     };
 });
 
+const setSelectedActiveOrder = (orderId) => {
+    const selectedOrder = activeDeliveryOrders.value.find((order) => String(order.id) === String(orderId));
+    if (!selectedOrder) return;
+    state.activeOrderId = String(selectedOrder.id);
+    state.activeStage = selectedOrder.status;
+    state.activeOrder = selectedOrder;
+    saveState();
+    nextTick(() => {
+        if (mapInstance) syncRouteFromState();
+    });
+};
+
 const driverHistoryRows = computed(() => {
     const localOrderIds = new Set(state.tripHistory.map((item) => String(item.orderId)).filter(Boolean));
     const localRows = [...state.tripHistory].reverse().map((item) => buildLocalTripRow(item));
@@ -512,6 +586,8 @@ const saveState = () => {
         dismissedOrderIds: state.dismissedOrderIds,
         activeOrderId: state.activeOrderId,
         activeStage: state.activeStage,
+        activeOrderIds: state.activeOrderIds,
+        activeStagesById: state.activeStagesById,
         tripHistory: state.tripHistory,
         history: state.history,
     }));
@@ -528,6 +604,13 @@ const loadState = () => {
         merged.tripHistory = Array.isArray(merged.tripHistory) ? merged.tripHistory : [];
         merged.history = Array.isArray(merged.history) ? merged.history : [];
         merged.dismissedOrderIds = Array.isArray(merged.dismissedOrderIds) ? merged.dismissedOrderIds : [];
+        merged.activeOrderIds = Array.isArray(merged.activeOrderIds)
+            ? merged.activeOrderIds
+            : (merged.activeOrderId ? [merged.activeOrderId] : []);
+        merged.activeStagesById = merged.activeStagesById && typeof merged.activeStagesById === 'object'
+            ? merged.activeStagesById
+            : (merged.activeOrderId ? { [merged.activeOrderId]: merged.activeStage || 'accepted' } : {});
+        merged.activeOrders = [];
         Object.assign(state, merged);
     } catch (error) {
         console.error('No se pudo cargar el estado de delivery', error);
@@ -785,6 +868,84 @@ const initMap = () => {
     if (state.activeOrder) syncRouteFromState();
 };
 
+const updateOrderAsCancelledByTimeout = async (order) => {
+    if (isQaOrder(order)) {
+        setQaOrderOverride(order.id, {
+            ...getQaOrderStatusPatch(ORDER_STATUS_CODES.cancelled),
+            cancellationReason: 'Cancelado automaticamente: no fue aceptado en 3 horas.',
+        });
+        updateCachedOrderStatus(order.id, ORDER_STATUS_CODES.cancelled, null, {
+            cancellationReason: 'Cancelado automaticamente: no fue aceptado en 3 horas.',
+        });
+        return;
+    }
+
+    const response = await api.updateOrder(order.id, {
+        estado_id: ORDER_STATUS_CODES.cancelled,
+        notas: `${order.notes || order.notas || ''} Cancelado automaticamente: no fue aceptado en 3 horas.`.trim(),
+    }, buildTenantHeaders(order.tenantId));
+    updateCachedOrderStatus(order.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.cancelled, null, {
+        cancellationReason: 'Cancelado automaticamente: no fue aceptado en 3 horas.',
+    });
+};
+
+const markOrderWithFreeDelivery = async (order) => {
+    const assignment = {
+        ...(order.deliveryAssignment || {}),
+        orderId: order.id,
+        tenantId: order.tenantId,
+        deliveryFeeWaived: true,
+        deliveryFreeReason: 'Envio gratis: el pedido supero 1 hora desde la aceptacion.',
+        deliveryFeeWaivedAt: new Date().toISOString(),
+    };
+
+    setDeliveryAssignment(order.id, assignment);
+    updateCachedOrderStatus(order.id, order.statusId || order.estado_id || ORDER_STATUS_CODES.inTransit, null, {
+        deliveryFeeWaived: true,
+        envioGratis: true,
+        deliveryFreeReason: assignment.deliveryFreeReason,
+    });
+
+    if (isQaOrder(order)) {
+        setQaOrderOverride(order.id, {
+            deliveryAssignment: assignment,
+            deliveryFeeWaived: true,
+            envioGratis: true,
+            deliveryFreeReason: assignment.deliveryFreeReason,
+        });
+    }
+};
+
+const enforceOrderTimePolicies = async (orders = []) => {
+    const now = Date.now();
+    let changed = false;
+
+    for (const order of orders) {
+        const statusKey = orderStatusKey(order);
+        if (['entregado', 'cancelado'].includes(statusKey)) continue;
+
+        const createdAt = toTimestamp(order.createdAt || order.creado_en);
+        const assignedAt = toTimestamp(order.deliveryAssignment?.assignedAt || order.deliveryAssignment?.asignado_en);
+
+        if (!hasDriverAssignment(order) && createdAt && now - createdAt >= UNACCEPTED_ORDER_CANCEL_MS) {
+            try {
+                await updateOrderAsCancelledByTimeout(order);
+                changed = true;
+            } catch (error) {
+                console.warn('No se pudo cancelar automaticamente el pedido vencido', order.id, error);
+            }
+            continue;
+        }
+
+        if (hasDriverAssignment(order) && assignedAt && now - assignedAt >= ACCEPTED_FREE_DELIVERY_MS && !hasFreeDelivery(order)) {
+            await markOrderWithFreeDelivery(order);
+            changed = true;
+        }
+    }
+
+    return changed;
+};
+
 // Para presentar: refresca pedidos disponibles, activos e historial desde el dataset/backend.
 const syncOrdersFromBackend = () => {
     const scopedOrders = buildScopedOrders();
@@ -793,31 +954,31 @@ const syncOrdersFromBackend = () => {
     const visibleNewIds = new Set(visibleNewOrders.map((order) => String(order.id)));
     state.dismissedOrderIds = state.dismissedOrderIds.filter((id) => visibleNewIds.has(String(id)));
 
-    if (!state.activeOrderId && currentDriverEmail) {
-        const claimedOrder = scopedOrders.find((order) => (
+    const activeSources = (currentDriverEmail
+        ? scopedOrders.filter((order) => (
             normalize(order.deliveryAssignment?.driverEmail) === currentDriverEmail &&
             ['preparando', 'en camino'].includes(orderStatusKey(order))
-        ));
-        if (claimedOrder) state.activeOrderId = String(claimedOrder.id);
+        ))
+        : [])
+        .sort((left, right) => toTimestamp(left.deliveryAssignment?.assignedAt || left.createdAt) - toTimestamp(right.deliveryAssignment?.assignedAt || right.createdAt))
+        .slice(0, MAX_ACTIVE_DELIVERY_ORDERS);
+    const activeOrderIds = activeSources.map((order) => String(order.id));
+    state.activeOrderIds = activeOrderIds;
+    state.activeOrders = activeSources.map((order) => {
+        const activeStage = deriveActiveStage(order);
+        state.activeStagesById[String(order.id)] = activeStage;
+        return buildOrderView(order, activeStage);
+    });
+
+    if (!activeOrderIds.includes(String(state.activeOrderId))) {
+        state.activeOrderId = activeOrderIds[0] || '';
     }
 
-    const activeSource = state.activeOrderId ? (data.value.orders || []).find((order) => String(order.id) === String(state.activeOrderId)) : null;
-    if (activeSource && !['entregado', 'cancelado'].includes(orderStatusKey(activeSource))) {
-        const activeStage = deriveActiveStage(activeSource);
-        state.activeStage = activeStage;
-        state.activeOrder = buildOrderView(activeSource, activeStage);
-    } else if (state.activeOrderId && state.activeOrder) {
-        const preservedStage = state.activeStage || state.activeOrder.status || 'accepted';
-        state.activeStage = preservedStage;
-        state.activeOrder = buildOrderView(state.activeOrder, preservedStage);
-    } else {
-        state.activeOrderId = '';
-        state.activeStage = '';
-        state.activeOrder = null;
-    }
+    state.activeOrder = activeDeliveryOrders.value.find((order) => String(order.id) === String(state.activeOrderId)) || null;
+    state.activeStage = state.activeOrder?.status || '';
 
     state.availableOrders = visibleNewOrders
-        .filter((order) => String(order.id) !== String(state.activeOrderId))
+        .filter((order) => !activeOrderIds.includes(String(order.id)))
         .filter((order) => {
             const assignment = order.deliveryAssignment;
             if (!assignment?.driverEmail) return true;
@@ -826,7 +987,7 @@ const syncOrdersFromBackend = () => {
         .filter((order) => !state.dismissedOrderIds.includes(String(order.id)))
         .map((order) => buildOrderView(order, 'pending'));
 
-    if (state.activeOrder && currentTab.value !== 'history') currentTab.value = 'active';
+    if (activeDeliveryOrders.value.length > 0 && currentTab.value !== 'history') currentTab.value = 'active';
     else if (currentTab.value === 'active') currentTab.value = 'available';
 
     nextTick(() => {
@@ -848,6 +1009,10 @@ const refreshData = async ({ silent = false } = {}) => {
 
         try {
             data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
+            const policyChanged = await enforceOrderTimePolicies(data.value.orders || []);
+            if (policyChanged) {
+                data.value = await fetchOperationalDataset({ selectedTenantId: 'Global', includeSessions: false });
+            }
             if (state.tenant !== 'Global' && !data.value.tenants.some((tenant) => String(tenant.id) === String(state.tenant))) {
                 state.tenant = 'Global';
             }
@@ -936,6 +1101,9 @@ const toggleShift = async () => {
     state.activeOrder = null;
     state.activeOrderId = '';
     state.activeStage = '';
+    state.activeOrderIds = [];
+    state.activeStagesById = {};
+    state.activeOrders = [];
     currentTab.value = 'available';
     clearRoute();
     stopShiftTimer();
@@ -950,8 +1118,8 @@ const acceptOrder = async (id) => {
         showToast('Inicia tu turno antes de aceptar un viaje.', 'error');
         return;
     }
-    if (state.activeOrder) {
-        showToast('Solo puedes llevar un pedido a la vez.', 'error');
+    if (activeDeliveryOrders.value.length >= MAX_ACTIVE_DELIVERY_ORDERS) {
+        showToast('Solo puedes aceptar hasta 3 pedidos activos.', 'error');
         return;
     }
 
@@ -959,6 +1127,11 @@ const acceptOrder = async (id) => {
     if (!order) {
         showToast('El pedido ya no está disponible.', 'error');
         await refreshData({ silent: true });
+        return;
+    }
+    const restrictionMessage = getAcceptRestrictionMessage(order);
+    if (restrictionMessage) {
+        showToast(restrictionMessage, 'error');
         return;
     }
 
@@ -974,8 +1147,11 @@ const acceptOrder = async (id) => {
                 driverEmail: identity.driverEmail,
             });
             state.activeOrderId = String(order.id);
+            state.activeStagesById[String(order.id)] = 'accepted';
             state.activeStage = 'accepted';
             state.activeOrder = buildOrderView(updatedOrder, 'accepted');
+            state.activeOrderIds = [...new Set([...state.activeOrderIds, String(order.id)])].slice(0, MAX_ACTIVE_DELIVERY_ORDERS);
+            state.activeOrders = [...activeDeliveryOrders.value.filter((item) => String(item.id) !== String(order.id)), state.activeOrder];
             state.lastWorkDate = Date.now();
             state.dismissedOrderIds = state.dismissedOrderIds.filter((candidate) => String(candidate) !== String(order.id));
             currentTab.value = 'active';
@@ -992,7 +1168,11 @@ const acceptOrder = async (id) => {
             repartidor_email: identity.driverEmail,
         });
         state.activeOrderId = String(order.id);
+        state.activeStagesById[String(order.id)] = 'accepted';
         state.activeStage = 'accepted';
+        state.activeOrder = buildOrderView({ ...order, driverName: identity.driverName, driverEmail: identity.driverEmail }, 'accepted');
+        state.activeOrderIds = [...new Set([...state.activeOrderIds, String(order.id)])].slice(0, MAX_ACTIVE_DELIVERY_ORDERS);
+        state.activeOrders = [...activeDeliveryOrders.value.filter((item) => String(item.id) !== String(order.id)), state.activeOrder];
         state.lastWorkDate = Date.now();
         state.dismissedOrderIds = state.dismissedOrderIds.filter((candidate) => String(candidate) !== String(order.id));
         currentTab.value = 'active';
@@ -1036,7 +1216,9 @@ const updateOrderStatus = async (status) => {
     if (!state.activeOrder) return;
     if (status === 'arrived') {
         state.activeStage = 'arrived';
+        state.activeStagesById[String(state.activeOrder.id)] = 'arrived';
         state.activeOrder = buildOrderView(state.activeOrder, 'arrived');
+        state.activeOrders = activeDeliveryOrders.value.map((order) => String(order.id) === String(state.activeOrder.id) ? state.activeOrder : order);
         void syncDeliveryAssignment(state.activeOrder, 'arrived', 'arrived').catch((error) => {
             console.warn('No se pudo sincronizar llegada al local', error);
         });
@@ -1059,7 +1241,9 @@ const updateOrderStatus = async (status) => {
                 });
                 await syncDeliveryAssignment(updatedOrder, 'picked', 'picked');
                 state.activeStage = 'picked';
+                state.activeStagesById[String(state.activeOrder.id)] = 'picked';
                 state.activeOrder = buildOrderView(updatedOrder, 'picked');
+                state.activeOrders = activeDeliveryOrders.value.map((order) => String(order.id) === String(state.activeOrder.id) ? state.activeOrder : order);
                 saveState();
                 await refreshData({ silent: true });
                 showToast('Comida QA recibida. Ruta activada hacia el cliente.');
@@ -1073,7 +1257,9 @@ const updateOrderStatus = async (status) => {
                 repartidor_email: identity.driverEmail,
             });
             state.activeStage = 'picked';
+            state.activeStagesById[String(state.activeOrder.id)] = 'picked';
             state.activeOrder = buildOrderView(state.activeOrder, 'picked');
+            state.activeOrders = activeDeliveryOrders.value.map((order) => String(order.id) === String(state.activeOrder.id) ? state.activeOrder : order);
             saveState();
             await refreshData({ silent: true });
             showToast('Comida recibida. Ruta activada hacia el cliente.');
@@ -1087,7 +1273,9 @@ const updateOrderStatus = async (status) => {
 
     if (status === 'arrived_customer') {
         state.activeStage = 'arrived_customer';
+        state.activeStagesById[String(state.activeOrder.id)] = 'arrived_customer';
         state.activeOrder = buildOrderView(state.activeOrder, 'arrived_customer');
+        state.activeOrders = activeDeliveryOrders.value.map((order) => String(order.id) === String(state.activeOrder.id) ? state.activeOrder : order);
         void syncDeliveryAssignment(state.activeOrder, 'arrived_customer', 'arrived_customer').catch((error) => {
             console.warn('No se pudo sincronizar llegada al cliente', error);
         });
@@ -1128,10 +1316,13 @@ const cancelOrder = async () => {
         address: releasedOrder.dropoff,
     });
     clearDeliveryAssignment(releasedOrder.id);
-    state.activeOrder = null;
-    state.activeOrderId = '';
-    state.activeStage = '';
-    currentTab.value = 'available';
+    state.activeOrderIds = state.activeOrderIds.filter((orderId) => String(orderId) !== String(releasedOrder.id));
+    delete state.activeStagesById[String(releasedOrder.id)];
+    state.activeOrders = activeDeliveryOrders.value.filter((order) => String(order.id) !== String(releasedOrder.id));
+    state.activeOrderId = state.activeOrderIds[0] || '';
+    state.activeOrder = activeDeliveryOrders.value.find((order) => String(order.id) === String(state.activeOrderId)) || null;
+    state.activeStage = state.activeOrder?.status || '';
+    currentTab.value = state.activeOrder ? 'active' : 'available';
     clearRoute();
     saveState();
     await refreshData({ silent: true });
@@ -1222,10 +1413,13 @@ const completeDelivery = async () => {
             confirmationCode: normalizedDeliveryCode.value,
         });
         state.history.push({ emoji: deliveredOrder.franchise.emoji, desc: `Entrega ${deliveredOrder.franchise.name}`, amount: payment, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
-        state.activeOrder = null;
-        state.activeOrderId = '';
-        state.activeStage = '';
-        currentTab.value = 'available';
+        state.activeOrderIds = state.activeOrderIds.filter((orderId) => String(orderId) !== String(deliveredOrder.id));
+        delete state.activeStagesById[String(deliveredOrder.id)];
+        state.activeOrders = activeDeliveryOrders.value.filter((order) => String(order.id) !== String(deliveredOrder.id));
+        state.activeOrderId = state.activeOrderIds[0] || '';
+        state.activeOrder = activeDeliveryOrders.value.find((order) => String(order.id) === String(state.activeOrderId)) || null;
+        state.activeStage = state.activeOrder?.status || '';
+        currentTab.value = state.activeOrder ? 'active' : 'available';
         closeModal('modal-delivery-confirm');
         clearRoute();
         saveState();
@@ -1623,6 +1817,13 @@ onBeforeUnmount(() => {
                             <i class="fa-solid mr-1" :class="order.canAccept ? 'fa-circle-check' : 'fa-clock'"></i>
                             {{ order.backendStatusKey === 'preparando' ? 'Listo para aceptar' : 'Nuevo pedido: valida en el local' }}
                         </div>
+                        <div
+                            v-if="getAcceptRestrictionMessage(order)"
+                            class="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-[11px] font-black text-rose-600"
+                        >
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                            {{ getAcceptRestrictionMessage(order) }}
+                        </div>
 
                         <div class="flex gap-2">
                             <button
@@ -1635,8 +1836,8 @@ onBeforeUnmount(() => {
                             <button
                                 type="button"
                                 class="h-10 flex-1 rounded-lg text-xs font-black text-white shadow-md transition"
-                                :class="order.canAccept ? 'bg-[#f97316] active:bg-[#ea580c]' : 'cursor-not-allowed bg-slate-300 text-slate-500 shadow-none'"
-                                :disabled="isAdvancing || !order.canAccept"
+                                :class="canAcceptOrder(order) ? 'bg-[#f97316] active:bg-[#ea580c]' : 'cursor-not-allowed bg-slate-300 text-slate-500 shadow-none'"
+                                :disabled="isAdvancing || !canAcceptOrder(order)"
                                 @click="acceptOrder(order.id)"
                             >
                                 {{ order.backendStatusKey === 'preparando' ? 'ACEPTAR VIAJE' : 'ACEPTAR Y VALIDAR' }}
@@ -1677,7 +1878,21 @@ onBeforeUnmount(() => {
                             <h3 class="text-sm font-black text-slate-800">No hay viaje en curso</h3>
                         </div>
 
-                        <div v-else class="card-shadow overflow-hidden rounded-2xl border-2 border-orange-200 bg-white">
+                        <div v-if="activeDeliveryOrders.length > 1" class="mb-3 flex gap-2 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-sm">
+                            <button
+                                v-for="order in activeDeliveryOrders"
+                                :key="`active-select-${order.id}`"
+                                type="button"
+                                class="min-w-[8rem] rounded-xl px-3 py-2 text-left text-[10px] font-black transition"
+                                :class="String(order.id) === String(state.activeOrderId) ? 'bg-[#f97316] text-white shadow-md shadow-orange-500/20' : 'bg-slate-50 text-slate-500'"
+                                @click="setSelectedActiveOrder(order.id)"
+                            >
+                                <span class="block truncate">#{{ order.id }} {{ order.franchise.name }}</span>
+                                <span class="block truncate opacity-80">{{ order.status === 'picked' ? 'Al cliente' : 'En gestion' }}</span>
+                            </button>
+                        </div>
+
+                        <div v-if="state.activeOrder" class="card-shadow overflow-hidden rounded-2xl border-2 border-orange-200 bg-white">
                             <div class="flex items-center justify-center gap-1 bg-orange-50 p-2 text-center">
                                 <span class="text-sm">{{ activeOrderMeta?.emoji }}</span>
                                 <span class="text-[10px] font-black uppercase text-[#f97316]">{{ activeOrderMeta?.title }}</span>
@@ -1695,6 +1910,11 @@ onBeforeUnmount(() => {
                                 <div class="mb-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
                                     <p class="mb-0.5 text-[9px] font-bold uppercase text-slate-400">Direccion</p>
                                     <p class="text-xs font-black text-slate-800">{{ activeOrderAddress }}</p>
+                                </div>
+
+                                <div v-if="state.activeOrder.deliveryFeeWaived" class="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-[11px] font-black text-emerald-700">
+                                    <i class="fa-solid fa-gift mr-1"></i>
+                                    Envio gratis para el cliente por superar 1 hora desde la aceptacion.
                                 </div>
 
                                 <div class="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 shadow-sm">

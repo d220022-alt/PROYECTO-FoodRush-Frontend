@@ -7,6 +7,7 @@
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { ensureLeaflet, SANTIAGO_CENTER } from '../utils/deliveryMap';
+import { useCurrency } from '../utils/currency';
 
 const props = defineProps({
   zones: {
@@ -20,6 +21,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['select-zone']);
+const { currencyPreference, formatCurrency } = useCurrency();
 
 const mapEl = ref(null);
 const mapError = ref('');
@@ -71,7 +73,7 @@ const renderZones = () => {
     leaflet
       .marker(center)
       .on('click', () => emit('select-zone', zone.id))
-      .bindPopup(`<strong>${zone.name}</strong><br>${zone.etaMin} min · $${zone.deliveryFee}`)
+      .bindPopup(`<strong>${zone.name}</strong><br>${zone.etaMin} min - ${formatCurrency(zone.deliveryFee)}`)
       .addTo(zoneLayer);
 
     bounds.push(center);
@@ -128,6 +130,14 @@ watch(
   () => [props.zones, props.selectedZoneId],
   () => {
     invalidateMapSize();
+  },
+  { deep: true },
+);
+
+watch(
+  currencyPreference,
+  () => {
+    renderZones();
   },
   { deep: true },
 );

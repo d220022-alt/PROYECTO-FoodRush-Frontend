@@ -9,19 +9,14 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 // Asegúrate de que las rutas relativas a tus servicios sean correctas
 import { APP_EVENTS, getCart, removeCartItem, updateCartItemQuantity } from '../services/storage';
+import { useCurrency } from '../utils/currency';
 
 const router = useRouter();
 const goBack = () => router.go(-1);
 
 const cart = ref([]);
 
-// Utilidad para formatear dinero (evita problemas de decimales en JS)
-const formatCurrency = (value) => {
-    return new Intl.NumberFormat('es-DO', { 
-        style: 'currency', 
-        currency: 'USD' // Cambia a 'DOP', 'EUR', etc., según tu moneda local
-    }).format(value || 0);
-};
+const { formatCurrency } = useCurrency();
 
 // Para presentar: carga el carrito desde storage local y recalcula total antes del checkout.
 const loadCart = () => {

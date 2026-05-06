@@ -16,15 +16,16 @@ import {
     normalizeDominicanPhone,
     validateDominicanPhone,
 } from '../utils/phoneValidation';
+import {
+    DELIVERY_ZONE_OPTIONS,
+    normalizeDominicanAddressInput,
+    validateDominicanAddress,
+} from '../utils/addressValidation';
 
 const router = useRouter();
 
 // Para presentar: zonas simples usadas para detectar envio desde la direccion escrita en registro.
-const DELIVERY_ZONES = [
-    { key: 'pekin', label: 'Pekín', fee: 25, keywords: ['pekin', 'pekín'] },
-    { key: 'gurabo', label: 'Gurabo', fee: 50, keywords: ['gurabo'] },
-    { key: 'villa_olga', label: 'Villa Olga', fee: 75, keywords: ['villa olga'] },
-];
+const DELIVERY_ZONES = DELIVERY_ZONE_OPTIONS;
 
 // State for Animation
 const isRegisterActive = ref(false);
@@ -36,7 +37,10 @@ const termsAccepted = ref(false);
 
 // Para presentar: autodeteccion de zona; busca palabras como Gurabo, Pekin o Villa Olga en la direccion.
 const detectedZone = computed(() => {
-    const normalized = String(registerForm.value.address || '').toLowerCase();
+    const normalized = String(registerForm.value.address || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
     if (!normalized.trim()) return null;
     return DELIVERY_ZONES.find((zone) => zone.keywords.some((kw) => normalized.includes(kw))) || null;
 });
@@ -170,6 +174,10 @@ const onRegisterPhoneInput = (event) => {
     registerForm.value.phone = formatDominicanPhone(event.target.value);
 };
 
+const onRegisterAddressInput = (event) => {
+    registerForm.value.address = normalizeDominicanAddressInput(event.target.value);
+};
+
 // Para presentar: flujo de inicio de sesion; llama api.login, guarda token y redirige segun rol/correo.
 const handleLogin = async () => {
     loginError.value = '';
@@ -208,7 +216,8 @@ const handleRegister = async () => {
     const name = String(registerForm.value.name || '').trim();
     const password = registerForm.value.password;
     const confirmPassword = registerForm.value.confirmPassword;
-    const address = String(registerForm.value.address || '').trim();
+    const address = normalizeDominicanAddressInput(registerForm.value.address);
+    const addressValidation = validateDominicanAddress(registerForm.value.address);
     const phoneValidation = validateDominicanPhone(registerForm.value.phone);
     const phone = normalizeDominicanPhone(registerForm.value.phone);
 
@@ -231,6 +240,11 @@ const handleRegister = async () => {
     }
     if (!phoneValidation.valid) {
         registerError.value = phoneValidation.message;
+        return;
+    }
+    if (!addressValidation.valid) {
+        registerError.value = addressValidation.message;
+        registerForm.value.address = addressValidation.sanitized;
         return;
     }
     if (password.length < 6) {
@@ -376,10 +390,10 @@ const handleRegister = async () => {
                         
                         <div class="input-group">
                             <label for="reg-address">Dirección de Entrega</label>
-                            <input id="reg-address" v-model.trim="registerForm.address" type="text" placeholder="Calle, Número, Sector (ej. Calle 5, Gurabo)" aria-required="true">
+                            <input id="reg-address" :value="registerForm.address" @input="onRegisterAddressInput" type="text" placeholder="Calle 5 Gurabo Santiago" aria-required="true">
                             <span v-if="detectedZone" class="zone-hint">
                                 <i class="fa-solid fa-location-dot"></i>
-                                Zona: <strong>{{ detectedZone.label }}</strong> · Envío ${{ detectedZone.fee }}
+                                Zona: <strong>{{ detectedZone.label }}</strong> - Envio {{ $money(detectedZone.fee) }}
                             </span>
                         </div>
 

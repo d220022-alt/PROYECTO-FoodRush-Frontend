@@ -28,12 +28,21 @@ import {
   setLastClientId,
 } from '../services/storage';
 import { SANTIAGO_CENTER, getCustomerLocation, getStoreLocation } from '../utils/deliveryMap';
+import { useCurrency } from '../utils/currency';
+import {
+  DEFAULT_DELIVERY_FEE,
+  getDeliveryFeeForZone,
+  normalizeDominicanAddressInput,
+  resolveDominicanAddressZone,
+  validateDominicanAddress,
+} from '../utils/addressValidation';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
 const router = useRouter();
 const userName = ref('');
 const currentUserEmail = ref(getSession().userEmail || 'usuario_invitado');
+const { formatCurrency } = useCurrency();
 
 const goBack = () => {
     router.go(-1);
@@ -123,7 +132,15 @@ const subtotal = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0)
 );
 
-const deliveryFee = computed(() => (currentMode.value === 'delivery' ? 5 : 0));
+const detectedDeliveryZone = computed(() => {
+  const session = getSession();
+  return resolveDominicanAddressZone(addressDetails.value, session.userZone || localStorage.getItem('user_zone'));
+});
+const deliveryFee = computed(() => {
+  if (currentMode.value !== 'delivery') return 0;
+  return detectedDeliveryZone.value?.fee || getDeliveryFeeForZone(getSession().userZone) || DEFAULT_DELIVERY_FEE;
+});
+const deliveryZoneLabel = computed(() => detectedDeliveryZone.value?.label || 'Zona RD');
 const total = computed(() => subtotal.value + deliveryFee.value);
 
 const DOMINICAN_BOUNDS = {
@@ -372,18 +389,31 @@ const selectPayPal = () => {
 
 const editAddress = async () => {
   const { value } = await Swal.fire({
-    title: 'Editar Dirección',
+    title: 'Editar Direccion',
     input: 'text',
     inputValue: addressDetails.value,
     showCancelButton: true,
+    inputAttributes: {
+      autocomplete: 'street-address',
+      autocapitalize: 'words',
+    },
+    inputValidator: (inputValue) => {
+      const validation = validateDominicanAddress(inputValue);
+      return validation.valid ? undefined : validation.message;
+    },
   });
   if (value) {
+    const validation = validateDominicanAddress(value);
+    if (!validation.valid) {
+      Swal.fire('Direccion invalida', validation.message, 'error');
+      return;
+    }
     addressTitle.value = 'Direccion guardada';
-    addressDetails.value = value;
+    addressDetails.value = validation.sanitized;
     locationError.value = '';
 
     if (mapInstance && currentMode.value === 'delivery') {
-      const location = getCustomerLocation({ id: 'checkout', address: value });
+      const location = getCustomerLocation({ id: 'checkout', address: validation.sanitized });
       cachedPos = { lat: location.lat, lng: location.lng };
       updateMap(location.lat, location.lng, location.label || 'Direccion guardada', true);
     }
@@ -476,11 +506,14 @@ const resolveRemoteOrderItems = async () => {
   return cartItems.value.map((item) => {
     const remoteProduct = productsById.get(String(item.id));
     const remotePrice = Number.parseFloat(remoteProduct?.precio ?? remoteProduct?.price ?? item.price);
+    const cartPrice = Number.parseFloat(item.price);
 
     return {
       ...item,
       id: remoteProduct?.id ?? item.id,
-      price: Number.isFinite(remotePrice) ? remotePrice : Number(item.price),
+      price: Number.isFinite(cartPrice) && cartPrice > 0
+        ? cartPrice
+        : Number.isFinite(remotePrice) ? remotePrice : 0,
       qty: Number(item.qty),
       nombre: remoteProduct?.nombre || remoteProduct?.name || item.name,
       detalles: item.details,
@@ -532,7 +565,7 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       'card': 'Tarjeta (Pagado)',
       'paypal': 'PayPal (Pagado)'
   };
-  const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : addressDetails.value;
+  const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : normalizeDominicanAddressInput(addressDetails.value);
   const deliveryLocation = resolveOrderLocationPayload();
   const deliveryNotes = [
       `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
@@ -576,6 +609,14 @@ const processOrder = async () => {
       return Swal.fire('Error', 'El carrito está vacío.', 'error');
   }
 
+  if (currentMode.value === 'delivery') {
+      const addressValidation = validateDominicanAddress(addressDetails.value);
+      if (!addressValidation.valid) {
+          return Swal.fire('Direccion invalida', addressValidation.message, 'error');
+      }
+      addressDetails.value = addressValidation.sanitized;
+  }
+
   isProcessing.value = true;
   Swal.fire({
     title: 'Procesando...',
@@ -589,7 +630,7 @@ const processOrder = async () => {
           isProcessing.value = false;
           const { isConfirmed } = await Swal.fire({
               title: '<i class="fa-brands fa-paypal text-blue-600 text-4xl mb-2"></i><br>Conectando con PayPal',
-              html: `Vas a pagar <b>$${total.value.toFixed(2)}</b> con tu cuenta de PayPal.<br><br><span class="text-sm text-gray-500">Haz clic en continuar para autorizar el cargo.</span>`,
+              html: `Vas a pagar <b>${formatCurrency(total.value)}</b> con tu cuenta de PayPal.<br><br><span class="text-sm text-gray-500">Haz clic en continuar para autorizar el cargo.</span>`,
               showCancelButton: true,
               confirmButtonText: 'Autorizar Pago',
               cancelButtonText: 'Cancelar',
@@ -661,6 +702,7 @@ const processOrder = async () => {
               finalOrder = saveCachedOrder(
                 {
                   ...orderParams.data,
+                  total: orderPayload.total,
                   tenant_id: orderParams.data.tenant_id || orderPayload.tenant_id,
                   items: orderParams.data.items || orderPayload.items,
                   user_email: identity.email,
@@ -799,8 +841,6 @@ const updateMap = (lat, lng, label, isUser) => {
   }
 };
 
-const formatLocationCoordinates = (lat, lng) => `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-
 const reverseGeocodeLocation = async (lat, lng) => {
   const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lng)}&accept-language=es`;
   const response = await fetch(url);
@@ -846,7 +886,6 @@ const applySavedLocationFallback = (message = '') => {
 };
 
 const applyCurrentLocation = async (lat, lng) => {
-  const coordsText = formatLocationCoordinates(lat, lng);
   let addressLabel = '';
 
   try {
@@ -857,7 +896,7 @@ const applyCurrentLocation = async (lat, lng) => {
 
   cachedPos = { lat, lng };
   addressTitle.value = 'Ubicacion actual';
-  addressDetails.value = addressLabel ? `${addressLabel} - ${coordsText}` : coordsText;
+  addressDetails.value = normalizeDominicanAddressInput(addressLabel) || 'Ubicacion real Republica Dominicana';
   locationError.value = '';
   updateMap(lat, lng, 'Tu ubicacion actual', true);
 };
@@ -963,7 +1002,7 @@ const syncCheckoutSession = () => {
   currentUserEmail.value = session.userEmail || 'usuario_invitado';
   if (session.userAddress) {
     addressTitle.value = 'Direccion guardada';
-    addressDetails.value = session.userAddress;
+    addressDetails.value = normalizeDominicanAddressInput(session.userAddress);
   } else {
     addressTitle.value = 'Detectando ubicacion...';
     addressDetails.value = 'Espere un momento';
@@ -1226,22 +1265,22 @@ onBeforeUnmount(() => {
                   <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">{{ item.name }}</p>
                   <p class="text-xs text-gray-500 font-medium mt-0.5">Cant: <span class="bg-gray-100 text-slate-700 font-bold px-1.5 py-0.5 rounded ml-1">{{ item.qty }}</span></p>
                 </div>
-                <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-red-50 group-hover:text-red-600 transition-colors">${{ (item.price * item.qty).toFixed(2) }}</span>
+                <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-red-50 group-hover:text-red-600 transition-colors">{{ formatCurrency(item.price * item.qty) }}</span>
               </div>
             </div>
 
             <div class="border-t mt-4 pt-4 space-y-2 text-sm text-slate-500">
               <div class="flex justify-between">
                 <span>Subtotal</span>
-                <span>${{ subtotal.toFixed(2) }}</span>
+                <span>{{ formatCurrency(subtotal) }}</span>
               </div>
               <div class="flex justify-between" :class="currentMode === 'pickup' ? 'opacity-20 line-through' : ''">
-                <span>Delivery Fee</span>
-                <span>$5.00</span>
+                <span>Delivery Fee <small v-if="currentMode === 'delivery'" class="text-[10px] font-bold text-slate-400">({{ deliveryZoneLabel }})</small></span>
+                <span>{{ formatCurrency(deliveryFee) }}</span>
               </div>
               <div class="flex justify-between text-lg font-bold text-slate-800 mt-2">
                 <span>Total</span>
-                <span>${{ total.toFixed(2) }}</span>
+                <span>{{ formatCurrency(total) }}</span>
               </div>
             </div>
           </div>
@@ -1257,7 +1296,7 @@ onBeforeUnmount(() => {
               <div class="bg-slate-50 rounded-2xl p-8 border border-gray-100 shadow-sm relative overflow-hidden">
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a cobrar</p>
-                <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">${{ total.toFixed(2) }}</p>
+                <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">{{ formatCurrency(total) }}</p>
                 <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y Sin Comisiones</p>
               </div>
             </div>
@@ -1274,7 +1313,7 @@ onBeforeUnmount(() => {
               <div class="mt-2 bg-slate-50 p-5 rounded-xl border border-gray-100">
                 <div class="flex justify-between items-center mb-1">
                   <span class="font-bold text-slate-500 text-sm uppercase tracking-wide">Total a cobrar</span>
-                  <span class="font-black text-2xl text-slate-800">${{ total.toFixed(2) }}</span>
+                  <span class="font-black text-2xl text-slate-800">{{ formatCurrency(total) }}</span>
                 </div>
               </div>
               <button
@@ -1314,7 +1353,7 @@ onBeforeUnmount(() => {
               <div class="mt-8 bg-slate-50 p-5 rounded-xl border border-gray-100">
                 <div class="flex justify-between items-center mb-1">
                   <span class="font-bold text-slate-500 text-sm uppercase tracking-wide">Total a cobrar</span>
-                  <span class="font-black text-2xl text-slate-800">${{ total.toFixed(2) }}</span>
+                  <span class="font-black text-2xl text-slate-800">{{ formatCurrency(total) }}</span>
                 </div>
               </div>
               <button

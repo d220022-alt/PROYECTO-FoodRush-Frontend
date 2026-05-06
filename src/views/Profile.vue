@@ -16,6 +16,17 @@ import {
     validateDominicanPhone,
 } from '../utils/phoneValidation';
 import {
+    DELIVERY_ZONE_OPTIONS,
+    normalizeDominicanAddressInput,
+    validateDominicanAddress,
+} from '../utils/addressValidation';
+import {
+    getCurrencyOption,
+    refreshCurrencyRates,
+    saveCurrencyPreference,
+    useCurrency,
+} from '../utils/currency';
+import {
     APP_EVENTS,
     clearSession,
     getSession,
@@ -25,6 +36,7 @@ import {
 
 const router = useRouter();
 const session = getSession();
+const { currencyOptions, currencyPreference, formatCurrency } = useCurrency();
 
 // State
 const user = ref({
@@ -114,15 +126,20 @@ const handleNavigation = (item) => {
 
 // Edit Modal
 const isEditModalOpen = ref(false);
-const editForm = ref({ name: '', phone: '', address: '', zone: '' });
+const editForm = ref({ name: '', phone: '', address: '', zone: '', currencyCode: 'DOP' });
+const activeCurrencyOption = computed(() => getCurrencyOption(currencyPreference.value.code));
+const currencyPreview = computed(() => formatCurrency(304));
 
 const openEditModal = () => {
+    const activeCode = currencyPreference.value.code;
+    const addressMissing = String(user.value.address || '').toLowerCase().includes('sin direcci');
     editForm.value = {
         name: user.value.name,
         email: user.value.email,
         phone: formatDominicanPhone(user.value.phone),
-        address: user.value.address !== "Sin dirección registrada" ? user.value.address : '',
-        zone: localStorage.getItem('user_zone') || ''
+        address: addressMissing ? '' : normalizeDominicanAddressInput(user.value.address),
+        zone: localStorage.getItem('user_zone') || '',
+        currencyCode: activeCode,
     };
     isEditModalOpen.value = true;
 };
@@ -135,17 +152,31 @@ const onEditPhoneInput = (event) => {
     editForm.value.phone = formatDominicanPhone(event.target.value);
 };
 
+const onEditAddressInput = (event) => {
+    editForm.value.address = normalizeDominicanAddressInput(event.target.value);
+};
+
 // Para presentar: guarda datos del perfil remoto si hay usuario_id y siempre actualiza la sesion local.
 const saveProfile = async () => {
     let savedRemotely = false;
     const phoneValidation = validateDominicanPhone(editForm.value.phone);
+    const addressValidation = validateDominicanAddress(editForm.value.address);
+    const currencyCode = editForm.value.currencyCode;
 
     if (!phoneValidation.valid) {
         Swal.fire('Telefono invalido', phoneValidation.message, 'error');
         return;
     }
+    if (!addressValidation.valid) {
+        Swal.fire('Direccion invalida', addressValidation.message, 'error');
+        editForm.value.address = addressValidation.sanitized;
+        return;
+    }
 
     editForm.value.phone = normalizeDominicanPhone(editForm.value.phone);
+    editForm.value.address = addressValidation.sanitized;
+    saveCurrencyPreference({ code: currencyCode });
+    refreshCurrencyRates({ force: true });
 
     try {
         const userId = localStorage.getItem('user_id');
@@ -291,6 +322,18 @@ const saveProfile = async () => {
                         <p class="font-semibold text-slate-800 text-sm truncate">{{ user.address }}</p>
                     </div>
                 </div>
+                <hr class="border-gray-50 mx-14">
+                <div class="flex items-center gap-4 p-2">
+                    <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-slate-800 text-lg">
+                        <i class="fa-solid fa-money-bill-wave"></i>
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="text-xs text-gray-400">Moneda</p>
+                        <p class="font-semibold text-slate-800 text-sm truncate">
+                            {{ activeCurrencyOption.label }} - {{ currencyPreview }}
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -368,17 +411,27 @@ const saveProfile = async () => {
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Dirección</label>
-                    <input v-model="editForm.address" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <input :value="editForm.address" @input="onEditAddressInput" type="text" placeholder="Calle 5 Gurabo Santiago" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <p class="mt-1 text-xs font-bold text-gray-400">Solo letras, numeros y espacios. Debe ser una direccion real de RD.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Zona de Entrega</label>
                     <select v-model="editForm.zone" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
                         <option value="" disabled>Selecciona tu zona</option>
-                        <option value="pekin">Pekín ($25)</option>
-                        <option value="gurabo">Gurabo ($50)</option>
-                        <option value="villa_olga">Villa Olga ($75)</option>
+                        <option v-for="zone in DELIVERY_ZONE_OPTIONS" :key="zone.key" :value="zone.key">{{ zone.label }} ({{ formatCurrency(zone.fee) }})</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Tipo de moneda</label>
+                    <select v-model="editForm.currencyCode" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                        <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">
+                            {{ currency.label }}
+                        </option>
+                    </select>
+                </div>
+                <p class="text-xs font-bold text-gray-500">
+                    Vista previa: {{ formatCurrency(304, { code: editForm.currencyCode }) }}
+                </p>
                 <button @click="saveProfile" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-lg mt-2">
                     Guardar Cambios
                 </button>

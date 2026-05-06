@@ -17,8 +17,10 @@ import {
     hasCartRestaurantConflict,
     removeFavoriteItem
 } from '../services/storage';
+import { useCurrency } from '../utils/currency';
 
 const router = useRouter();
+const { formatCurrency } = useCurrency();
 
 const goBack = () => router.go(-1);
 
@@ -110,7 +112,7 @@ onBeforeUnmount(() => {
             <div class="text-center w-full mb-3">
                 <h3 class="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2 h-9 flex items-center justify-center">{{ item.name }}</h3>
                 <p class="text-xs text-gray-400">{{ item.place || 'Starbucks' }}</p>
-                <p class="text-xs font-bold text-[#00704A] mt-1">${{ item.price }}</p>
+                <p class="text-xs font-bold text-[#00704A] mt-1">{{ formatCurrency(item.price) }}</p>
             </div>
 
             <!-- Add Button -->

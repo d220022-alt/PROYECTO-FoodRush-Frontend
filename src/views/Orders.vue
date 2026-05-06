@@ -9,9 +9,11 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { fetchOperationalDataset, getOrderProgressStep } from '../services/operations';
 import { getCachedOrders, getSession, saveCachedOrder } from '../services/storage';
+import { useCurrency } from '../utils/currency';
 
 const router = useRouter();
 const session = getSession();
+const { formatCurrency } = useCurrency();
 
 const orders = ref([]);
 const isLoading = ref(true);
@@ -168,7 +170,7 @@ onMounted(() => {
 
                         <div class="mb-2 flex items-center justify-between">
                             <span class="text-sm text-gray-500">Total</span>
-                            <span class="text-xl font-bold text-slate-800">${{ parseFloat(order.totalValue || order.total || 0).toFixed(2) }}</span>
+                            <span class="text-xl font-bold text-slate-800">{{ formatCurrency(order.totalValue || order.total || 0) }}</span>
                         </div>
 
                         <div class="mb-2 flex items-center justify-between">

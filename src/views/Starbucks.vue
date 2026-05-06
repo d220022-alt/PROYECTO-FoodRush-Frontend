@@ -1190,17 +1190,17 @@ onBeforeUnmount(() => {
                             <button @click="setPriceFilter('low')"
                                :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border',
                                         activePriceFilter === 'low' ? 'bg-[#00704A] text-white border-[#00704A]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#00704A] hover:text-[#00704A]']">
-                                Hasta $150
+                                Hasta {{ $money(150) }}
                             </button>
                             <button @click="setPriceFilter('mid')"
                                :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border',
                                         activePriceFilter === 'mid' ? 'bg-[#00704A] text-white border-[#00704A]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#00704A] hover:text-[#00704A]']">
-                                $151-$300
+                                {{ $money(151) }}-{{ $money(300) }}
                             </button>
                             <button @click="setPriceFilter('high')"
                                :class="['px-3 py-1.5 rounded-full text-sm font-semibold transition-all duration-200 border',
                                         activePriceFilter === 'high' ? 'bg-[#00704A] text-white border-[#00704A]' : 'bg-white text-gray-600 border-gray-200 hover:border-[#00704A] hover:text-[#00704A]']">
-                                +$300
+                                +{{ $money(300) }}
                             </button>
                         </div>
                     </div>
@@ -1313,7 +1313,7 @@ onBeforeUnmount(() => {
                                 <h3 class="font-bold text-base md:text-lg text-slate-800 mb-1 group-hover:text-orange-600 transition line-clamp-1 font-heading">{{ product.name }}</h3>
                                 <p class="text-xs font-bold text-orange-500 mb-3 md:mb-4 uppercase tracking-wide">{{ product.category }}</p>
                                 <div class="product-footer flex justify-between items-center w-full bg-white p-2 rounded-xl group-hover:bg-amber-50 transition border border-gray-100 group-hover:border-amber-200 shadow-sm">
-                                    <span class="text-slate-800 font-bold px-2 text-lg">${{ product.price }}</span>
+                                    <span class="text-slate-800 font-bold px-2 text-lg">{{ $money(product.price) }}</span>
                                     <button class="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 shadow-sm hover:bg-orange-500 hover:text-white transition flex items-center justify-center border border-orange-100">
                                         <i class="fa-solid fa-plus"></i>
                                     </button>
@@ -1341,7 +1341,7 @@ onBeforeUnmount(() => {
                             <h3 class="font-bold text-base md:text-lg text-slate-800 mb-1 group-hover:text-[#00704A] transition line-clamp-1 font-heading">{{ product.name }}</h3>
                             <p class="text-xs font-bold text-[#00704A] mb-3 md:mb-4 uppercase tracking-wide">{{ product.category }}</p>
                             <div class="product-footer flex justify-between items-center w-full bg-gray-50 p-2 rounded-xl group-hover:bg-[#EFF9F4]/50 transition border border-transparent group-hover:border-[#D4E9E2]">
-                                <span class="text-slate-800 font-bold px-2 text-lg">${{ product.price }}</span>
+                                <span class="text-slate-800 font-bold px-2 text-lg">{{ $money(product.price) }}</span>
                                 <button class="w-8 h-8 rounded-lg bg-white text-[#00704A] shadow-sm hover:bg-[#00704A] hover:text-white transition flex items-center justify-center border border-gray-100">
                                     <i class="fa-solid fa-plus"></i>
                                 </button>
@@ -1386,7 +1386,7 @@ onBeforeUnmount(() => {
                             </div>
                             <div class="text-center leading-tight">
                                 <span :class="['block text-sm font-bold transition-colors', currentSize === size ? 'text-[#00704A]' : 'text-slate-700']">{{ size }}</span>
-                                <span class="block text-xs text-gray-500 font-medium mt-0.5">${{ sizePrices[size] }}</span>
+                                <span class="block text-xs text-gray-500 font-medium mt-0.5">{{ $money(sizePrices[size]) }}</span>
                             </div>
                         </div>
                     </div>
@@ -1412,11 +1412,11 @@ onBeforeUnmount(() => {
                     <div class="summary-card__price-box">
                         <div v-for="(item, idx) in priceBreakdown" :key="`${item.label}-${idx}`" class="summary-card__price-line">
                             <span>{{ item.label }}</span>
-                            <strong>{{ idx === 0 ? '' : '+' }}${{ item.value }}</strong>
+                            <strong>{{ idx === 0 ? $money(item.value) : $moneySigned(item.value) }}</strong>
                         </div>
                         <div class="summary-card__price-line summary-card__price-line--total">
                             <span>Extras</span>
-                            <strong>{{ extrasTotal > 0 ? '+' : '' }}${{ extrasTotal }}</strong>
+                            <strong>{{ $moneySigned(extrasTotal) }}</strong>
                         </div>
                     </div>
 
@@ -1458,8 +1458,7 @@ onBeforeUnmount(() => {
                         <span class="studio-hero__eyebrow">Configuracion en vivo</span>
                         <span class="studio-hero__label">Precio unitario</span>
                         <div class="studio-hero__price">
-                            <span class="studio-hero__currency">$</span>
-                            <span>{{ currentUnitPrice }}</span>
+                            <span>{{ $money(currentUnitPrice) }}</span>
                         </div>
                         <div class="studio-pill-row">
                             <span class="studio-status-pill">{{ currentSize }}</span>
@@ -1594,7 +1593,7 @@ onBeforeUnmount(() => {
                                     <div class="w-10 h-10 rounded-full bg-yellow-50/80 flex items-center justify-center text-yellow-600 shadow-inner border border-yellow-100"><i class="fa-solid fa-bolt text-lg"></i></div>
                                     <div>
                                         <span class="block text-sm font-bold text-slate-800">Shot extra de espresso</span>
-                                        <span class="text-xs text-[#00704A] font-medium">+$20</span>
+                                        <span class="text-xs text-[#00704A] font-medium">{{ $moneySigned(20) }}</span>
                                     </div>
                                 </div>
                                 <div class="option-control">
@@ -1654,7 +1653,7 @@ onBeforeUnmount(() => {
                                     <div class="w-10 h-10 rounded-full bg-amber-50/80 flex items-center justify-center text-amber-600 shadow-inner border border-amber-100"><i class="fa-solid fa-bottle-droplet text-lg"></i></div>
                                     <div>
                                         <span class="block text-sm font-bold text-slate-800">Salsas extra</span>
-                                        <span class="text-xs text-[#00704A] font-medium">+$8</span>
+                                        <span class="text-xs text-[#00704A] font-medium">{{ $moneySigned(8) }}</span>
                                     </div>
                                 </div>
                                 <div class="option-control">
@@ -1787,11 +1786,11 @@ onBeforeUnmount(() => {
                     <div class="summary-card__price-box">
                         <div v-for="(item, idx) in priceBreakdown" :key="`mobile-${item.label}-${idx}`" class="summary-card__price-line">
                             <span>{{ item.label }}</span>
-                            <strong>{{ idx === 0 ? '' : '+' }}${{ item.value }}</strong>
+                            <strong>{{ idx === 0 ? $money(item.value) : $moneySigned(item.value) }}</strong>
                         </div>
                         <div class="summary-card__price-line summary-card__price-line--total">
                             <span>Extras</span>
-                            <strong>{{ extrasTotal > 0 ? '+' : '' }}${{ extrasTotal }}</strong>
+                            <strong>{{ $moneySigned(extrasTotal) }}</strong>
                         </div>
                     </div>
 
@@ -1810,8 +1809,7 @@ onBeforeUnmount(() => {
                     <div class="flex justify-between items-end mb-4 px-2">
                         <span class="text-sm text-gray-500 font-bold uppercase tracking-wider">Total final</span>
                         <div class="flex items-end gap-1">
-                            <span class="text-xl font-bold text-[#00704A] mb-1">$</span>
-                            <span class="text-4xl font-black text-[#1E3932] leading-none">{{ totalPrice }}</span>
+                            <span class="text-4xl font-black text-[#1E3932] leading-none">{{ $money(totalPrice) }}</span>
                         </div>
                     </div>
                     <div class="studio-cta__actions">
