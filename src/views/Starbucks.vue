@@ -966,7 +966,7 @@ const addToCart = async ({ silent = false } = {}) => {
         const result = await Swal.fire({
             icon: 'warning',
             title: 'Cambiar restaurante',
-            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por Starbucks.`,
+            text: `FoodRush permite una franquicia por pedido. Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}; si continúas, borraremos ese carrito y lo cambiaremos por Starbucks.`,
             showCancelButton: true,
             confirmButtonText: 'Reemplazar carrito',
             cancelButtonText: 'Cancelar',

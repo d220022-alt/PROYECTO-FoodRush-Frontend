@@ -75,8 +75,6 @@ export const categoryModifiers = {
     ],
     General: [
         { id: 'size', label: 'Tamaño', type: 'choice', options: ['Normal', 'Agrandar'], default: 'Normal', priceOptions: { 'Agrandar': 60 } },
-        { id: 'combo', label: 'Hacer Combo', type: 'toggle', price: 150 },
-        { id: 'extra', label: 'Adicional', type: 'counter', max: 3, price: 35 },
     ],
 };
 
@@ -88,11 +86,31 @@ const normalizeCategory = (value) => {
         .trim();
 };
 
+const getCategoryTokens = (value) => normalizeCategory(value)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+
+const hasAnyToken = (tokens, values) => values.some((value) => tokens.includes(value));
+const includesAny = (value, fragments) => fragments.some((fragment) => value.includes(fragment));
+
 export const getModifiersForCategory = (category) => {
     // Find exact or map to generic fallback (e.g. "Donas" -> Postres, "Combos" -> Combos)
     const normalizedCat = normalizeCategory(category);
+    const tokens = getCategoryTokens(category);
 
-    if (normalizedCat.includes('hamburguesa') || normalizedCat.includes('burger') || normalizedCat.includes('chimi')) {
+    if (includesAny(normalizedCat, ['postre', 'dona', 'donut', 'helado', 'sundae', 'batida'])) {
+        return categoryModifiers.Postres;
+    }
+    if (
+        includesAny(normalizedCat, ['carne de res', 'teriyaki beef', 'beijing beef']) ||
+        hasAnyToken(tokens, ['res', 'beef'])
+    ) {
+        return categoryModifiers.Res;
+    }
+    if (
+        includesAny(normalizedCat, ['hamburguesa', 'burger', 'chimi']) ||
+        hasAnyToken(tokens, ['hamburguesas'])
+    ) {
         return categoryModifiers.Hamburguesas;
     }
     if (normalizedCat.includes('pizza')) return categoryModifiers.Pizzas;
@@ -105,9 +123,6 @@ export const getModifiersForCategory = (category) => {
         return categoryModifiers.Bebidas;
     }
     if (normalizedCat.includes('pollo')) return categoryModifiers.Pollo;
-    if (normalizedCat.includes('postre') || normalizedCat.includes('dona') || normalizedCat.includes('helado')) {
-        return categoryModifiers.Postres;
-    }
     if (normalizedCat.includes('taco') || normalizedCat.includes('burrito') || normalizedCat.includes('nacho')) {
         return categoryModifiers.Tacos;
     }
@@ -121,8 +136,7 @@ export const getModifiersForCategory = (category) => {
         return categoryModifiers.Complementos;
     }
     if (normalizedCat.includes('combo')) return categoryModifiers.Combos;
-    if (normalizedCat.includes('plato')) return categoryModifiers.Platos;
-    if (normalizedCat === 'res') return categoryModifiers.Res;
+    if (includesAny(normalizedCat, ['plato', 'bowl', 'arroz', 'chow mein', 'noodle'])) return categoryModifiers.Platos;
 
     return categoryModifiers.General;
 };

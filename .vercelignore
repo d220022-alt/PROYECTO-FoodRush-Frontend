@@ -8,6 +8,8 @@ dist
 test-results/
 .vercel/
 
+*.md
+output/
 docs/
 Emprendimiento/
 backend_ref/

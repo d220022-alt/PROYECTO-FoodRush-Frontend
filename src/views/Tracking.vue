@@ -33,6 +33,7 @@ const steps = [
     { label: 'Solicitado', icon: 'fa-solid fa-clipboard-check' },
     { label: 'Preparando', icon: 'fa-solid fa-fire-burner' },
     { label: 'En Camino', icon: 'fa-solid fa-motorcycle' },
+    { label: 'En destino', icon: 'fa-solid fa-location-dot' },
     { label: 'Entregado', icon: 'fa-solid fa-flag-checkered' },
 ];
 
@@ -58,24 +59,42 @@ const isBackendOrderId = (value) => /^\d+$/.test(safeText(value));
 
 const rawStatusLabel = computed(() => order.value?.statusLabel || order.value?.estado?.descripcion || 'Pendiente');
 const currentStatusKey = computed(() => normalizeStatusKey(rawStatusLabel.value));
+const deliveryStageKey = computed(() => normalizeStatusKey(order.value?.driverLocation?.stage || order.value?.deliveryAssignment?.status || ''));
+const effectiveStatusKey = computed(() =>
+    deliveryStageKey.value === 'en destino' ? 'en destino' : currentStatusKey.value,
+);
 const currentStatusLabel = computed(() => {
-    const statusKey = currentStatusKey.value;
+    const statusKey = effectiveStatusKey.value;
     const source = String(order.value?.source || '').toLowerCase();
 
     if (statusKey === 'cancelado') return 'Pedido cancelado';
     if (statusKey === 'entregado') return 'Pedido entregado';
+    if (statusKey === 'en destino') return 'Repartidor en destino';
     if (statusKey === 'en camino') return 'Repartidor en camino';
     if (statusKey === 'preparando') return 'Preparando en el local';
     if (source === 'local') return 'Pendiente de sincronizar';
     return 'Pendiente de confirmacion';
 });
-const currentProgress = computed(() => getOrderProgressStep(rawStatusLabel.value));
+const currentProgress = computed(() => getOrderProgressStep(effectiveStatusKey.value));
 const currentStep = computed(() => Math.max(0, currentProgress.value - 1));
 const isCancelled = computed(() => String(currentStatusLabel.value || '').toLowerCase().includes('cancelado'));
 const overlayIcon = computed(() => (isCancelled.value ? 'fa-solid fa-ban' : steps[currentStep.value]?.icon || steps[0].icon));
 const deliverySecurityCode = computed(() => {
     return resolveDeliveryCode(order.value || {}, orderId.value);
 });
+const canConfirmDeliveryCode = computed(() => effectiveStatusKey.value === 'en destino' && !isCancelled.value);
+const visibleDeliverySecurityCode = computed(() =>
+    ['en destino', 'entregado'].includes(effectiveStatusKey.value) ? deliverySecurityCode.value : '----',
+);
+const deliveryCodeHelpText = computed(() => {
+    if (effectiveStatusKey.value === 'entregado') return 'El pedido ya fue marcado como entregado.';
+    if (canConfirmDeliveryCode.value) return 'Comparte este código solo cuando el repartidor esté frente a ti y tengas el pedido en tus manos.';
+    return 'El código se habilita cuando el repartidor marca llegada al destino.';
+});
+const confirmDeliveryCode = () => {
+    if (!canConfirmDeliveryCode.value) return;
+    isDeliveryCodeConfirmed.value = true;
+};
 
 const formatDate = (value) => {
     const parsedDate = new Date(value);
@@ -423,20 +442,21 @@ const goBack = () => router.push('/orders');
                 <div class="rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500">Codigo de entrega</p>
-                            <p class="mt-2 text-3xl font-black tracking-[0.2em] text-slate-900">{{ deliverySecurityCode }}</p>
+                            <p class="text-[11px] font-black uppercase tracking-[0.25em] text-orange-500">Código de entrega</p>
+                            <p class="mt-2 text-3xl font-black tracking-[0.2em] text-slate-900">{{ visibleDeliverySecurityCode }}</p>
                             <p class="mt-2 text-sm font-bold text-slate-500">
-                                Comparte este codigo con el repartidor solamente cuando tengas el pedido en tus manos.
+                                {{ deliveryCodeHelpText }}
                             </p>
                         </div>
                         <button
                             type="button"
                             class="rounded-2xl px-4 py-3 text-xs font-black transition"
-                            :class="isDeliveryCodeConfirmed ? 'bg-green-100 text-green-700' : 'bg-slate-900 text-white hover:bg-slate-700'"
-                            @click="isDeliveryCodeConfirmed = true"
+                            :disabled="!canConfirmDeliveryCode || isDeliveryCodeConfirmed"
+                            :class="isDeliveryCodeConfirmed ? 'bg-green-100 text-green-700' : canConfirmDeliveryCode ? 'bg-slate-900 text-white hover:bg-slate-700' : 'cursor-not-allowed bg-slate-100 text-slate-400'"
+                            @click="confirmDeliveryCode"
                         >
-                            <i class="fa-solid mr-2" :class="isDeliveryCodeConfirmed ? 'fa-circle-check' : 'fa-check'"></i>
-                            {{ isDeliveryCodeConfirmed ? 'Codigo confirmado' : 'Confirmar codigo' }}
+                            <i class="fa-solid mr-2" :class="isDeliveryCodeConfirmed ? 'fa-circle-check' : canConfirmDeliveryCode ? 'fa-check' : 'fa-lock'"></i>
+                            {{ isDeliveryCodeConfirmed ? 'Código confirmado' : canConfirmDeliveryCode ? 'Confirmar código' : 'Esperando llegada' }}
                         </button>
                     </div>
                 </div>

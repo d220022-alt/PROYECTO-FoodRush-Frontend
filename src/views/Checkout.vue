@@ -43,6 +43,8 @@ const currentUserEmail = ref(getSession().userEmail || 'usuario_invitado');
 const { formatCurrency } = useCurrency();
 const BASE_DELIVERY_FEE = 15;
 const DELIVERY_FEE_PER_KM = 12;
+const FOODRUSH_SERVICE_RATE = 0.06;
+const MIN_SERVICE_FEE = 20;
 
 const goBack = () => {
     router.go(-1);
@@ -161,11 +163,15 @@ const detectedDeliveryZone = computed(() => {
   return resolveDominicanAddressZone(addressDetails.value, session.userZone || localStorage.getItem('user_zone'));
 });
 const deliveryFee = computed(() => {
-  if (currentMode.value !== 'delivery') return 0;
+  if (currentMode.value !== 'delivery' || subtotal.value <= 0) return 0;
   return BASE_DELIVERY_FEE + Math.ceil(deliveryDistanceKm.value * DELIVERY_FEE_PER_KM);
 });
+const serviceFee = computed(() => {
+  if (subtotal.value <= 0) return 0;
+  return Math.max(MIN_SERVICE_FEE, Math.ceil(subtotal.value * FOODRUSH_SERVICE_RATE));
+});
 const deliveryFeeBreakdown = computed(() => {
-  if (currentMode.value !== 'delivery') return '';
+  if (currentMode.value !== 'delivery' || subtotal.value <= 0) return '';
   const variableFee = Math.ceil(deliveryDistanceKm.value * DELIVERY_FEE_PER_KM);
   return `${formatCurrency(BASE_DELIVERY_FEE)} base + ${formatCurrency(variableFee)} por distancia`;
 });
@@ -173,7 +179,10 @@ const deliveryZoneLabel = computed(() => {
   if (currentMode.value !== 'delivery') return 'Pickup';
   return `${detectedDeliveryZone.value?.label || 'Distancia estimada'} - ${deliveryDistanceKm.value.toFixed(1)} km`;
 });
-const total = computed(() => subtotal.value + deliveryFee.value + deliveryTip.value);
+const total = computed(() => {
+  if (subtotal.value <= 0) return 0;
+  return subtotal.value + serviceFee.value + deliveryFee.value + deliveryTip.value;
+});
 
 const DOMINICAN_BOUNDS = {
   minLat: 17.35,
@@ -603,6 +612,7 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
       `Instrucciones: ${instructionsText.value}`,
       currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      `Servicio FoodRush: ${serviceFee.value} DOP`,
       currentMode.value === 'delivery' ? `Delivery Fee: ${deliveryFee.value} DOP por ${deliveryDistanceKm.value.toFixed(1)} km` : '',
       currentMode.value === 'delivery' ? `Propina delivery: ${deliveryTip.value} DOP` : '',
       deliveryType.value === 'scheduled' && scheduleDate.value ? `Programado para: ${scheduleDate.value}` : '',
@@ -618,6 +628,8 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       items: items.map(normalizeOrderItemForPayload),
       metodo_pago: paymentMethod.value,
       tipo_entrega: currentMode.value,
+      service_fee: serviceFee.value,
+      tarifa_servicio: serviceFee.value,
       delivery_fee: deliveryFee.value,
       delivery_tip: deliveryTip.value,
       driver_tip: deliveryTip.value,
@@ -728,7 +740,7 @@ const processOrder = async () => {
             (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0),
             0,
           );
-          const syncedTotal = syncedSubtotal + (currentMode.value === 'delivery' ? deliveryFee.value + deliveryTip.value : 0);
+          const syncedTotal = syncedSubtotal + serviceFee.value + (currentMode.value === 'delivery' ? deliveryFee.value + deliveryTip.value : 0);
           orderPayload = buildOrderPayload({
             clientId,
             items: syncedItems,
@@ -746,6 +758,8 @@ const processOrder = async () => {
                   user_email: identity.email,
                   user_name: identity.name,
                   tipo_entrega: orderParams.data.tipo_entrega || orderPayload.tipo_entrega,
+                  service_fee: orderParams.data.service_fee ?? orderPayload.service_fee,
+                  tarifa_servicio: orderParams.data.tarifa_servicio ?? orderPayload.tarifa_servicio,
                   delivery_fee: orderParams.data.delivery_fee ?? orderPayload.delivery_fee,
                   delivery_tip: orderParams.data.delivery_tip ?? orderPayload.delivery_tip,
                   driver_tip: orderParams.data.driver_tip ?? orderPayload.driver_tip,
@@ -1316,6 +1330,16 @@ onBeforeUnmount(() => {
                 <span>Subtotal</span>
                 <span>{{ formatCurrency(subtotal) }}</span>
               </div>
+              <div class="flex justify-between">
+                <span class="flex items-center gap-1">
+                  Servicio FoodRush
+                  <i
+                    class="fa-solid fa-circle-info text-amber-500"
+                    title="Cargo operativo mínimo para mantener soporte, seguimiento y coordinación del pedido."
+                  ></i>
+                </span>
+                <span>{{ formatCurrency(serviceFee) }}</span>
+              </div>
               <div class="flex justify-between" :class="currentMode === 'pickup' ? 'opacity-20 line-through' : ''">
                 <span class="flex items-center gap-1">
                   Delivery Fee
@@ -1373,7 +1397,7 @@ onBeforeUnmount(() => {
                 <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 to-green-500"></div>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total a cobrar</p>
                 <p class="text-5xl font-black text-slate-800 my-2 tracking-tighter">{{ formatCurrency(total) }}</p>
-                <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y Sin Comisiones</p>
+                <p class="text-xs text-green-600 font-bold mt-4 flex items-center justify-center gap-1"><i class="fa-solid fa-shield-check"></i> Seguro y con desglose claro</p>
               </div>
             </div>
 
@@ -1447,14 +1471,14 @@ onBeforeUnmount(() => {
         <button
           class="w-full max-w-4xl bg-gradient-to-r from-red-600 to-orange-500 text-white font-extrabold text-xl py-4 rounded-xl shadow-[0_8px_15px_rgba(189,10,10,0.2)] hover:shadow-[0_12px_20px_rgba(189,10,10,0.3)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
           @click="processOrder"
-          :disabled="isProcessing"
+          :disabled="isProcessing || cartItems.length === 0"
         >
           <template v-if="isProcessing">
             <i class="fa-solid fa-circle-notch fa-spin text-2xl"></i> 
             <span>Procesando...</span>
           </template>
           <template v-else>
-            <span>Pagar Ahora</span>
+            <span>{{ cartItems.length === 0 ? 'Agrega productos para pagar' : 'Pagar Ahora' }}</span>
             <i class="fa-solid fa-arrow-right text-lg ml-1"></i>
           </template>
         </button>
