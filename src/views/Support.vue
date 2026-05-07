@@ -356,10 +356,10 @@ const buildSupportReply = async (userMessage) => {
         </div>
     </header>
 
-    <section class="container mx-auto px-6 -mt-20 relative z-20 mb-24">
+    <section class="container mx-auto px-6 mt-12 relative z-20 mb-24">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             
-            <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white cursor-pointer group">
+            <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-blue-600 cursor-pointer group">
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fas fa-headset"></i>
                 </div>
@@ -377,7 +377,7 @@ const buildSupportReply = async (userMessage) => {
                 <span class="text-orange-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
             </div>
 
-            <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white group block">
+            <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-green-600 group block">
                 <div class="w-16 h-16 bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fab fa-whatsapp"></i>
                 </div>
