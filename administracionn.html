@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrativo - FoodRush</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    /* ESTILOS GENERALES */
+    body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; background-color: #f4f6f8; }
+    .admin-container { display: flex; height: 100vh; }
+    
+    /* BARRA LATERAL */
+    .sidebar { width: 220px; background-color: #1a202c; color: white; padding: 20px; flex-shrink: 0; }
+    .sidebar h2 { margin-top: 0; font-size: 1.5rem; border-bottom: 1px solid #2d3748; padding-bottom: 10px; }
+    .sidebar ul { list-style: none; padding: 0; margin-top: 20px; }
+    .sidebar li { padding: 12px; cursor: pointer; border-radius: 6px; margin-bottom: 5px; transition: 0.2s; }
+    .sidebar li:hover { background-color: #2d3748; }
+    .sidebar li.active { background-color: #4299e1; font-weight: bold; }
+    
+    /* CONTENIDO PRINCIPAL */
+    .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+    h3 { margin-top: 0; color: #2d3748; font-size: 1.8rem; }
+
+    /* TARJETAS DEL DASHBOARD */
+    .stats-grid { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; }
+    .stat-card { background: white; padding: 20px; border-radius: 8px; flex: 1; min-width: 200px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #2b6cb0; margin: 10px 0 0; }
+    .stat-card.alert { border-left: 5px solid #e53e3e; }
+    .stat-card.alert ul { color: #c53030; padding-left: 20px; margin-top: 10px; margin-bottom: 0; }
+
+    /* TABLAS */
+    table { width: 100%; border-collapse: collapse; background: white; margin-top: 20px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+    th, td { padding: 15px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background-color: #edf2f7; color: #4a5568; }
+
+    /* FORMULARIOS Y LISTAS */
+    .product-list { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+    .product-item, .settings-form { display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); flex-wrap: wrap; }
+    .settings-form { flex-direction: column; align-items: flex-start; max-width: 400px; }
+
+    input, select { padding: 10px; border: 1px solid #cbd5e0; border-radius: 6px; outline: none; font-size: 1rem; }
+    input:focus, select:focus { border-color: #4299e1; }
+
+    /* BOTONES */
+    .action-btn { background-color: #4299e1; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+    .action-btn:hover { background-color: #3182ce; }
+    .danger-btn { background-color: #e53e3e; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .danger-btn:hover { background-color: #c53030; }
+
+    /* COLORES DE ESTADO */
+    select.pendiente { color: #d69e2e; font-weight: bold; }
+    select.en-preparacion { color: #3182ce; font-weight: bold; }
+    select.en-camino { color: #805ad5; font-weight: bold; }
+    select.entregado { color: #38a169; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div id="app" class="admin-container">
+    
+    <aside class="sidebar">
+      <h2>Panel Admin</h2>
+      <ul>
+        <li v-for="menu in menuOptions" :key="menu.id" 
+            @click="currentView = menu.id"
+            :class="{ active: currentView === menu.id }">
+          {{ menu.name }}
+        </li>
+      </ul>
+    </aside>
+
+    <main class="main-content">
+      
+      <section v-if="currentView === 'dashboard'">
+        <h3>Panel Principal</h3>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h4>Pedidos Pendientes</h4>
+            <p class="stat-number">{{ pendingOrdersCount }}</p>
+          </div>
+          <div class="stat-card">
+            <h4>Ventas Totales</h4>
+            <p class="stat-number">${{ totalSales.toFixed(2) }}</p>
+          </div>
+          <div class="stat-card alert" v-if="systemAlerts.length > 0">
+            <h4>Alertas del Sistema</h4>
+            <ul>
+              <li v-for="alert in systemAlerts" :key="alert">{{ alert }}</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="currentView === 'orders'">
+        <h3>Flujo de Pedidos</h3>
+        <button @click="createNewSimulatedOrder" class="action-btn">Simular Nuevo Pedido</button>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Cliente</th><th>Total</th><th>Estado</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="order in orders" :key="order.id">
+              <td>{{ order.id }}</td>
+              <td>{{ order.customerName }}</td>
+              <td>${{ order.total.toFixed(2) }}</td>
+              <td>
+                <select v-model="order.status" :class="order.status.replace(' ', '-')">
+                  <option value="pendiente">Pendiente</option>
+                  <option value="en preparacion">En Preparación</option>
+                  <option value="en camino">En Camino</option>
+                  <option value="entregado">Entregado</option>
+                </select>
+              </td>
+              <td><button @click="deleteOrder(order.id)" class="danger-btn">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section v-if="currentView === 'menu'">
+        <h3>Gestión de Productos</h3>
+        <button @click="addNewProduct" class="action-btn">Añadir Nuevo Producto</button>
+        <div class="product-list">
+          <div v-for="product in menuProducts" :key="product.id" class="product-item">
+            <input v-model="product.name" placeholder="Nombre" />
+            <input type="number" v-model="product.price" placeholder="Precio ($)" />
+            <input type="number" v-model="product.stock" placeholder="Stock" title="Unidades disponibles" />
+            <select v-model="product.category">
+              <option v-for="cat in categories" :key="cat" :value="cat">{{ cat }}</option>
+            </select>
+            <button @click="deleteProduct(product.id)" class="danger-btn">Eliminar</button>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="currentView === 'users'">
+        <h3>Control de Usuarios</h3>
+        <button @click="addNewUser" class="action-btn">Registrar Usuario</button>
+        <table>
+          <thead>
+            <tr><th>Nombre</th><th>Rol</th><th>Acciones</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in users" :key="user.id">
+              <td><input v-model="user.name" /></td>
+              <td>
+                <select v-model="user.role">
+                  <option value="cliente">Cliente</option>
+                  <option value="repartidor">Repartidor</option>
+                  <option value="admin">Administrador</option>
+                </select>
+              </td>
+              <td><button @click="deleteUser(user.id)" class="danger-btn">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section v-if="currentView === 'deliveries'">
+        <h3>Asignación de Repartidores</h3>
+        <table>
+          <thead>
+            <tr><th>Pedido ID</th><th>Dirección</th><th>Repartidor Asignado</th></tr>
+          </thead>
+          <tbody>
+            <tr v-for="delivery in pendingDeliveries" :key="delivery.id">
+              <td>{{ delivery.id }}</td>
+              <td>{{ delivery.address }}</td>
+              <td>
+                <select v-model="delivery.driverId">
+                  <option :value="null">Sin asignar</option>
+                  <option v-for="driver in availableDrivers" :key="driver.id" :value="driver.id">
+                    {{ driver.name }}
+                  </option>
+                </select>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section v-if="currentView === 'settings'">
+        <h3>Ajustes del Negocio</h3>
+        <div class="settings-form">
+          <label>Costo de Envío Base ($):</label>
+          <input type="number" v-model="settings.shippingCost" />
+          <label>Horario de Apertura:</label>
+          <input type="time" v-model="settings.openTime" />
+          <label>Horario de Cierre:</label>
+          <input type="time" v-model="settings.closeTime" />
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, watch, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        // --- ESTADO INICIAL ---
+        const currentView = ref('dashboard');
+        const menuOptions = ref([
+          { id: 'dashboard', name: 'Dashboard' },
+          { id: 'orders', name: 'Pedidos' },
+          { id: 'menu', name: 'Menú' },
+          { id: 'users', name: 'Usuarios' },
+          { id: 'deliveries', name: 'Entregas' },
+          { id: 'settings', name: 'Configuración' }
+        ]);
+
+        const categories = ref(['Hamburguesas', 'Bebidas', 'Combos', 'Postres']);
+
+        const orders = ref([]);
+        const menuProducts = ref([]);
+        const users = ref([]);
+        const settings = ref({ shippingCost: 50, openTime: '08:00', closeTime: '23:00' });
+
+        // --- CARGAR DATOS LOCALES ---
+        onMounted(() => {
+          const savedData = JSON.parse(localStorage.getItem('foodRushAdminData'));
+          if (savedData) {
+            orders.value = savedData.orders || [];
+            menuProducts.value = savedData.menuProducts || [];
+            users.value = savedData.users || [];
+            if(savedData.settings) settings.value = savedData.settings;
+          } else {
+            // Datos iniciales de prueba
+            menuProducts.value = [
+              { id: 1, name: 'Doble Queso', price: 250, stock: 15, category: 'Hamburguesas' },
+              { id: 2, name: 'Refresco Grande', price: 60, stock: 4, category: 'Bebidas' }
+            ];
+            users.value = [
+              { id: 1, name: 'Repartidor 1', role: 'repartidor' },
+              { id: 2, name: 'Admin Principal', role: 'admin' }
+            ];
+          }
+        });
+
+        // --- GUARDADO AUTOMÁTICO ---
+        watch([orders, menuProducts, users, settings], () => {
+          localStorage.setItem('foodRushAdminData', JSON.stringify({
+            orders: orders.value,
+            menuProducts: menuProducts.value,
+            users: users.value,
+            settings: settings.value
+          }));
+        }, { deep: true });
+
+        // --- VARIABLES COMPUTADAS (Tiempo Real) ---
+        const totalSales = computed(() => {
+          return orders.value
+            .filter(order => order.status === 'entregado')
+            .reduce((sum, order) => sum + order.total, 0);
+        });
+
+        const pendingOrdersCount = computed(() => {
+          return orders.value.filter(order => order.status !== 'entregado').length;
+        });
+
+        const systemAlerts = computed(() => {
+          const alerts = [];
+          menuProducts.value.forEach(product => {
+            if (product.stock < 5) {
+              alerts.push(`Stock bajo: ${product.name} (Quedan ${product.stock})`);
+            }
+          });
+          return alerts;
+        });
+
+        const availableDrivers = computed(() => {
+          return users.value.filter(u => u.role === 'repartidor');
+        });
+
+        const pendingDeliveries = computed(() => {
+          return orders.value.filter(order => ['pendiente', 'en preparacion', 'en camino'].includes(order.status));
+        });
+
+        // --- FUNCIONES (Acciones) ---
+        const createNewSimulatedOrder = () => {
+          if (menuProducts.value.length === 0) {
+            alert('Agrega productos al menú primero.');
+            return;
+          }
+          
+          const randomProduct = menuProducts.value[Math.floor(Math.random() * menuProducts.value.length)];
+          const newOrder = {
+            id: `ORD-${Math.floor(Math.random() * 10000)}`,
+            customerName: 'Cliente Simulado',
+            address: 'Calle Principal #123',
+            total: randomProduct.price + settings.value.shippingCost,
+            status: 'pendiente',
+            driverId: null
+          };
+          
+          if(randomProduct.stock > 0) randomProduct.stock--;
+          orders.value.push(newOrder);
+        };
+
+        const deleteOrder = (id) => {
+          orders.value = orders.value.filter(o => o.id !== id);
+        };
+
+        const addNewProduct = () => {
+          menuProducts.value.push({ 
+            id: Date.now(), 
+            name: '', 
+            price: 0, 
+            stock: 10, 
+            category: categories.value[0] 
+          });
+        };
+
+        const deleteProduct = (id) => {
+          menuProducts.value = menuProducts.value.filter(p => p.id !== id);
+        };
+
+        const addNewUser = () => {
+          users.value.push({ 
+            id: Date.now(), 
+            name: '', 
+            role: 'cliente' 
+          });
+        };
+
+        const deleteUser = (id) => {
+          users.value = users.value.filter(u => u.id !== id);
+        };
+
+        return {
+          currentView, menuOptions, categories, orders, menuProducts, users, settings,
+          totalSales, pendingOrdersCount, systemAlerts, availableDrivers, pendingDeliveries,
+          createNewSimulatedOrder, deleteOrder, addNewProduct, deleteProduct, addNewUser, deleteUser
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>

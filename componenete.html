@@ -1,0 +1,59 @@
+<script setup>
+import { ref } from "vue";
+
+const nombreTarea = ref("");
+const completada = ref(false);
+
+const guardarTarea = () => {
+  const tarea = {
+    nombre: nombreTarea.value,
+    completada: completada.value,
+  };
+
+  console.log("Tarea guardada:", tarea);
+  alert("Tarea registrada");
+};
+</script>
+
+<template>
+  <div class="box">
+    <h2>Registrar tarea</h2>
+
+    <label>Nombre de la tarea:</label>
+    <input
+      type="text"
+      v-model="nombreTarea"
+      placeholder="Escribe la tarea"
+    />
+
+    <label>Completada:</label>
+    <select v-model="completada">
+      <option :value="true">Si</option>
+      <option :value="false">No</option>
+    </select>
+
+    <button @click="guardarTarea">Guardar</button>
+  </div>
+</template>
+
+<style scoped>
+.box {
+  width: 280px;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+input, select {
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  padding: 6px;
+}
+
+button {
+  width: 100%;
+  padding: 8px
+  cursor: pointer;
+}
+</style>

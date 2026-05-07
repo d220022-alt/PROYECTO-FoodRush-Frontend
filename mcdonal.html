@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodRush - Bienvenido</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* --- RESET Y ESTILOS GENERALES --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #fdfbf7;
+            color: #333;
+            overflow-x: hidden; /* Evitar scroll horizontal */
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+
+        /* Colores variables */
+        :root {
+            --primary-red: #c21a1a;
+            --yellow-bar: #facc15;
+            --white: #ffffff;
+            --text-dark: #1f2937;
+            --wine-transparent: rgba(90, 20, 35, 0.90); /* Color vino un poco más sólido */
+        }
+
+        /* --- HEADER --- */
+        .top-bar { background-color: var(--yellow-bar); height: 30px; width: 100%; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 50px; background-color: var(--white);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: relative; z-index: 100;
+        }
+
+        .logo { font-size: 24px; font-weight: bold; color: #e67e22; display: flex; align-items: center; gap: 10px; }
+        
+        .auth-buttons button {
+            padding: 8px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .btn-login { background: transparent; border: none; color: var(--text-dark); }
+        .btn-register { background-color: #222; color: var(--white); border: 1px solid #222; margin-left: 10px; }
+
+        /* --- HERO SECTION (CARRUSEL SUPERIOR) --- */
+        .hero-carousel-container {
+            position: relative;
+            height: 550px; /* Un poco más alto */
+            width: 100%;
+            overflow: hidden;
+        }
+
+        /* Estilos comunes para diapositivas (se usa arriba y en el banner del medio) */
+        .bg-slide {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            opacity: 0; 
+            transition: opacity 1.5s ease-in-out;
+            z-index: 1;
+        }
+        .bg-slide.active { opacity: 1; z-index: 2; }
+
+        /* Definición de las imágenes (Las mismas para ambas secciones) */
+        /* Nota: Usamos linear-gradient para oscurecer un poco la imagen y que el texto resalte */
+        .img-1 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=1920'); }
+        .img-2 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1920'); }
+        .img-3 { background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1551782450-a2132b4ba21d?q=80&w=1920'); }
+
+        .hero-overlay-content {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: flex-end;
+            padding-right: 10%; z-index: 10;
+        }
+
+        .hero-card-wine {
+            background-color: var(--wine-transparent);
+            padding: 40px;
+            width: 450px; /* Más ancho */
+            border-radius: 20px 0 20px 0;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            text-align: left;
+            color: var(--white);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .hero-card-wine h1 {
+            font-size: 38px; margin-bottom: 20px;
+            border-bottom: 3px solid rgba(255,255,255,0.5);
+            display: inline-block; padding-bottom: 5px;
+        }
+
+        .btn-red {
+            background-color: var(--primary-red); color: white; padding: 12px 30px;
+            border: none; border-radius: 5px; font-weight: bold; cursor: pointer; display: inline-block;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;
+        }
+        .btn-red:hover { transform: translateY(-2px); background-color: #a01515; }
+
+        /* --- SECCIÓN MARCAS (Cuadros más grandes) --- */
+        .brands-section { padding: 60px 20px; text-align: center; background-color: #fdfbf7; }
+        
+        .brands-container { 
+            display: flex; 
+            justify-content: center; 
+            gap: 50px; /* Más separación entre cuadros */
+            flex-wrap: wrap; 
+            margin-bottom: 40px; 
+            max-width: 1200px;
+            margin-left: auto; margin-right: auto;
+        }
+
+        .brand-box { 
+            background: white; 
+            /* AUMENTO DE TAMAÑO AQUÍ */
+            width: 280px; 
+            height: 280px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1); 
+            border: 1px solid #eee;
+            transition: transform 0.3s;
+        }
+
+        .brand-box:hover { transform: scale(1.05); }
+
+        .bg-mcd { background-color: #db0007; } 
+        .bg-bk { background-color: #512d16; }
+
+        /* Estilos para los textos/iconos dentro de las cajas grandes */
+        .brand-icon-lg { font-size: 140px !important; color: #ffc72c; }
+        .brand-text-kfc { font-family: serif; font-weight: bold; font-style: italic; font-size: 50px; }
+        .brand-text-bk { color: #f2a900; transform: rotate(-10deg); font-size: 40px; line-height: 1; font-weight: 900; }
+
+
+        /* --- BANNER INTERMEDIO (SINCRONIZADO) --- */
+        .banner-carousel-container {
+            position: relative;
+            height: 350px;
+            width: 100%; /* Ocupa todo el ancho */
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .banner-overlay-text {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10;
+            background: rgba(0,0,0,0.2); /* Sombra ligera para que el texto se lea siempre */
+        }
+
+        .banner-overlay-text h2 {
+            font-size: 42px;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- VALORES Y FOOTER --- */
+        .values-section { display: flex; justify-content: center; gap: 50px; padding: 60px 20px; background-color: white; flex-wrap: wrap; }
+        .value-card { text-align: center; max-width: 300px; }
+        .icon-container { font-size: 50px; color: var(--primary-red); margin-bottom: 20px; }
+        
+        footer { background-color: var(--primary-red); color: white; padding: 40px 50px; font-size: 14px; }
+        .footer-content { display: flex; justify-content: space-between; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
+        .footer-logo-box { background: white; padding: 10px; display: inline-block; border-radius: 5px; color: orange; font-weight: bold; margin-bottom: 15px; }
+        .footer-links { display: flex; gap: 50px; }
+        .link-column ul li { margin-bottom: 8px; }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 10px; padding: 10px 20px;}
+            .hero-carousel-container { height: 450px; }
+            .hero-overlay-content { justify-content: center; padding-right: 0; padding: 20px; }
+            .hero-card-wine { width: 100%; }
+            .brand-box { width: 100%; max-width: 300px; height: 200px; } /* Ajuste móvil */
+            .banner-carousel-container { height: 250px; }
+            .banner-overlay-text h2 { font-size: 24px; }
+            .footer-content { flex-direction: column; gap: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar"></div>
+
+    <header>
+        <div class="logo"><i class="fas fa-burger"></i> FoodRush</div>
+        <div class="auth-buttons">
+            <button class="btn-login">Iniciar Sesión</button>
+            <button class="btn-register">Registrarse</button>
+        </div>
+    </header>
+
+    <section class="hero-carousel-container">
+        <div class="bg-slide img-1 hero-slide active"></div>
+        <div class="bg-slide img-2 hero-slide"></div>
+        <div class="bg-slide img-3 hero-slide"></div>
+
+        <div class="hero-overlay-content">
+            <div class="hero-card-wine">
+                <h1>Bienvenidos !</h1>
+                <p>
+                    FoodRush es la plataforma perfecta para gestionar 
+                    tu franquicia de comida rápida. Sube tus inventarios, 
+                    gestiona tus datos y conecta con tus clientes de una 
+                    manera eficiente.
+                </p>
+                <button class="btn-red">Ver Menú</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="brands-section">
+        <div class="brands-container">
+            <div class="brand-box bg-mcd">
+                <i class="fab fa-mcdonalds brand-icon-lg"></i>
+            </div>
+            <div class="brand-box">
+                <h2 class="brand-text-kfc">KFC</h2>
+            </div>
+            <div class="brand-box bg-bk">
+                <h2 class="brand-text-bk">BURGER<br>KING</h2>
+            </div>
+        </div>
+        <button class="btn-red" style="width: 250px; font-size: 18px;">VER MÁS</button>
+    </section>
+
+    <section class="banner-carousel-container">
+        <div class="bg-slide img-1 banner-slide active"></div>
+        <div class="bg-slide img-2 banner-slide"></div>
+        <div class="bg-slide img-3 banner-slide"></div>
+
+        <div class="banner-overlay-text">
+            <h2>🌟 Vive la experiencia FoodRush 🌟</h2>
+        </div>
+    </section>
+
+    <section class="values-section">
+        <div class="value-card"><div class="icon-container"><i class="fas fa-puzzle-piece"></i></div><h3>Misión</h3><p>Ofrecer servicios innovadores para que las franquicias de comida rápida puedan gestionar su información.</p></div>
+        <div class="value-card"><div class="icon-container"><i class="fas fa-eye"></i></div><h3>Visión</h3><p>Ser la plataforma líder en gestión de franquicias gastronómicas a nivel nacional.</p></div>
+        <div class="value-card"><div class="icon-container"><i class="fas fa-bullseye"></i></div><h3>Objetivo</h3><p>Facilitar el crecimiento y la organización de nuestros clientes mediante tecnología.</p></div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="footer-logo-box"><i class="fas fa-burger"></i> FoodRush</div>
+                <div class="social-icons">
+                    <i class="fab fa-facebook fa-lg" style="margin-right: 10px;"></i>
+                    <i class="fab fa-instagram fa-lg"></i>
+                </div>
+            </div>
+            <div class="footer-links">
+                <div class="link-column"><h4>Help</h4><ul><li><a href="#">FAQ</a></li><li><a href="#">Customer Service</a></li></ul></div>
+                <div class="link-column"><h4>About</h4><ul><li><a href="#">Our Story</a></li><li><a href="#">Benefits</a></li></ul></div>
+            </div>
+        </div>
+        <div style="margin-top: 30px; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 10px; font-size: 12px;">© 2025 FoodRush. Todos los derechos reservados.</div>
+    </footer>
+
+    <script>
+        // Seleccionamos las diapositivas de ARRIBA y las del MEDIO
+        const heroSlides = document.querySelectorAll('.hero-slide');
+        const bannerSlides = document.querySelectorAll('.banner-slide');
+        
+        let currentIdx = 0;
+
+        function updateSlides() {
+            // 1. Quitar la clase 'active' de la imagen actual (en ambos lugares)
+            heroSlides[currentIdx].classList.remove('active');
+            bannerSlides[currentIdx].classList.remove('active');
+
+            // 2. Calcular siguiente índice
+            currentIdx = (currentIdx + 1) % heroSlides.length;
+
+            // 3. Poner la clase 'active' a la siguiente imagen (en ambos lugares)
+            heroSlides[currentIdx].classList.add('active');
+            bannerSlides[currentIdx].classList.add('active');
+        }
+a
+        // Cambiar cada 4 segundos
+        setInterval(updateSlides, 4000);
+    </script>
+
+</body>
+</html>
