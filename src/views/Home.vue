@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
     window.removeEventListener(APP_EVENTS.notificationsChanged, updateNotificationCount);
 });
 
-// Todo filtro de Home termina aqui: categoria, texto de busqueda, promos, pickup y ordenamiento.
+// Todo filtro de Home termina aqui: categoria, texto de busqueda, promos y ordenamiento.
 // Para presentar: aqui se cruzan busqueda, categoria, filtros y promos antes de pintar tarjetas.
 const filteredFranchises = computed(() => {
     let result = [...franchises.value];
@@ -186,9 +186,6 @@ const filteredFranchises = computed(() => {
             item.name.toLowerCase().includes(term) || 
             item.category.toLowerCase().includes(term)
         );
-    }
-    if (activeFilters.value.includes('pickup')) {
-        result = result.filter(item => item.pickup);
     }
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
@@ -507,10 +504,6 @@ const filterResultText = computed(() => {
                     <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
-                <div v-if="item.pickup" class="w-full mt-2 pt-2 border-t border-gray-50 text-[11px] text-green-600 font-bold flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-bag-shopping"></i> Pickup
-                </div>
-                <div v-else class="w-full mt-2 pt-2 border-t border-transparent text-[11px] text-transparent">.</div>
             </div>
         </div>
     </section>
@@ -570,7 +563,6 @@ const filterResultText = computed(() => {
                 <div>
                     <h3 class="font-bold text-sm text-gray-500 uppercase tracking-wider mb-3">Tipo de Servicio</h3>
                     <div class="flex flex-wrap gap-2">
-                        <button @click="toggleModalFilter('pickup')" :class="['modal-chip', activeFilters.includes('pickup') ? 'selected' : '']">Pickup (Retiro)</button>
                         <button @click="toggleModalFilter('delivery')" :class="['modal-chip', activeFilters.includes('delivery') ? 'selected' : '']">Delivery FoodRush</button>
                     </div>
                 </div>
