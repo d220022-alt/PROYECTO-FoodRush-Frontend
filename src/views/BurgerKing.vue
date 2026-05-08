@@ -1547,11 +1547,12 @@ onBeforeUnmount(() => {
                 <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
                   <img
                     :src="product.img"
-                    :srcset="getResponsiveImageSrcset(product.img, [180, 320, 420])"
-                    sizes="(max-width: 767px) 46vw, 220px"
+                    :srcset="getResponsiveImageSrcset(product.img, [160, 240, 320])"
+                    sizes="(max-width: 767px) 42vw, 220px"
                     :alt="product.name"
                     class="product-media__image"
-                    loading="lazy"
+                    :loading="idx < 4 ? 'eager' : 'lazy'"
+                    :fetchpriority="idx < 2 ? 'high' : 'auto'"
                     decoding="async"
                   />
                 </div>
