@@ -9,6 +9,7 @@ import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
+import { useTheme } from '../services/theme';
 import {
     countDominicanPhoneDigits,
     formatDominicanPhone,
@@ -37,6 +38,7 @@ import {
 const router = useRouter();
 const session = getSession();
 const { currencyOptions, currencyPreference, formatCurrency } = useCurrency();
+const { isDarkMode, toggleTheme } = useTheme();
 
 // State
 const user = ref({
@@ -335,6 +337,34 @@ const saveProfile = async () => {
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Preferencias de interfaz -->
+        <div>
+             <h3 class="font-bold text-lg text-slate-800 mb-3 px-1">Preferencias de interfaz</h3>
+             <div class="bg-white rounded-3xl overflow-hidden shadow-sm">
+                <button type="button" @click="toggleTheme" class="w-full flex items-center justify-between p-5 hover:bg-gray-50 transition border-b border-gray-100">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-800 text-lg">
+                            <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
+                        </div>
+                        <div class="text-left">
+                            <span class="block font-semibold text-slate-700 text-sm">Modo oscuro</span>
+                            <span class="block text-xs font-bold text-gray-400">{{ isDarkMode ? 'Activado' : 'Desactivado' }}</span>
+                        </div>
+                    </div>
+                    <span
+                        class="relative inline-flex h-7 w-12 items-center rounded-full transition"
+                        :class="isDarkMode ? 'bg-slate-900' : 'bg-gray-200'"
+                        aria-hidden="true"
+                    >
+                        <span
+                            class="inline-block h-5 w-5 rounded-full bg-white shadow transition"
+                            :class="isDarkMode ? 'translate-x-6' : 'translate-x-1'"
+                        ></span>
+                    </span>
+                </button>
+             </div>
         </div>
 
         <!-- Pagos y Pedidos -->
