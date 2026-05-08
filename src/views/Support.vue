@@ -572,7 +572,7 @@ const buildSupportReply = async (userMessage) => {
                 </ul>
             </div>
         </div>
-        <div class="border-t border-white/10 bg-[#9B0808] py-4 text-center">
+        <div class="border-t border-white/10 bg-[#111827] py-4 text-center">
              <div class="text-xs text-white/90 font-medium">
                 &copy; {{ currentYear }} FoodRush Inc. Todos los derechos reservados.
             </div>
