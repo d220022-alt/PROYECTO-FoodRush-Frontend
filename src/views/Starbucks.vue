@@ -9,18 +9,15 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import starbucksLogo from '../assets/images/logo-starbucks.png';
-import { getProductImage, resolveProductImage } from '../utils/productImages';
+import starbucksLogo from '../assets/images/logo-starbucks-compact.webp';
+import { getProductImage, getResponsiveImageSrcset, resolveProductImage } from '../utils/productImages';
 import {
     APP_EVENTS,
     addCartItem,
-    clearCart,
     getCartCount,
-    getCartRestaurantInfo,
     getFavorites,
     getSession,
     getUnreadNotificationsCount,
-    hasCartRestaurantConflict,
     toggleFavoriteItem
 } from '../services/storage';
 
@@ -74,9 +71,9 @@ const catalogMotionKey = ref(0);
 const currentSlide = ref(0);
 let slideInterval = null;
 const slides = [
-    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1600&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1600&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1600&auto=format&fit=crop'
+    '/images/slides/starbucks-slide-1.webp',
+    '/images/slides/starbucks-slide-2.webp',
+    '/images/slides/starbucks-slide-3.webp'
 ];
 
 const normalizeText = (value = '') => String(value)
@@ -642,25 +639,25 @@ const fetchProducts = async () => {
 
 const getDefaultProducts = () => [
     // Bebidas (6)
-    { id: 101, name: "Caffe Latte", category: "Bebidas", type: "Caliente", price: 190, isExtraFeature: false, img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80", description: "Espresso con leche vaporizada y espuma suave." },
-    { id: 102, name: "Cappuccino Clásico", category: "Bebidas", type: "Caliente", price: 180, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80", description: "Espresso intenso con espuma cremosa." },
-    { id: 103, name: "Caramel Macchiato Iced", category: "Bebidas", type: "Frío", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80", description: "Leche fría con vainilla, espresso y caramelo." },
-    { id: 104, name: "Cold Brew", category: "Bebidas", type: "Frío", price: 205, isExtraFeature: true, img: "https://images.unsplash.com/photo-1517701550927-30cf4ba1f2f6?w=500&q=80", description: "Café infusionado en frío por horas, opción sin azúcar." },
-    { id: 105, name: "Mocha Frappuccino", category: "Bebidas", type: "Frappuccino", price: 245, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&q=80", description: "Bebida frappé de café y chocolate con crema batida." },
-    { id: 106, name: "Chai Tea Latte", category: "Bebidas", type: "Té", price: 210, isExtraFeature: false, img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500&q=80", description: "Té chai especiado mezclado con leche caliente." },
+    { id: 101, name: "Caffe Latte", category: "Bebidas", type: "Caliente", price: 190, isExtraFeature: false, img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70", description: "Espresso con leche vaporizada y espuma suave." },
+    { id: 102, name: "Cappuccino Clásico", category: "Bebidas", type: "Caliente", price: 180, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=420&q=70", description: "Espresso intenso con espuma cremosa." },
+    { id: 103, name: "Caramel Macchiato Iced", category: "Bebidas", type: "Frío", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70", description: "Leche fría con vainilla, espresso y caramelo." },
+    { id: 104, name: "Cold Brew", category: "Bebidas", type: "Frío", price: 205, isExtraFeature: true, img: "https://images.unsplash.com/photo-1517701550927-30cf4ba1f2f6?w=420&q=70", description: "Café infusionado en frío por horas, opción sin azúcar." },
+    { id: 105, name: "Mocha Frappuccino", category: "Bebidas", type: "Frappuccino", price: 245, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=420&q=70", description: "Bebida frappé de café y chocolate con crema batida." },
+    { id: 106, name: "Chai Tea Latte", category: "Bebidas", type: "Té", price: 210, isExtraFeature: false, img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=420&q=70", description: "Té chai especiado mezclado con leche caliente." },
 
     // Comida (5)
-    { id: 107, name: "Sándwich de Pavo y Queso", category: "Comida", type: "Sándwich", price: 270, isExtraFeature: false, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500&q=80", description: "Sándwich caliente con pavo y queso derretido." },
-    { id: 108, name: "Croissant de Jamón y Queso", category: "Comida", type: "Panadería", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&q=80", description: "Croissant mantequilloso relleno de jamón y queso." },
-    { id: 109, name: "Bagel con Queso Crema", category: "Comida", type: "Sándwich", price: 200, isExtraFeature: false, img: "https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=500&q=80", description: "Bagel tostado con queso crema suave." },
-    { id: 110, name: "Muffin de Arándanos", category: "Comida", type: "Dulce", price: 160, isExtraFeature: true, img: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=500&q=80", description: "Muffin esponjoso, disponible versión light." },
-    { id: 111, name: "Brownie de Chocolate", category: "Comida", type: "Dulce", price: 150, isExtraFeature: false, img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80", description: "Brownie húmedo de chocolate intenso." },
+    { id: 107, name: "Sándwich de Pavo y Queso", category: "Comida", type: "Sándwich", price: 270, isExtraFeature: false, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=420&q=70", description: "Sándwich caliente con pavo y queso derretido." },
+    { id: 108, name: "Croissant de Jamón y Queso", category: "Comida", type: "Panadería", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=420&q=70", description: "Croissant mantequilloso relleno de jamón y queso." },
+    { id: 109, name: "Bagel con Queso Crema", category: "Comida", type: "Sándwich", price: 200, isExtraFeature: false, img: "https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=420&q=70", description: "Bagel tostado con queso crema suave." },
+    { id: 110, name: "Muffin de Arándanos", category: "Comida", type: "Dulce", price: 160, isExtraFeature: true, img: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=420&q=70", description: "Muffin esponjoso, disponible versión light." },
+    { id: 111, name: "Brownie de Chocolate", category: "Comida", type: "Dulce", price: 150, isExtraFeature: false, img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=420&q=70", description: "Brownie húmedo de chocolate intenso." },
 
     // Café en Casa (4)
-    { id: 112, name: "Pike Place Roast Molido", category: "Café en Casa", type: "Molido", price: 320, isExtraFeature: false, img: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=500&q=80", description: "Café molido de tueste medio para casa." },
-    { id: 113, name: "House Blend en Grano", category: "Café en Casa", type: "Grano", price: 340, isExtraFeature: false, img: "https://images.unsplash.com/photo-1494314671902-399b18174975?w=500&q=80", description: "Café en grano balanceado para preparar al momento." },
-    { id: 114, name: "Espresso Roast en Grano", category: "Café en Casa", type: "Grano", price: 360, isExtraFeature: false, img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80", description: "Tueste oscuro ideal para espresso casero." },
-    { id: 115, name: "Cápsulas Espresso", category: "Café en Casa", type: "Cápsulas", price: 420, isExtraFeature: true, img: "https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=500&q=80", description: "Cápsulas compatibles, opción descafeinada disponible." },
+    { id: 112, name: "Pike Place Roast Molido", category: "Café en Casa", type: "Molido", price: 320, isExtraFeature: false, img: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=420&q=70", description: "Café molido de tueste medio para casa." },
+    { id: 113, name: "House Blend en Grano", category: "Café en Casa", type: "Grano", price: 340, isExtraFeature: false, img: "https://images.unsplash.com/photo-1494314671902-399b18174975?w=420&q=70", description: "Café en grano balanceado para preparar al momento." },
+    { id: 114, name: "Espresso Roast en Grano", category: "Café en Casa", type: "Grano", price: 360, isExtraFeature: false, img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70", description: "Tueste oscuro ideal para espresso casero." },
+    { id: 115, name: "Cápsulas Espresso", category: "Café en Casa", type: "Cápsulas", price: 420, isExtraFeature: true, img: "https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=420&q=70", description: "Cápsulas compatibles, opción descafeinada disponible." },
 ].map(item => ({
     ...item,
     img: getSafeImage(item.img, item.name, item.category)
@@ -981,24 +978,6 @@ const addToCart = async ({ silent = false } = {}) => {
     if (!selectedProduct.value) return false;
     const cartItem = createCartItem();
 
-    if (hasCartRestaurantConflict(cartItem)) {
-        const currentRestaurant = getCartRestaurantInfo();
-        const result = await Swal.fire({
-            icon: 'warning',
-            title: 'Cambiar restaurante',
-            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por Starbucks.`,
-            showCancelButton: true,
-            confirmButtonText: 'Reemplazar carrito',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: bgBrand
-        });
-
-        if (!result.isConfirmed) {
-            return false;
-        }
-
-        clearCart();
-    }
 
     addCartItem(cartItem);
     updateCartBadge();
@@ -1104,7 +1083,16 @@ onBeforeUnmount(() => {
                 <div class="slider-container">
                     <div v-for="(slide, idx) in slides" :key="idx"
                          class="slide" :class="{ active: currentSlide === idx }">
-                        <img :src="slide" alt="Promo Slide" class="w-full h-full object-cover object-center">
+                        <img
+                            :src="slide"
+                            :srcset="getResponsiveImageSrcset(slide, [480, 900])"
+                            sizes="(max-width: 767px) 100vw, 60vw"
+                            alt="Promo Slide"
+                            class="w-full h-full object-cover object-center"
+                            :loading="idx === 0 ? 'eager' : 'lazy'"
+                            :fetchpriority="idx === 0 ? 'high' : 'auto'"
+                            decoding="async"
+                        >
                     </div>
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent md:hidden"></div>
@@ -1324,8 +1312,15 @@ onBeforeUnmount(() => {
                             <div class="product-media h-40 md:h-48 w-full flex items-center justify-center mb-4 relative p-2">
                                 <div class="absolute inset-0 bg-amber-100/30 rounded-full scale-0 group-hover:scale-110 transition-transform duration-500 opacity-50"></div>
                                 <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
-                                    <img :src="product.img" :alt="product.name"
-                                         class="product-media__image" loading="lazy">
+                                    <img
+                                        :src="product.img"
+                                        :srcset="getResponsiveImageSrcset(product.img, [180, 320, 420])"
+                                        sizes="(max-width: 767px) 46vw, 220px"
+                                        :alt="product.name"
+                                        class="product-media__image"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
                                 </div>
                             </div>
 
@@ -1352,8 +1347,15 @@ onBeforeUnmount(() => {
                         <div class="product-media h-40 md:h-48 w-full flex items-center justify-center mb-4 relative p-2">
                             <div class="absolute inset-0 bg-[#D4E9E2]/10 rounded-full scale-0 group-hover:scale-110 transition-transform duration-500 opacity-50"></div>
                             <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
-                                <img :src="product.img" :alt="product.name"
-                                     class="product-media__image" loading="lazy">
+                                <img
+                                    :src="product.img"
+                                    :srcset="getResponsiveImageSrcset(product.img, [180, 320, 420])"
+                                    sizes="(max-width: 767px) 46vw, 220px"
+                                    :alt="product.name"
+                                    class="product-media__image"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
                             </div>
                         </div>
 
@@ -1383,8 +1385,16 @@ onBeforeUnmount(() => {
                 <div class="product-detail-media relative bg-[#F6FCF9] rounded-[2.5rem] flex items-center justify-center p-8 h-80 md:h-[550px] border border-[#B8E0D2]/50 shadow-inner overflow-hidden group">
                     <div class="absolute inset-0 bg-gradient-to-tr from-[#00704A]/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-700"></div>
                     <div :class="['product-detail-media__shell', getProductMediaVariant(selectedProduct.category, 'detail')]">
-                        <img :src="selectedProduct.img" :alt="selectedProduct.name"
-                             class="product-detail-media__image">
+                        <img
+                            :src="selectedProduct.img"
+                            :srcset="getResponsiveImageSrcset(selectedProduct.img, [420, 700])"
+                            sizes="(max-width: 767px) 88vw, 540px"
+                            :alt="selectedProduct.name"
+                            class="product-detail-media__image"
+                            loading="eager"
+                            fetchpriority="high"
+                            decoding="async"
+                        >
                     </div>
                 </div>
 
@@ -1893,7 +1903,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
 
 body { font-family: 'Inter', sans-serif; }
 .font-heading { font-family: 'Sora', sans-serif; }

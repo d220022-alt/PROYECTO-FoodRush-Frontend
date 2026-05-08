@@ -2447,8 +2447,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-
 .delivery-pro {
     font-family: 'Inter', sans-serif;
     height: 100dvh;

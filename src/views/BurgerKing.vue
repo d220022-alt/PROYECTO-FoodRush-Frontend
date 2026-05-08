@@ -3,20 +3,17 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import { getProductImage, resolveProductImage } from '../utils/productImages';
+import { getProductImage, getResponsiveImageSrcset, resolveProductImage } from '../utils/productImages';
 import { franchiseConfigs } from './franchiseConfigs';
 import { mockProducts } from '../data/mockProducts';
 import { getModifiersForCategory } from '../data/productModifiers';
 import {
   APP_EVENTS,
   addCartItem,
-  clearCart,
   getCartCount,
-  getCartRestaurantInfo,
   getFavorites,
   getSession,
   getUnreadNotificationsCount,
-  hasCartRestaurantConflict,
   toggleFavoriteItem,
 } from '../services/storage';
 
@@ -59,7 +56,7 @@ const currentSlide = ref(0);
 let slideInterval = null;
 
 const defaultSlide =
-  'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1800&q=80';
+  '/images/slides/home-slide-1.webp';
 
 const slides = computed(() => {
   const brandSlides = franchise.value.slides || [];
@@ -182,6 +179,16 @@ const inferTypeByKeywords = (text) => {
   return '';
 };
 
+const inferCategoryFromProductSignals = (productName, productType, description, categories) => {
+  const nameCategory = inferCategoryFromText(productName, categories);
+  if (nameCategory) return nameCategory;
+
+  const typeCategory = inferCategoryFromText(productType, categories);
+  if (typeCategory) return typeCategory;
+
+  return inferCategoryFromText(`${productName} ${description}`, categories);
+};
+
 const detectExtraFeature = (name, description) => {
   const configuredExtra = normalize(franchise.value.extraLabel || '');
   const source = normalize(`${configuredExtra} ${name} ${description}`);
@@ -294,15 +301,23 @@ const parseProduct = (product, index) => {
   }
 
   if (configuredCategories.length > 0) {
+    const inferredFromProduct = inferCategoryFromProductSignals(
+      name,
+      `${product.tipo || ''} ${product.type || ''} ${parsedType}`,
+      parsedDescription || rawDescription,
+      configuredCategories,
+    );
     const exactCategory = configuredCategories.find(
       (candidate) => normalize(candidate) === normalize(categoryValue),
     );
 
-    if (exactCategory) {
+    if (inferredFromProduct) {
+      categoryValue = inferredFromProduct;
+    } else if (exactCategory) {
       categoryValue = exactCategory;
     } else {
       const inferredCategory = inferCategoryFromText(
-        `${categoryValue} ${parsedType} ${name} ${rawDescription}`,
+        `${parsedType} ${name} ${parsedDescription || rawDescription}`,
         configuredCategories,
       );
       if (inferredCategory) categoryValue = inferredCategory;
@@ -320,8 +335,21 @@ const parseProduct = (product, index) => {
   const category = categoryValue || defaultCategory || 'General';
 
   let typeValue = String(product.tipo || product.type || parsedType || parsedCategory || category).trim();
-  const inferredType = inferTypeByKeywords(`${name} ${rawDescription}`);
-  if (!typeValue || normalize(typeValue) === normalize(category) || normalize(typeValue) === 'general') {
+  const inferredType = inferTypeByKeywords(`${name} ${parsedDescription || rawDescription}`);
+  const normalizedTypeValue = normalize(typeValue);
+  const productTypeSource = normalize(`${category} ${name} ${parsedDescription || rawDescription}`);
+  const typeLooksLikeCategory =
+    configuredCategories.some((candidate) => normalize(candidate) === normalizedTypeValue) ||
+    normalizedTypeValue === normalize(category) ||
+    normalizedTypeValue === 'general';
+  const typeConflictsWithProduct =
+    inferredType &&
+    normalizedTypeValue !== normalize(inferredType) &&
+    (
+      (/(helado|postre|sundae|batida|mcflurry|brownie|pastel|dona)/.test(productTypeSource) && /(res|beef|pollo|chicken|carne|hamburguesa|burger)/.test(normalizedTypeValue)) ||
+      (/(bebida|refresco|cola|jugo|cafe|te|frappe)/.test(productTypeSource) && /(res|beef|pollo|chicken|carne|hamburguesa|burger)/.test(normalizedTypeValue))
+    );
+  if (!typeValue || typeLooksLikeCategory || typeConflictsWithProduct) {
     if (inferredType) typeValue = inferredType;
   }
   const type = typeValue || category;
@@ -351,12 +379,24 @@ const availableCategories = computed(() => {
   return ['Todos', ...withoutTodos];
 });
 
+const isSidebarTypeAllowed = (type) => {
+  const catalogSource = normalize(`${franchise.value.name} ${(franchise.value.categories || []).join(' ')}`);
+  const typeSource = normalize(type);
+  const catalogIsDessertFocused =
+    /(helado|postre|dona|batido|bebida|cafe)/.test(catalogSource) &&
+    !/(hamburguesa|burger|pizza|pollo|chicken|hot dog|hotdog|taco|burrito|pasta|costilla|ribs|tex)/.test(catalogSource);
+
+  return !(catalogIsDessertFocused && /(res|beef|pollo|chicken|carne|hamburguesa|burger)/.test(typeSource));
+};
+
 const categoryTypes = computed(() => {
   const inCategory =
     currentCategory.value === 'Todos'
       ? products.value
       : products.value.filter((product) => product.category === currentCategory.value);
-  return [...new Set(inCategory.map((product) => product.type))].filter(Boolean);
+  return [...new Set(inCategory.map((product) => product.type))]
+    .filter(Boolean)
+    .filter(isSidebarTypeAllowed);
 });
 
 const sidebarConfig = computed(() => {
@@ -485,6 +525,12 @@ const buildModifiersForProduct = (product) => {
   const cloned = base.map((mod) => ({ ...mod }));
   const brand = franchise.value || {};
   const brandSlug = normalize(brand.slug);
+  const productModifierSource = normalize(`${product.category} ${product.type} ${product.name} ${product.description || ''}`);
+  const productUsesSweetOrDrinkModifiers = /(postre|helado|sundae|mcflurry|batida|dona|pastel|brownie|bebida|refresco|cola|jugo|cafe|te|frappe)/.test(productModifierSource);
+  const brandLabelFitsProduct = (label) => {
+    if (!productUsesSweetOrDrinkModifiers) return true;
+    return /(topping|sirope|jarabe|crema|helado|bola|cono|waffle|leche|shot|sabor|hielo|azucar|cafe|te|frappe|batida|chocolate|vainilla|fresa|oreo)/.test(normalize(label));
+  };
 
   const ensureModifier = (candidate) => {
     if (!candidate || !candidate.id) return;
@@ -558,6 +604,7 @@ const buildModifiersForProduct = (product) => {
 
   const addBrandToggle = (key, label, price, skipWhenSize = false) => {
     if (!label) return;
+    if (!brandLabelFitsProduct(label)) return;
     if (skipWhenSize && hasSizeAfter) return;
     if (cloned.some((mod) => mod.id === key)) return;
     brandExtras.push({
@@ -680,13 +727,19 @@ const brandModifiers = computed(() =>
 );
 
 const sizeIconClass = computed(() => {
-  if (!selectedProduct.value) return 'fa-burger';
-  const cat = normalize(selectedProduct.value.category);
-  if (cat.includes('bebida') || cat.includes('cafe') || cat.includes('frappe') || cat.includes('te')) {
-    return 'fa-glass-water';
-  }
-  if (cat.includes('helado') || cat.includes('postre')) return 'fa-ice-cream';
-  return 'fa-burger';
+  if (!selectedProduct.value) return 'fa-utensils';
+  const source = normalize(
+    `${selectedProduct.value.category} ${selectedProduct.value.type} ${selectedProduct.value.name} ${selectedProduct.value.description}`,
+  );
+  if (source.includes('helado') || source.includes('postre') || source.includes('sundae') || source.includes('batida') || source.includes('mcflurry')) return 'fa-ice-cream';
+  if (source.includes('pizza')) return 'fa-pizza-slice';
+  if (source.includes('pollo') || source.includes('chicken')) return 'fa-drumstick-bite';
+  if (source.includes('hot dog') || source.includes('hotdog') || source.includes('salchicha')) return 'fa-hotdog';
+  if (source.includes('taco') || source.includes('burrito') || source.includes('nacho')) return 'fa-pepper-hot';
+  if (source.includes('bebida') || source.includes('frappe') || source.includes('refresco') || source.includes('cola') || source.includes('jugo') || source.includes('limonada')) return 'fa-glass-water';
+  if (source.includes('cafe') || source.includes('te') || source.includes('chocolate caliente')) return 'fa-mug-hot';
+  if (source.includes('hamburguesa') || source.includes('burger') || source.includes('whopper') || source.includes('chimi')) return 'fa-burger';
+  return 'fa-utensils';
 });
 
 const getSizeOptionPrice = (option) => {
@@ -1139,24 +1192,6 @@ const addToCart = async ({ silent = false } = {}) => {
 
   const item = createCartItem();
 
-  if (hasCartRestaurantConflict(item)) {
-    const currentRestaurant = getCartRestaurantInfo();
-    const result = await Swal.fire({
-      icon: 'warning',
-      title: 'Cambiar restaurante',
-      text: `FoodRush permite una franquicia por pedido. Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}; si continúas, borraremos ese carrito y lo cambiaremos por ${franchise.value.name}.`,
-      showCancelButton: true,
-      confirmButtonText: 'Reemplazar carrito',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: franchise.value.primary,
-    });
-
-    if (!result.isConfirmed) {
-      return false;
-    }
-
-    clearCart();
-  }
 
   addCartItem(item);
   updateCartBadge();
@@ -1245,7 +1280,7 @@ onBeforeUnmount(() => {
         </div>
 
         <div class="flex items-center gap-4 md:gap-6">
-          <button class="md:hidden text-gray-600 text-lg"><i class="fa-solid fa-magnifying-glass"></i></button>
+          <button type="button" class="md:hidden text-gray-600 text-lg" aria-label="Buscar productos"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></button>
           <button @click="router.push('/notifications')" class="transition relative text-xl text-gray-600 p-1" :style="{ color: 'var(--brand-primary)' }" aria-label="Ver notificaciones">
             <i class="fa-regular fa-bell"></i>
             <span v-if="notificationCount > 0" class="absolute -top-1 -right-1 text-white font-bold text-[10px] min-w-4 h-4 px-1 rounded-full flex items-center justify-center shadow-sm bg-red-500">{{ notificationCount }}</span>
@@ -1279,6 +1314,8 @@ onBeforeUnmount(() => {
                   :src="franchise.logo"
                   :alt="`${franchise.name} logo`"
                   class="brand-hero-mark__image"
+                  loading="eager"
+                  decoding="async"
                 />
               </div>
             </div>
@@ -1293,7 +1330,16 @@ onBeforeUnmount(() => {
               class="slide"
               :class="{ active: currentSlide === idx }"
             >
-              <img :src="slide" :alt="`${franchise.name} slide ${idx + 1}`" class="w-full h-full object-cover object-center" />
+              <img
+                :src="slide"
+                :srcset="getResponsiveImageSrcset(slide, [480, 900])"
+                sizes="(max-width: 767px) 100vw, 60vw"
+                :alt="`${franchise.name} slide ${idx + 1}`"
+                class="w-full h-full object-cover object-center"
+                :loading="idx === 0 ? 'eager' : 'lazy'"
+                :fetchpriority="idx === 0 ? 'high' : 'auto'"
+                decoding="async"
+              />
             </div>
           </div>
 
@@ -1306,6 +1352,8 @@ onBeforeUnmount(() => {
               type="button"
               class="dot"
               :class="{ active: currentSlide === idx }"
+              :aria-label="`Ver promocion ${idx + 1}`"
+              :aria-current="currentSlide === idx ? 'true' : undefined"
               @click="goToSlide(idx)"
             ></button>
           </div>
@@ -1388,10 +1436,10 @@ onBeforeUnmount(() => {
                   </button>
                 </div>
                 <div v-if="showExtraFilterSection" class="flex gap-2 bg-gray-100 p-1 rounded-xl">
-                  <button @click="toggleExtraFilter('yes')" :class="['flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-center', activeExtraFilter === 'yes' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700']" :style="activeExtraFilter === 'yes' ? { color: 'var(--brand-primary)' } : {}">
+                  <button @click="toggleExtraFilter('yes')" :class="['flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-center', activeExtraFilter === 'yes' ? 'bg-white shadow-sm' : 'text-gray-700 hover:text-gray-900']" :style="activeExtraFilter === 'yes' ? { color: 'var(--brand-primary)' } : {}">
                     Si
                   </button>
-                  <button @click="toggleExtraFilter('no')" :class="['flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-center', activeExtraFilter === 'no' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-700']" :style="activeExtraFilter === 'no' ? { color: 'var(--brand-primary)' } : {}">
+                  <button @click="toggleExtraFilter('no')" :class="['flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-center', activeExtraFilter === 'no' ? 'bg-white shadow-sm' : 'text-gray-700 hover:text-gray-900']" :style="activeExtraFilter === 'no' ? { color: 'var(--brand-primary)' } : {}">
                     No
                   </button>
                 </div>
@@ -1499,9 +1547,12 @@ onBeforeUnmount(() => {
                 <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
                   <img
                     :src="product.img"
+                    :srcset="getResponsiveImageSrcset(product.img, [180, 320, 420])"
+                    sizes="(max-width: 767px) 46vw, 220px"
                     :alt="product.name"
                     class="product-media__image"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </div>
@@ -1541,8 +1592,13 @@ onBeforeUnmount(() => {
             <div :class="['product-detail-media__shell', getProductMediaVariant(selectedProduct.category, 'detail')]">
               <img
                 :src="selectedProduct.img"
+                :srcset="getResponsiveImageSrcset(selectedProduct.img, [420, 700])"
+                sizes="(max-width: 767px) 88vw, 540px"
                 :alt="selectedProduct.name"
                 class="product-detail-media__image"
+                loading="eager"
+                fetchpriority="high"
+                decoding="async"
               />
             </div>
           </div>
@@ -1851,7 +1907,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
 
 .font-heading {
   font-family: 'Sora', sans-serif;
@@ -2006,16 +2061,27 @@ onBeforeUnmount(() => {
 }
 
 .dot {
-  width: 10px;
-  height: 10px;
-  background-color: rgba(255, 255, 255, 0.5);
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  transition: all 0.25s;
+  background: transparent;
 }
 
-.dot.active {
+.dot::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  transition: transform 0.25s, background-color 0.25s;
+}
+
+.dot.active::before {
   background-color: #ffffff;
-  transform: scale(1.15);
+  transform: scale(1.25);
 }
 
 .filter-tab {

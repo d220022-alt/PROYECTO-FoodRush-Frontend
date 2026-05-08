@@ -17,7 +17,7 @@ const routesWithIntegratedTheme = ['/administracion', '/delivery'];
 const showGlobalThemeToggle = computed(() =>
   !routesWithIntegratedTheme.some((path) => route.path === path || route.path.startsWith(`${path}/`))
 );
-const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
+const shouldRaiseThemeToggle = computed(() => route.path === '/checkout' || route.path === '/support');
 const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking'));
 const shouldRaiseAccessibility = computed(() => route.path === '/checkout');
 const shouldRaiseAccessibilityForSupport = computed(() => route.path === '/support');

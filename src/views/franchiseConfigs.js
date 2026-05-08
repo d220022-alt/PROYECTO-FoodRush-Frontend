@@ -4,21 +4,21 @@
   Buscar en VS Code: configuración franquicias, logos, colores, slides, rutas.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
-import logoMcDonalds from "../assets/images/logo-mcdonalds.png";
-import logoStarbucks from "../assets/images/logo-starbucks.png";
-import logoKfc from "../assets/images/logo-kfc.png";
-import logoBurgerKing from "../assets/images/logo-burgerking.png";
-import logoLittleCaesars from "../assets/images/logo-littlecaesars.png";
-import logoDominos from "../assets/images/logo-dominos.png";
-import logoPizzaHut from "../assets/images/logo-pizzahut.png";
-import logoTacoBell from "../assets/images/logo-tacobell.png";
-import logoKrispyKreme from "../assets/images/logo-krispykreme.png";
-import logoHeladosBon from "../assets/images/logo-heladosbon.png";
-import logoBarraPayan from "../assets/images/logo-barrapayan.png";
-import logoPizzarelli from "../assets/images/logo-pizzarelli.png";
-import logoRicoHotDog from "../assets/images/logo-ricohotdog.png";
-import logoChilis from "../assets/images/logo-chilis.png";
-import logoPandaExpress from "../assets/images/logo-pandaexpress.png";
+import logoMcDonalds from "../assets/images/logo-mcdonalds-compact.webp";
+import logoStarbucks from "../assets/images/logo-starbucks-compact.webp";
+import logoKfc from "../assets/images/logo-kfc-compact.webp";
+import logoBurgerKing from "../assets/images/logo-burgerking-compact.webp";
+import logoLittleCaesars from "../assets/images/logo-littlecaesars-compact.webp";
+import logoDominos from "../assets/images/logo-dominos-compact.webp";
+import logoPizzaHut from "../assets/images/logo-pizzahut-compact.webp";
+import logoTacoBell from "../assets/images/logo-tacobell-compact.webp";
+import logoKrispyKreme from "../assets/images/logo-krispykreme-compact.webp";
+import logoHeladosBon from "../assets/images/logo-heladosbon-compact.webp";
+import logoBarraPayan from "../assets/images/logo-barrapayan-compact.webp";
+import logoPizzarelli from "../assets/images/logo-pizzarelli-compact.webp";
+import logoRicoHotDog from "../assets/images/logo-ricohotdog-compact.webp";
+import logoChilis from "../assets/images/logo-chilis-compact.webp";
+import logoPandaExpress from "../assets/images/logo-pandaexpress-compact.webp";
 
 const makeOptions = (config) => [
   {
@@ -60,9 +60,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Tu café favorito, siempre",
     categories: ['Todos', "Bebidas", "Comida", "Café en Casa"],
     slides: [
-      "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/starbucks-slide-1.webp",
+      "/images/slides/starbucks-slide-2.webp",
+      "/images/slides/starbucks-slide-3.webp",
     ],
     comboLabel: "Hacer Combo",
     comboDescription: "Bebida + snack",
@@ -89,9 +89,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Tus favoritos de siempre",
     categories: ['Todos', "Hamburguesas", "Complementos", "Bebidas", "Postres"],
     slides: [
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/mcdonalds-slide-1.webp",
+      "/images/slides/mcdonalds-slide-2.webp",
+      "/images/slides/mcdonalds-slide-3.webp",
     ],
     comboLabel: "Hacer McCombo",
     comboDescription: "Papas y refresco",
@@ -115,9 +115,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Pollo crujiente como ningún otro",
     categories: ['Todos', "Pollo", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1513639776629-7b61b0ac49cb?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/kfc-slide-1.webp",
+      "/images/slides/kfc-slide-2.webp",
+      "/images/slides/kfc-slide-3.webp",
     ],
     comboLabel: "Hacer Combo",
     comboDescription: "Papas y refresco",
@@ -141,9 +141,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Sabor a fuego como debe ser",
     categories: ['Todos', "Hamburguesas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/burger-king-slide-1.webp",
+      "/images/slides/burger-king-slide-2.webp",
+      "/images/slides/burger-king-slide-3.webp",
     ],
     comboPrice: 190,
     extraLabel: "Extra queso",
@@ -165,9 +165,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Rápida, caliente y deliciosa",
     categories: ['Todos', "Pizzas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/little-caesars-slide-1.webp",
+      "/images/slides/little-caesars-slide-2.webp",
+      "/images/slides/little-caesars-slide-3.webp",
     ],
     comboPrice: 160,
     extraLabel: "Extra queso",
@@ -189,9 +189,9 @@ export const franchiseConfigs = {
     heroSubtitle: "30 minutos o es gratis",
     categories: ['Todos', "Pizzas", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1593504049359-74330189a345?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/dominos-pizza-slide-1.webp",
+      "/images/slides/dominos-pizza-slide-2.webp",
+      "/images/slides/dominos-pizza-slide-3.webp",
     ],
     comboPrice: 180,
     extraLabel: "Extra queso",
@@ -213,9 +213,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Nadie supera la Hut",
     categories: ['Todos', "Pizzas", "Pastas", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1604068549290-dea0e4a305ca?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/pizza-hut-slide-1.webp",
+      "/images/slides/pizza-hut-slide-2.webp",
+      "/images/slides/pizza-hut-slide-3.webp",
     ],
     comboPrice: 170,
     extraLabel: "Extra queso",
@@ -237,9 +237,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Sabor mexicano sin límites",
     categories: ['Todos', "Tacos", "Burritos", "Nachos", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/taco-bell-slide-1.webp",
+      "/images/slides/taco-bell-slide-2.webp",
+      "/images/slides/taco-bell-slide-3.webp",
     ],
     comboPrice: 140,
     extraLabel: "Extra salsa",
@@ -261,9 +261,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Cada mordida sabe a felicidad",
     categories: ['Todos', "Donas", "Bebidas", "Combos", "Postres"],
     slides: [
-      "https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/krispy-kreme-slide-1.webp",
+      "/images/slides/krispy-kreme-slide-2.webp",
+      "/images/slides/krispy-kreme-slide-3.webp",
     ],
     comboPrice: 130,
     extraLabel: "Extra glaseado",
@@ -285,9 +285,9 @@ export const franchiseConfigs = {
     heroSubtitle: "El sabor que refresca tu día",
     categories: ['Todos', "Helados", "Postres", "Combos", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1488900128323-21503983a07e?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1570197788417-0e82375c9371?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/helados-bon-slide-1.webp",
+      "/images/slides/helados-bon-slide-2.webp",
+      "/images/slides/helados-bon-slide-3.webp",
     ],
     comboPrice: 120,
     extraLabel: "Topping extra",
@@ -309,9 +309,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Sabor dominicano auténtico",
     categories: ['Todos', "Hamburguesas", "Chimi", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/barra-payan-slide-1.webp",
+      "/images/slides/barra-payan-slide-2.webp",
+      "/images/slides/barra-payan-slide-3.webp",
     ],
     comboPrice: 120,
     extraLabel: "Extra queso",
@@ -333,9 +333,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Tradición italiana en cada pizza",
     categories: ['Todos', "Pizzas", "Pastas", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1571407970349-bc81e7e96d47?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/pizzarelli-slide-1.webp",
+      "/images/slides/pizzarelli-slide-2.webp",
+      "/images/slides/pizzarelli-slide-3.webp",
     ],
     comboPrice: 165,
     extraLabel: "Extra queso",
@@ -357,9 +357,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Rápido, callejero y delicioso",
     categories: ['Todos', "Hot Dogs", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/rico-hot-dog-slide-1.webp",
+      "/images/slides/rico-hot-dog-slide-2.webp",
+      "/images/slides/rico-hot-dog-slide-3.webp",
     ],
     comboPrice: 130,
     extraLabel: "Salsa extra",
@@ -381,9 +381,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Tex-Mex y grill con actitud",
     categories: ['Todos', "Platos", "Combos", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1553979459-d2229ba7433b?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/chilis-slide-1.webp",
+      "/images/slides/chilis-slide-2.webp",
+      "/images/slides/chilis-slide-3.webp",
     ],
     comboPrice: 190,
     extraLabel: "Guacamole",
@@ -405,9 +405,9 @@ export const franchiseConfigs = {
     heroSubtitle: "Comida china americana",
     categories: ['Todos', "Pollo", "Res", "Acompañantes", "Bebidas"],
     slides: [
-      "https://images.unsplash.com/photo-1525755662778-989d0524087e?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=1600&q=80",
-      "https://images.unsplash.com/photo-1455619452474-d2be8b1e70cd?auto=format&fit=crop&w=1600&q=80",
+      "/images/slides/panda-express-slide-1.webp",
+      "/images/slides/panda-express-slide-2.webp",
+      "/images/slides/panda-express-slide-3.webp",
     ],
     comboPrice: 150,
     extraLabel: "Salsa extra",

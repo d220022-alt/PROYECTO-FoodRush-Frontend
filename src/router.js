@@ -5,15 +5,13 @@
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from './views/Home.vue'
-import Login from './views/Login.vue'
 import { getSession } from './services/storage'
 import { getPortalRouteByEmail } from './utils/portalRouting'
 
 // Para presentar: aqui empieza el mapa de URLs; si preguntan por una pantalla, busca su path en este arreglo.
 const routes = [
-    { path: '/', component: Home },
-    { path: '/login', component: Login },
+    { path: '/', component: () => import('./views/Home.vue') },
+    { path: '/login', component: () => import('./views/Login.vue') },
     // Franquicias: cada ruta carga su vista bajo demanda para no inflar el primer bundle.
     { path: '/franchise/starbucks', component: () => import('./views/Starbucks.vue') },
     { path: '/franchise/mcdonalds', component: () => import('./views/McDonalds.vue') },

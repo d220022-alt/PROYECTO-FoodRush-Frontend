@@ -478,33 +478,6 @@ export const getCart = (scope = null) => {
 export const getCartCount = (scope = null) =>
   getCart(scope).reduce((total, item) => total + Math.max(1, toInteger(item.qty, 1)), 0);
 
-export const getCartRestaurantInfo = (cart = getCart()) => {
-  if (!Array.isArray(cart) || cart.length === 0) return null;
-  const item = normalizeCartItem(cart[0]);
-  const key = buildRestaurantKey(item);
-
-  return {
-    key,
-    name:
-      safeString(item.place) ||
-      safeString(item.restaurantName) ||
-      safeString(item.franchiseSlug) ||
-      safeString(item.tenantId, 'FoodRush'),
-    tenantId: item.tenantId,
-    franchiseSlug: item.franchiseSlug,
-  };
-};
-
-export const hasCartRestaurantConflict = (incomingItem, cart = getCart()) => {
-  if (!incomingItem || !Array.isArray(cart) || cart.length === 0) return false;
-
-  const currentInfo = getCartRestaurantInfo(cart);
-  const incomingInfo = getCartRestaurantInfo([incomingItem]);
-
-  if (!currentInfo?.key || !incomingInfo?.key) return false;
-  return currentInfo.key !== incomingInfo.key;
-};
-
 export const saveCart = (items = [], scope = null) => {
   const normalized = Array.isArray(items) ? items.map(normalizeCartItem) : [];
   const scopeKey = resolveAccountScope(scope);

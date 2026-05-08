@@ -14,7 +14,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -26,7 +26,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -38,7 +38,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -50,7 +50,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -62,7 +62,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -74,7 +74,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -86,7 +86,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -98,7 +98,7 @@ export const mockProducts = [
     "type": "Sándwich",
     "price": 170,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -110,7 +110,7 @@ export const mockProducts = [
     "type": "Wrap",
     "price": 200,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -122,7 +122,7 @@ export const mockProducts = [
     "type": "Panini",
     "price": 230,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -134,7 +134,7 @@ export const mockProducts = [
     "type": "Sándwich",
     "price": 260,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -146,7 +146,7 @@ export const mockProducts = [
     "type": "Wrap",
     "price": 140,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -158,7 +158,7 @@ export const mockProducts = [
     "type": "Panini",
     "price": 170,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -170,7 +170,7 @@ export const mockProducts = [
     "type": "Sándwich",
     "price": 200,
     "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -182,7 +182,7 @@ export const mockProducts = [
     "type": "Molido",
     "price": 180,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -194,7 +194,7 @@ export const mockProducts = [
     "type": "Grano",
     "price": 210,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -206,7 +206,7 @@ export const mockProducts = [
     "type": "Cápsulas",
     "price": 240,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -218,7 +218,7 @@ export const mockProducts = [
     "type": "Molido",
     "price": 120,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -230,7 +230,7 @@ export const mockProducts = [
     "type": "Grano",
     "price": 150,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -242,7 +242,7 @@ export const mockProducts = [
     "type": "Cápsulas",
     "price": 180,
     "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -254,7 +254,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 180,
     "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -266,7 +266,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 220,
     "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -278,7 +278,7 @@ export const mockProducts = [
     "type": "Pescado",
     "price": 260,
     "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -290,7 +290,7 @@ export const mockProducts = [
     "type": "Cerdo",
     "price": 300,
     "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -302,7 +302,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 340,
     "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -314,7 +314,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 120,
     "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -326,7 +326,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 150,
     "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -338,7 +338,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 170,
     "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -350,7 +350,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 190,
     "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -362,7 +362,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 90,
     "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -374,7 +374,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -386,7 +386,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -398,7 +398,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -410,7 +410,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -422,7 +422,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -434,7 +434,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 220,
     "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -446,7 +446,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 260,
     "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -458,7 +458,7 @@ export const mockProducts = [
     "type": "Galleta",
     "price": 100,
     "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -470,7 +470,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 140,
     "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -482,7 +482,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 180,
     "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -494,7 +494,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 190,
     "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -506,7 +506,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 230,
     "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -518,7 +518,7 @@ export const mockProducts = [
     "type": "Spicy",
     "price": 270,
     "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -530,7 +530,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 320,
     "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -542,7 +542,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 360,
     "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -554,7 +554,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -566,7 +566,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -578,7 +578,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -590,7 +590,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -602,7 +602,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -614,7 +614,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -626,7 +626,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -638,7 +638,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -650,7 +650,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -662,7 +662,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -674,7 +674,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -686,7 +686,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -698,7 +698,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -710,7 +710,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -722,7 +722,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -734,7 +734,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 180,
     "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -746,7 +746,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 220,
     "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -758,7 +758,7 @@ export const mockProducts = [
     "type": "Pescado",
     "price": 260,
     "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -770,7 +770,7 @@ export const mockProducts = [
     "type": "Cerdo",
     "price": 300,
     "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -782,7 +782,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 340,
     "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -794,7 +794,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -806,7 +806,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -818,7 +818,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -830,7 +830,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -842,7 +842,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -854,7 +854,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -866,7 +866,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -878,7 +878,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -890,7 +890,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -902,7 +902,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -914,7 +914,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -926,7 +926,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -938,7 +938,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -950,7 +950,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -962,7 +962,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -974,7 +974,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 250,
     "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -986,7 +986,7 @@ export const mockProducts = [
     "type": "Pepperoni",
     "price": 300,
     "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -998,7 +998,7 @@ export const mockProducts = [
     "type": "Hawaiana",
     "price": 350,
     "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1010,7 +1010,7 @@ export const mockProducts = [
     "type": "Vegetariana",
     "price": 400,
     "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1022,7 +1022,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 450,
     "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1034,7 +1034,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1046,7 +1046,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1058,7 +1058,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1070,7 +1070,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1082,7 +1082,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1094,7 +1094,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1106,7 +1106,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1118,7 +1118,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1130,7 +1130,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1142,7 +1142,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1154,7 +1154,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1166,7 +1166,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1178,7 +1178,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1190,7 +1190,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1202,7 +1202,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1214,7 +1214,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 250,
     "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1226,7 +1226,7 @@ export const mockProducts = [
     "type": "Pepperoni",
     "price": 300,
     "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1238,7 +1238,7 @@ export const mockProducts = [
     "type": "Hawaiana",
     "price": 350,
     "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1250,7 +1250,7 @@ export const mockProducts = [
     "type": "Vegetariana",
     "price": 400,
     "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1262,7 +1262,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 450,
     "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1274,7 +1274,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1286,7 +1286,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1298,7 +1298,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1310,7 +1310,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1322,7 +1322,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1334,7 +1334,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1346,7 +1346,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1358,7 +1358,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1370,7 +1370,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1382,7 +1382,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1394,7 +1394,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1406,7 +1406,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1418,7 +1418,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1430,7 +1430,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1442,7 +1442,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1454,7 +1454,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 250,
     "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1466,7 +1466,7 @@ export const mockProducts = [
     "type": "Pepperoni",
     "price": 300,
     "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1478,7 +1478,7 @@ export const mockProducts = [
     "type": "Hawaiana",
     "price": 350,
     "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1490,7 +1490,7 @@ export const mockProducts = [
     "type": "Vegetariana",
     "price": 400,
     "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1502,7 +1502,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 450,
     "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1514,7 +1514,7 @@ export const mockProducts = [
     "type": "Spaghetti",
     "price": 250,
     "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1526,7 +1526,7 @@ export const mockProducts = [
     "type": "Lasagna",
     "price": 290,
     "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1538,7 +1538,7 @@ export const mockProducts = [
     "type": "Alfredo",
     "price": 330,
     "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1550,7 +1550,7 @@ export const mockProducts = [
     "type": "Spaghetti",
     "price": 370,
     "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1562,7 +1562,7 @@ export const mockProducts = [
     "type": "Lasagna",
     "price": 210,
     "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1574,7 +1574,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1586,7 +1586,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1598,7 +1598,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1610,7 +1610,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1622,7 +1622,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1634,7 +1634,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1646,7 +1646,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1658,7 +1658,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1670,7 +1670,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1682,7 +1682,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1694,7 +1694,7 @@ export const mockProducts = [
     "type": "Glaseada",
     "price": 80,
     "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1706,7 +1706,7 @@ export const mockProducts = [
     "type": "Chocolate",
     "price": 90,
     "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1718,7 +1718,7 @@ export const mockProducts = [
     "type": "Rellena",
     "price": 110,
     "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1730,7 +1730,7 @@ export const mockProducts = [
     "type": "Glaseada",
     "price": 130,
     "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1742,7 +1742,7 @@ export const mockProducts = [
     "type": "Chocolate",
     "price": 150,
     "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1754,7 +1754,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1766,7 +1766,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1778,7 +1778,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1790,7 +1790,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1802,7 +1802,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1814,7 +1814,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1826,7 +1826,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1838,7 +1838,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1850,7 +1850,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1862,7 +1862,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1874,7 +1874,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 220,
     "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1886,7 +1886,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 260,
     "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1898,7 +1898,7 @@ export const mockProducts = [
     "type": "Galleta",
     "price": 100,
     "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1910,7 +1910,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 140,
     "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1922,7 +1922,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 180,
     "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1934,7 +1934,7 @@ export const mockProducts = [
     "type": "Clásico",
     "price": 120,
     "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -1946,7 +1946,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 150,
     "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1958,7 +1958,7 @@ export const mockProducts = [
     "type": "Bacon",
     "price": 180,
     "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1970,7 +1970,7 @@ export const mockProducts = [
     "type": "Clásico",
     "price": 210,
     "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1982,7 +1982,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 240,
     "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -1994,7 +1994,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2006,7 +2006,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2018,7 +2018,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2030,7 +2030,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2042,7 +2042,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2054,7 +2054,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2066,7 +2066,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2078,7 +2078,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2090,7 +2090,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2102,7 +2102,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2114,7 +2114,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2126,7 +2126,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2138,7 +2138,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2150,7 +2150,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2162,7 +2162,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2174,7 +2174,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 250,
     "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2186,7 +2186,7 @@ export const mockProducts = [
     "type": "Pepperoni",
     "price": 300,
     "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2198,7 +2198,7 @@ export const mockProducts = [
     "type": "Hawaiana",
     "price": 350,
     "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2210,7 +2210,7 @@ export const mockProducts = [
     "type": "Vegetariana",
     "price": 400,
     "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2222,7 +2222,7 @@ export const mockProducts = [
     "type": "Clásica",
     "price": 450,
     "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2234,7 +2234,7 @@ export const mockProducts = [
     "type": "Spaghetti",
     "price": 250,
     "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2246,7 +2246,7 @@ export const mockProducts = [
     "type": "Lasagna",
     "price": 290,
     "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2258,7 +2258,7 @@ export const mockProducts = [
     "type": "Alfredo",
     "price": 330,
     "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2270,7 +2270,7 @@ export const mockProducts = [
     "type": "Spaghetti",
     "price": 370,
     "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2282,7 +2282,7 @@ export const mockProducts = [
     "type": "Lasagna",
     "price": 210,
     "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2294,7 +2294,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2306,7 +2306,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2318,7 +2318,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2330,7 +2330,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2342,7 +2342,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2354,7 +2354,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2366,7 +2366,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2378,7 +2378,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2390,7 +2390,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2402,7 +2402,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2414,7 +2414,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 180,
     "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2426,7 +2426,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 220,
     "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2438,7 +2438,7 @@ export const mockProducts = [
     "type": "Pescado",
     "price": 260,
     "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2450,7 +2450,7 @@ export const mockProducts = [
     "type": "Cerdo",
     "price": 300,
     "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2462,7 +2462,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 340,
     "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2474,7 +2474,7 @@ export const mockProducts = [
     "type": "Clásico",
     "price": 200,
     "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2486,7 +2486,7 @@ export const mockProducts = [
     "type": "Doble",
     "price": 230,
     "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2498,7 +2498,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 260,
     "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2510,7 +2510,7 @@ export const mockProducts = [
     "type": "Clásico",
     "price": 300,
     "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2522,7 +2522,7 @@ export const mockProducts = [
     "type": "Doble",
     "price": 170,
     "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2534,7 +2534,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2546,7 +2546,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2558,7 +2558,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2570,7 +2570,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2582,7 +2582,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2594,7 +2594,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2606,7 +2606,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2618,7 +2618,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2630,7 +2630,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2642,7 +2642,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2654,7 +2654,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 110,
     "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2666,7 +2666,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 140,
     "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2678,7 +2678,7 @@ export const mockProducts = [
     "type": "Veggie",
     "price": 170,
     "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2690,7 +2690,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 200,
     "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2702,7 +2702,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 230,
     "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2714,7 +2714,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 160,
     "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2726,7 +2726,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 190,
     "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2738,7 +2738,7 @@ export const mockProducts = [
     "type": "Veggie",
     "price": 220,
     "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2750,7 +2750,7 @@ export const mockProducts = [
     "type": "Res",
     "price": 250,
     "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2762,7 +2762,7 @@ export const mockProducts = [
     "type": "Pollo",
     "price": 130,
     "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2774,7 +2774,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 180,
     "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2786,7 +2786,7 @@ export const mockProducts = [
     "type": "Carne",
     "price": 210,
     "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2798,7 +2798,7 @@ export const mockProducts = [
     "type": "Supreme",
     "price": 240,
     "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2810,7 +2810,7 @@ export const mockProducts = [
     "type": "Queso",
     "price": 120,
     "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2822,7 +2822,7 @@ export const mockProducts = [
     "type": "Carne",
     "price": 150,
     "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2834,7 +2834,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2846,7 +2846,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2858,7 +2858,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2870,7 +2870,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2882,7 +2882,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2894,7 +2894,7 @@ export const mockProducts = [
     "type": "Cono",
     "price": 120,
     "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -2906,7 +2906,7 @@ export const mockProducts = [
     "type": "Sundae",
     "price": 150,
     "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2918,7 +2918,7 @@ export const mockProducts = [
     "type": "Banana Split",
     "price": 180,
     "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2930,7 +2930,7 @@ export const mockProducts = [
     "type": "Cono",
     "price": 210,
     "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2942,7 +2942,7 @@ export const mockProducts = [
     "type": "Sundae",
     "price": 240,
     "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2954,7 +2954,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 140,
     "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2966,7 +2966,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 180,
     "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2978,7 +2978,7 @@ export const mockProducts = [
     "type": "Galleta",
     "price": 220,
     "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -2990,7 +2990,7 @@ export const mockProducts = [
     "type": "Helado",
     "price": 260,
     "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3002,7 +3002,7 @@ export const mockProducts = [
     "type": "Pastel",
     "price": 100,
     "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3014,7 +3014,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3026,7 +3026,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3038,7 +3038,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3050,7 +3050,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3062,7 +3062,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3074,7 +3074,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3086,7 +3086,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3098,7 +3098,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3110,7 +3110,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3122,7 +3122,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3134,7 +3134,7 @@ export const mockProducts = [
     "type": "Parrilla",
     "price": 250,
     "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3146,7 +3146,7 @@ export const mockProducts = [
     "type": "Tex-Mex",
     "price": 300,
     "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3158,7 +3158,7 @@ export const mockProducts = [
     "type": "Bowl",
     "price": 350,
     "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3170,7 +3170,7 @@ export const mockProducts = [
     "type": "Parrilla",
     "price": 400,
     "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3182,7 +3182,7 @@ export const mockProducts = [
     "type": "Tex-Mex",
     "price": 450,
     "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3194,7 +3194,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 250,
     "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3206,7 +3206,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 300,
     "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3218,7 +3218,7 @@ export const mockProducts = [
     "type": "Familiar",
     "price": 350,
     "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3230,7 +3230,7 @@ export const mockProducts = [
     "type": "Individual",
     "price": 400,
     "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3242,7 +3242,7 @@ export const mockProducts = [
     "type": "Dúo",
     "price": 200,
     "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3254,7 +3254,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3266,7 +3266,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3278,7 +3278,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3290,7 +3290,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3302,7 +3302,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3314,7 +3314,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3326,7 +3326,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3338,7 +3338,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3350,7 +3350,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3362,7 +3362,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3374,7 +3374,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 190,
     "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3386,7 +3386,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 230,
     "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3398,7 +3398,7 @@ export const mockProducts = [
     "type": "Spicy",
     "price": 270,
     "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3410,7 +3410,7 @@ export const mockProducts = [
     "type": "Crispy",
     "price": 320,
     "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3422,7 +3422,7 @@ export const mockProducts = [
     "type": "Original",
     "price": 360,
     "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3434,7 +3434,7 @@ export const mockProducts = [
     "type": "Salteado",
     "price": 260,
     "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3446,7 +3446,7 @@ export const mockProducts = [
     "type": "Teriyaki",
     "price": 300,
     "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3458,7 +3458,7 @@ export const mockProducts = [
     "type": "Picante",
     "price": 340,
     "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3470,7 +3470,7 @@ export const mockProducts = [
     "type": "Salteado",
     "price": 380,
     "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3482,7 +3482,7 @@ export const mockProducts = [
     "type": "Teriyaki",
     "price": 220,
     "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3494,7 +3494,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 150,
     "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3506,7 +3506,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 170,
     "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3518,7 +3518,7 @@ export const mockProducts = [
     "type": "Snacks",
     "price": 190,
     "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3530,7 +3530,7 @@ export const mockProducts = [
     "type": "Papas",
     "price": 90,
     "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3542,7 +3542,7 @@ export const mockProducts = [
     "type": "Ensalada",
     "price": 120,
     "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3554,7 +3554,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 150,
     "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3566,7 +3566,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 180,
     "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3578,7 +3578,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 80,
     "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
     "isExtraFeature": false
   },
   {
@@ -3590,7 +3590,7 @@ export const mockProducts = [
     "type": "Caliente",
     "price": 100,
     "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
     "isExtraFeature": true
   },
   {
@@ -3602,7 +3602,7 @@ export const mockProducts = [
     "type": "Frío",
     "price": 120,
     "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
     "isExtraFeature": false
   }
 ];

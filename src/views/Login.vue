@@ -434,8 +434,6 @@ const handleRegister = async () => {
 
 <style scoped>
 /* --- VARIABLES Y FUENTES --- */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Titan+One&display=swap');
-
 .login-body {
     font-family: 'Nunito', sans-serif;
     height: 100vh;
@@ -463,7 +461,7 @@ const handleRegister = async () => {
     position: absolute;
     top: 0; left: 0;
     width: 200%; height: 200%;
-    background-image: url('https://img.freepik.com/free-vector/fast-food-seamless-pattern-vector-junk-food-design_53876-160459.jpg');
+    background-image: url('../assets/images/hero-bg-compact.webp');
     background-size: 350px;
     opacity: 0.08;
     z-index: 1;

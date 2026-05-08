@@ -94,9 +94,9 @@ onUnmounted(() => {
 });
 
 const teamMembers = [
-    { name: "Rardiel", role: "Chief Architect, Backend & Multi-tenancy", image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop", icon: "fa-server", social: "#" },
-    { name: "Yirbert", role: "Head of Product, Frontend & Interface", image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600&auto=format&fit=crop", icon: "fa-code", social: "#" },
-    { name: "Aysmar", role: "Director of Operations & Documentation", image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=600&auto=format&fit=crop", icon: "fa-pen-nib", social: "#" }
+    { name: "Rardiel", role: "Chief Architect, Backend & Multi-tenancy", image: "/images/page-media/about-1.webp", icon: "fa-server", social: "#" },
+    { name: "Yirbert", role: "Head of Product, Frontend & Interface", image: "/images/page-media/about-2.webp", icon: "fa-code", social: "#" },
+    { name: "Aysmar", role: "Director of Operations & Documentation", image: "/images/page-media/about-3.webp", icon: "fa-pen-nib", social: "#" }
 ];
 
 const cultureValues = [
@@ -197,9 +197,9 @@ const cultureValues = [
         </div>
     </nav>
 
-    <header class="relative h-screen flex items-center justify-center bg-cover bg-center overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1920&auto=format&fit=crop');">
+    <header class="relative h-screen flex items-center justify-center bg-cover bg-center overflow-hidden" style="background-image: url('/images/page-media/about-4.webp');">
         <div class="absolute inset-0 bg-gradient-to-b from-[#0f172a]/95 via-[#0f172a]/80 to-[#0f172a]/40"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
+        <div class="absolute inset-0 subtle-dot-pattern opacity-10"></div>
         <div class="relative z-10 container mx-auto px-4 md:px-6 text-center text-white scroll-animate">
             <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-xs md:text-sm mb-4 md:mb-6 block">Infraestructura Logística Global</span>
             <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 md:mb-8 leading-tight md:leading-[0.95] font-display drop-shadow-2xl">
@@ -234,19 +234,19 @@ const cultureValues = [
                 </div>
                 <div class="lg:col-span-6 relative scroll-animate mt-10 lg:mt-0" style="transition-delay: 0.2s;">
                     <div class="aspect-square bg-gray-100 rounded-3xl p-4 md:p-6 shadow-inner relative overflow-hidden group">
-                        <img src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=1200&auto=format&fit=crop" class="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" alt="Gestión operativa moderna">
+                        <img src="/images/page-media/about-5.webp" class="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" alt="Gestión operativa moderna">
                         <div class="absolute inset-0 bg-[#0f172a]/60 flex items-end p-6 md:p-10 text-white md:opacity-0 group-hover:opacity-100 transition-opacity">
                             <h4 class="text-2xl md:text-3xl font-bold font-display">Eficiencia Medible</h4>
                         </div>
                     </div>
-                    <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600&auto=format&fit=crop" class="absolute -bottom-8 -left-4 md:-bottom-16 md:-left-16 w-32 h-32 md:w-64 md:h-64 object-cover rounded-full border-4 md:border-8 border-white shadow-xl md:shadow-2xl scroll-animate" style="transition-delay: 0.4s" alt="Colaboración operativa">
+                    <img src="/images/page-media/about-6.webp" class="absolute -bottom-8 -left-4 md:-bottom-16 md:-left-16 w-32 h-32 md:w-64 md:h-64 object-cover rounded-full border-4 md:border-8 border-white shadow-xl md:shadow-2xl scroll-animate" style="transition-delay: 0.4s" alt="Colaboración operativa">
                 </div>
             </div>
         </div>
     </section>
 
     <section class="py-20 md:py-32 bg-[#0f172a] text-white relative overflow-hidden">
-        <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
+        <div class="absolute inset-0 opacity-10 subtle-dot-pattern"></div>
         <div class="absolute top-0 left-0 w-full h-12 md:h-24 bg-white -skew-y-3 transform origin-top-left"></div>
 
         <div class="container mx-auto px-6 md:px-16 relative z-10 pt-10 md:pt-16">
@@ -257,7 +257,7 @@ const cultureValues = [
                     <p class="text-gray-300 text-base md:text-lg leading-relaxed mb-8 md:mb-10">
                         Nuestra arquitectura Multi-Tenant de núcleo compartido ofrece un rendimiento de clase empresarial con un aislamiento estricto. Cada franquicia opera en un entorno lógico independiente, garantizando la seguridad de los datos y la privacidad.
                     </p>
-                    <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=800&auto=format&fit=crop" class="hidden md:block rounded-3xl shadow-xl border border-white/10" alt="Hardware de servidor moderno">
+                    <img src="/images/page-media/about-7.webp" class="hidden md:block rounded-3xl shadow-xl border border-white/10" alt="Hardware de servidor moderno">
                 </div>
 
                 <div class="lg:col-span-7 space-y-6 md:space-y-12 scroll-animate" style="transition-delay: 0.3s;">
@@ -306,10 +306,10 @@ const cultureValues = [
                         La eficiencia logística es el factor determinante del éxito en el sector de comida rápida. FoodRush optimiza radicalmente la logística de última milla a través de una integración vertical inteligente, permitiendo a las franquicias controlar cada aspecto de la experiencia del cliente final sin incurrir en altos costos.
                     </p>
                     <div class="grid grid-cols-2 gap-3 md:gap-6">
-                        <img src="https://images.unsplash.com/photo-1526628953301-3e589a6a8b74?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Dashboard operativo">
-                        <img src="https://images.unsplash.com/photo-1512132411229-c30391241dd8?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cocina eficiente">
-                        <img src="https://images.unsplash.com/photo-1556742044-3c52d6e88c62?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Repartidor en movimiento">
-                        <img src="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=80&w=400&auto=format&fit=crop" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cliente satisfecho">
+                        <img src="/images/page-media/about-8.webp" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Dashboard operativo">
+                        <img src="/images/page-media/about-9.webp" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cocina eficiente">
+                        <img src="/images/page-media/about-10.webp" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Repartidor en movimiento">
+                        <img src="/images/page-media/about-11.webp" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Cliente satisfecho">
                     </div>
                 </div>
                 <div class="md:col-span-4 bg-[#F5F5F5] p-8 md:p-10 rounded-3xl border border-gray-100 flex flex-col justify-center scroll-animate mt-8 md:mt-0" style="transition-delay: 0.2s;">
@@ -352,7 +352,7 @@ const cultureValues = [
     </section>
 
     <section class="py-16 md:py-32 bg-white relative overflow-hidden">
-        <div class="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
+        <div class="absolute inset-0 opacity-5 subtle-dot-pattern"></div>
         <div class="container mx-auto px-6 md:px-16 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
                 <div class="lg:col-span-4 lg:sticky lg:top-32 scroll-animate text-center md:text-left">
@@ -438,8 +438,6 @@ const cultureValues = [
 </template>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Titan+One&display=swap');
 
 .font-sans { font-family: 'Nunito', sans-serif; }
 .font-display { font-family: 'Titan One', cursive; }
@@ -449,6 +447,11 @@ const cultureValues = [
     50% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(189, 10, 10, 0.9)); }
 }
 .electric-blink { animation: electric-blink 3s infinite ease-in-out; }
+
+.subtle-dot-pattern {
+    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.85) 1px, transparent 0);
+    background-size: 20px 20px;
+}
 
 .scroll-animate {
     opacity: 0;

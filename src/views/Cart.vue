@@ -89,6 +89,9 @@ const totalPrice = computed(() => {
                     <div class="flex justify-between items-start mb-1">
                         <h3 class="font-bold text-slate-800 text-lg truncate">{{ item.name }}</h3>
                     </div>
+                    <p v-if="item.place || item.franchiseSlug" class="text-[11px] font-black uppercase tracking-wide text-orange-500 mb-1">
+                        {{ item.place || item.franchiseSlug }}
+                    </p>
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2">{{ item.details || 'Sin detalles adicionales' }}</p>
                     
                     <div class="flex items-center justify-between">

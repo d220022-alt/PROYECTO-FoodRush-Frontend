@@ -7,9 +7,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import logoMcDonalds from '../assets/images/logo-mcdonalds.png';
-import logoKfc from '../assets/images/logo-kfc.png';
-import logoBurgerKing from '../assets/images/logo-burgerking.png';
+import logoMcDonalds from '../assets/images/logo-mcdonalds-compact.webp';
+import logoKfc from '../assets/images/logo-kfc-compact.webp';
+import logoBurgerKing from '../assets/images/logo-burgerking-compact.webp';
 
 const route = useRoute();
 const router = useRouter();
@@ -102,7 +102,7 @@ onUnmounted(() => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -169,8 +169,8 @@ onUnmounted(() => {
 
     <div id="default-carousel" class="relative w-full" data-carousel="slide">
         <div class="relative h-full overflow-hidden">
-            <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
-                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1981&auto=format&fit=crop" class="absolute block w-full h-full object-cover brightness-50" alt="Pizza">
+            <div class="block duration-1000 ease-in-out" data-carousel-item="active">
+                <img src="/images/page-media/principal-1.webp" class="absolute block w-full h-full object-cover brightness-50" alt="Pizza">
                 <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-shadow" data-aos="zoom-in">BIENVENIDOS</h1>
                     <p class="text-xl md:text-2xl mb-8 max-w-2xl" data-aos="fade-up" data-aos-delay="200">Gestionamos tus antojos con la tecnología más rápida.</p>
@@ -178,7 +178,7 @@ onUnmounted(() => {
                 </div>
             </div>
             <div class="hidden duration-1000 ease-in-out" data-carousel-item>
-                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1469&auto=format&fit=crop" class="absolute block w-full h-full object-cover brightness-50" alt="Burger">
+                <img src="/images/page-media/principal-2.webp" class="absolute block w-full h-full object-cover brightness-50" alt="Burger">
                 <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-shadow">CALIDAD PREMIUM</h1>
                     <p class="text-xl md:text-2xl mb-8 max-w-2xl">Las mejores franquicias en un solo lugar.</p>
@@ -231,7 +231,7 @@ onUnmounted(() => {
         </div>
     </section>
 
-    <div class="relative bg-fixed bg-center bg-cover h-[500px] flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1920&auto=format&fit=crop');">
+    <div class="relative bg-fixed bg-center bg-cover h-[500px] flex items-center justify-center" style="background-image: url('/images/page-media/principal-3.webp');">
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         <div class="relative z-10 p-8 glass-effect rounded-3xl max-w-3xl text-center mx-4" data-aos="zoom-in">
             <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Vive la experiencia FoodRush</h2>
@@ -277,9 +277,9 @@ onUnmounted(() => {
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" aria-label="Facebook de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
             <div class="flex gap-16 text-sm text-left md:text-right">
@@ -301,7 +301,7 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-        <div class="border-t border-white/20 text-center py-4 text-xs text-white/60">
+        <div class="border-t border-white/20 text-center py-4 text-xs text-white/90">
             &copy; 2025 FoodRush Inc. Todos los derechos reservados.
         </div>
     </footer>

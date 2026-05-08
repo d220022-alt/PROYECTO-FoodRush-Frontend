@@ -618,7 +618,6 @@ onUnmounted(() => {
 
 <style scoped>
 /* Importación de fuentes necesarias para el Navbar y estilos generales */
-@import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
 
 html { scroll-behavior: smooth; }
 
