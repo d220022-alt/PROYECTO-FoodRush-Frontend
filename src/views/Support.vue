@@ -247,7 +247,7 @@ const buildSupportReply = async (userMessage) => {
 </script>
 
 <template>
-<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
+<div class="support-page font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
     <nav
         :class="[
@@ -271,7 +271,7 @@ const buildSupportReply = async (userMessage) => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span :class="isSolid ? 'text-[#1a1a2e]' : 'text-[#fbbf24]'">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#f97316]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -352,7 +352,7 @@ const buildSupportReply = async (userMessage) => {
                 <i class="fas fa-headset mr-2"></i> Centro de Operaciones y Ayuda
             </div>
             <h1 class="text-5xl md:text-7xl font-extrabold mb-8 leading-tight font-display drop-shadow-2xl">
-                ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#1a1a2e]">ayudarte hoy?</span>
+                ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#fdba74]">ayudarte hoy?</span>
             </h1>
 
             <div class="relative max-w-2xl mx-auto shadow-2xl rounded-full transform transition-transform hover:scale-[1.02]">
@@ -536,7 +536,7 @@ const buildSupportReply = async (userMessage) => {
     <footer class="bg-[#1a1a2e] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
             <div class="col-span-1 md:col-span-1 flex flex-col items-center md:items-start">
-                 <div class="flex items-center gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">
+                 <div class="support-footer-logo flex items-center gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">
                     <span class="text-[#1a1a2e] font-bold text-2xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-2xl italic -ml-1 font-display">Rush</span>
                 </div>

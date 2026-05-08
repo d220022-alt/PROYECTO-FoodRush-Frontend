@@ -440,6 +440,12 @@ export const api = {
     return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'productos']);
   },
 
+  async getCategories(params = {}, headers = {}) {
+    const query = new URLSearchParams(sanitizeParams(params)).toString();
+    const endpoint = query ? `/api/categorias?${query}` : '/api/categorias';
+    return normalizeCollectionResult(await this.request(endpoint, { headers }), ['data', 'categorias']);
+  },
+
   // Login acepta correo o usuario; si falta tenant, usamos el default para evitar errores confusos.
   async login(identifier, password, headers = {}) {
     const loginHeaders = { ...headers };

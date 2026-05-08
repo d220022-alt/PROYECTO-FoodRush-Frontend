@@ -9,6 +9,8 @@ import Login from './views/Login.vue'
 import { getSession } from './services/storage'
 import { getPortalRouteByEmail } from './utils/portalRouting'
 
+const TermsView = () => import('./views/terminos_condiciones.vue')
+
 // Para presentar: aqui empieza el mapa de URLs; si preguntan por una pantalla, busca su path en este arreglo.
 const routes = [
     { path: '/', component: () => import('./views/Home.vue') },
@@ -44,7 +46,10 @@ const routes = [
     { path: '/about', component: () => import('./views/about.vue') },
     { path: '/administracion', component: () => import('./views/administracion.vue') },
     { path: '/delivery', component: () => import('./views/delivery.vue') },
-    { path: '/terms', component: () => import('./views/terminos_condiciones.vue') },
+    { path: '/terms', component: TermsView },
+    { path: '/terminos', component: TermsView },
+    { path: '/terminos-condiciones', component: TermsView },
+    { path: '/terms-and-conditions', component: TermsView },
     { path: '/affiliate', component: () => import('./views/principal.vue') }
 ]
 

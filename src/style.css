@@ -752,6 +752,43 @@ html.foodrush-dark .delivery-onboarding .hide-scrollbar {
   background: #070b14 !important;
 }
 
+html.foodrush-dark .support-page,
+html.foodrush-dark .terms-page {
+  background: #070b14 !important;
+  color: #f8fafc !important;
+}
+
+html.foodrush-dark .support-page section.bg-white {
+  background: #0d1424 !important;
+}
+
+html.foodrush-dark .support-page .support-pattern {
+  opacity: 0.06;
+}
+
+html.foodrush-dark .support-page .chat-pulse {
+  border-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.foodrush-dark .support-page .support-footer-logo {
+  background: #ffffff !important;
+}
+
+html.foodrush-dark .terms-page .terms-footer-logo {
+  background: #ffffff !important;
+}
+
+html.foodrush-dark .terms-page .term-link.active,
+html.foodrush-dark .terms-page .term-link:hover {
+  color: #fdba74;
+}
+
+html.foodrush-dark .terms-page .term-link__number {
+  background: #172033;
+  border-color: rgba(148, 163, 184, 0.22);
+  color: #f8fafc;
+}
+
 @media (min-width: 768px) {
   .foodrush-theme-toggle {
     top: 1.25rem;

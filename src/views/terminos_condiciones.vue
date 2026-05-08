@@ -34,6 +34,9 @@ const navItems = [
     { path: '/affiliate', label: 'Afíliate' },
 ];
 
+const termsRoutePaths = ['/terms', '/terminos', '/terminos-condiciones', '/terms-and-conditions'];
+const isNavActive = (path) => path === '/terms' ? termsRoutePaths.includes(route.path) : route.path === path;
+
 const handleScroll = () => {
     // 1. Detección de scroll para el estilo del menú fixed
     isScrolled.value = window.scrollY > 110;
@@ -58,21 +61,21 @@ const isSolid = computed(() => isScrolled.value || isMobileMenuOpen.value);
 // Clases dinámicas para los enlaces de escritorio
 const desktopLinkClasses = (path) => [
     'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out flex items-center gap-2',
-    route.path === path
+    isNavActive(path)
         ? isSolid.value
-            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
-            : 'bg-white text-[#BD0A0A] shadow-lg shadow-black/20'
+            ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
+            : 'bg-white/14 text-white ring-1 ring-white/20 backdrop-blur-md'
         : isSolid.value
-            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
             : 'text-white/85 hover:bg-white/10 hover:text-white',
 ];
 
 // Clases dinámicas para los enlaces móviles
 const mobileLinkClasses = (path) => [
     'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
-    route.path === path
-        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]',
+    isNavActive(path)
+        ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]',
 ];
 
 // Función de navegación con View Transitions API y cierre de menú móvil
@@ -271,25 +274,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
+<div class="terms-page font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
     <nav
         :class="[
             'fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ease-out',
             isSolid
                 ? 'border-gray-200 bg-white/96 py-3 shadow-xl shadow-slate-200/50 backdrop-blur-xl'
-                : 'border-white/10 bg-[#8f0b0b]/72 py-4 shadow-2xl shadow-black/20 backdrop-blur-xl',
+                : 'border-white/10 bg-[#0f172a]/86 py-4 shadow-2xl shadow-black/20 backdrop-blur-xl',
         ]"
     >
         <div class="mx-auto flex max-w-screen-2xl items-center justify-between px-4 md:px-12 lg:px-16">
 
             <a href="#" @click.prevent="goHome" class="flex items-center space-x-2 group z-50">
                 <i :class="['fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
-                             isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]']"></i>
+                             isSolid ? 'text-[#f97316]' : 'text-[#fbbf24]']"></i>
 
                 <span :class="['text-xl md:text-2xl font-extrabold tracking-wide transition-colors duration-300 font-display drop-shadow-sm',
                                 isSolid ? 'text-slate-900' : 'text-white']">
-                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#f97316]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -301,7 +304,7 @@ onUnmounted(() => {
                     :class="desktopLinkClasses(item.path)"
                     @click.prevent="navigate(item.path)"
                 >
-                    <i v-if="item.path === '/terms' && route.path === '/terms'" class="fas fa-file-contract text-xs"></i>
+                    <i v-if="item.path === '/terms' && isNavActive(item.path)" class="fas fa-file-contract text-xs"></i>
                     {{ item.label }}
                 </a>
 
@@ -345,7 +348,7 @@ onUnmounted(() => {
 
                 <button
                     type="button"
-                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700 w-full"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#1a1a2e] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#111827] w-full"
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
@@ -354,7 +357,7 @@ onUnmounted(() => {
             </div>
         </div>
     </nav>
-    <div class="bg-gradient-to-br from-[#C10D0D] via-[#B10A0A] to-[#8E0808] text-white pt-[164px] md:pt-[188px] pb-24 md:pb-28 text-center relative overflow-hidden">
+    <div class="bg-gradient-to-br from-[#0f172a] via-[#111827] to-[#1a1a2e] text-white pt-[164px] md:pt-[188px] pb-24 md:pb-28 text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_35%)]"></div>
         <i class="fas fa-balance-scale absolute top-10 left-10 text-9xl opacity-10 rotate-12"></i>
         <div class="container mx-auto px-4 relative z-10" data-aos="fade-up">
@@ -405,7 +408,7 @@ onUnmounted(() => {
 
                     <div id="intro" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
                             Introducción
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -415,7 +418,7 @@ onUnmounted(() => {
 
                     <div id="uso" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">2</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">2</span>
                             Uso de la Plataforma Multi-Tenant
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -430,7 +433,7 @@ onUnmounted(() => {
 
                     <div id="cuentas" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">3</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">3</span>
                             Registro y Seguridad de la Cuenta
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -440,7 +443,7 @@ onUnmounted(() => {
 
                     <div id="pedidos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">4</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">4</span>
                             Pedidos y Pagos
                         </h2>
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r">
@@ -453,7 +456,7 @@ onUnmounted(() => {
 
                     <div id="cancelaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">5</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">5</span>
                             Política de Reembolso y Cancelación
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -463,7 +466,7 @@ onUnmounted(() => {
 
                     <div id="propiedad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">6</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">6</span>
                             Propiedad Intelectual
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -473,7 +476,7 @@ onUnmounted(() => {
 
                     <div id="datos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">7</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">7</span>
                             Protección de Datos (Ley 172-13)
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -483,7 +486,7 @@ onUnmounted(() => {
 
                     <div id="leyes" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">8</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">8</span>
                             Legislación Aplicable y Jurisdicción
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -496,7 +499,7 @@ onUnmounted(() => {
 
                     <div id="responsabilidad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">9</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">9</span>
                             Limitación de Responsabilidad
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -506,7 +509,7 @@ onUnmounted(() => {
 
                     <div id="conducta" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">10</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">10</span>
                             Conducta del Usuario
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -522,7 +525,7 @@ onUnmounted(() => {
 
                     <div id="modificaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">11</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">11</span>
                             Modificaciones a los Términos
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -532,7 +535,7 @@ onUnmounted(() => {
 
                     <div id="contacto" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">12</span>
+                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">12</span>
                             Contacto Legal
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -546,7 +549,7 @@ onUnmounted(() => {
 
                     <div class="bg-white border-t border-gray-200 pt-8 mt-8 pb-4" data-aos="fade-up">
                         <div class="flex items-center space-x-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <input id="accept-terms" type="checkbox" v-model="termsAccepted" :disabled="isLoggedIn" class="w-5 h-5 text-[#BD0A0A] bg-white border-gray-300 rounded focus:ring-[#BD0A0A] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <input id="accept-terms" type="checkbox" v-model="termsAccepted" :disabled="isLoggedIn" class="w-5 h-5 text-[#f97316] bg-white border-gray-300 rounded focus:ring-[#f97316] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed">
                             <label for="accept-terms" class="text-gray-700 font-medium" :class="{ 'cursor-pointer': !isLoggedIn, 'cursor-not-allowed opacity-70': isLoggedIn }">
                                 He leído, entiendo y acepto por completo los términos y condiciones de FoodRush.
                             </label>
@@ -557,7 +560,7 @@ onUnmounted(() => {
                                 {{ isLoggedIn ? 'Volver' : 'Cancelar' }}
                             </button>
                             <button v-if="!isLoggedIn" @click="acceptTerms"
-                                    :class="termsAccepted ? 'bg-[#BD0A0A] hover:bg-red-800 text-white shadow-lg shadow-red-500/30' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    :class="termsAccepted ? 'bg-[#0f172a] hover:bg-black text-white shadow-lg shadow-slate-900/20' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                                     class="px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check" v-if="termsAccepted"></i>
                                 Confirmar y Aceptar
@@ -575,10 +578,10 @@ onUnmounted(() => {
         </div>
     </div>
 
-    <footer class="bg-[#BD0A0A] text-white mt-auto border-t-4 border-[#fbbf24]">
+    <footer class="bg-[#1a1a2e] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div class="mb-8 md:mb-0 flex flex-col items-center md:items-start">
-                 <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg mx-auto md:mx-0">
+                 <div class="terms-footer-logo flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg mx-auto md:mx-0">
                     <span class="text-orange-500 font-bold text-xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-xl italic -ml-1 font-display">Rush</span>
                 </div>
@@ -632,10 +635,10 @@ html { scroll-behavior: smooth; }
 }
 
 .term-link.active {
-    color: #BD0A0A;
+    color: #1a1a2e;
     font-weight: 700;
-    background: rgba(189, 10, 10, 0.05);
-    border-color: rgba(189, 10, 10, 0.18);
+    background: rgba(249, 115, 22, 0.08);
+    border-color: rgba(249, 115, 22, 0.22);
 }
 .term-link {
     transition: all 0.3s ease;
@@ -647,9 +650,9 @@ html { scroll-behavior: smooth; }
     border: 1px solid transparent;
 }
 .term-link:hover {
-    color: #BD0A0A;
-    background: rgba(189, 10, 10, 0.04);
-    border-color: rgba(189, 10, 10, 0.12);
+    color: #1a1a2e;
+    background: rgba(249, 115, 22, 0.08);
+    border-color: rgba(249, 115, 22, 0.18);
 }
 
 .term-link__number {
@@ -674,10 +677,10 @@ html { scroll-behavior: smooth; }
 }
 
 .term-link.active .term-link__number {
-    background: #BD0A0A;
-    border-color: #BD0A0A;
+    background: #1a1a2e;
+    border-color: #1a1a2e;
     color: #fff;
-    box-shadow: 0 12px 24px rgba(189, 10, 10, 0.2);
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.2);
 }
 
 /* Clase añadida para la tipografía del Logo en el Navbar fixed */
