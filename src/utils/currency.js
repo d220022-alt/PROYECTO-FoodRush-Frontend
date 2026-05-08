@@ -194,7 +194,12 @@ export const refreshCurrencyRates = async ({ force = false } = {}) => {
 export const startCurrencyRateAutoRefresh = () => {
   if (!hasWindow()) return () => {};
 
-  refreshCurrencyRates();
+  const refreshWhenIdle = () => refreshCurrencyRates();
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(refreshWhenIdle, { timeout: 3000 });
+  } else {
+    window.setTimeout(refreshWhenIdle, 1500);
+  }
 
   const intervalId = window.setInterval(() => {
     refreshCurrencyRates({ force: true });

@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Mapa historico de zonas. Se conserva porque algunas vistas antiguas aun pueden necesitarlo.
   Buscar en VS Code: zonas legacy, Leaflet, cobertura, radios.
   Mantener estos comentarios actualizados si cambia el flujo.

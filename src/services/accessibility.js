@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Preferencias globales de accesibilidad. Guarda ajustes del usuario y aplica clases al documento.
   Buscar en VS Code: accesibilidad, alto contraste, texto grande, reducir movimiento.
   Mantener estos comentarios actualizados si cambia el flujo.

@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Vista de Support. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: soporte, preguntas frecuentes, ticket, asistente, buildSupportReply.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -8,6 +8,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import Swal from 'sweetalert2';
 import { useRoute, useRouter } from 'vue-router';
+import supportHero from '@/assets/images/support-hero-compact.webp';
 
 const route = useRoute();
 const router = useRouter();
@@ -16,10 +17,10 @@ const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-    { path: '/terms', label: 'Terminos' },
+    { path: '/terms', label: 'Términos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afiliate' }
+    { path: '/affiliate', label: 'Afíliate' }
 ];
 
 const handleScroll = () => {
@@ -72,7 +73,7 @@ const setupObserver = () => {
                 entry.target.classList.add('is-visible');
             }
         });
-    }, { 
+    }, {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px"
     });
@@ -97,25 +98,25 @@ onUnmounted(() => {
 // 1. PREGUNTAS FRECUENTES (Textos expandidos)
 // ==========================================
 const faqs = ref([
-    { 
-        question: "¿Cómo puedo rastrear mi pedido en tiempo real?", 
-        answer: "Nuestro sistema cuenta con telemetría en tiempo real. Dirígete a la sección 'Historial de Pedidos' en tu perfil, selecciona el pedido en curso y podrás visualizar en el mapa la ubicación exacta del repartidor, así como el tiempo estimado de llegada.", 
-        open: false 
+    {
+        question: "¿Cómo puedo rastrear mi pedido en tiempo real?",
+        answer: "Nuestro sistema cuenta con telemetría en tiempo real. Dirígete a la sección 'Historial de Pedidos' en tu perfil, selecciona el pedido en curso y podrás visualizar en el mapa la ubicación exacta del repartidor, así como el tiempo estimado de llegada.",
+        open: false
     },
-    { 
-        question: "¿Bajo qué condiciones puedo cancelar una orden?", 
-        answer: "Para garantizar la eficiencia logística de nuestros restaurantes asociados, las cancelaciones solo son permitidas dentro de los primeros minutos, estrictamente antes de que el restaurante acepte y comience a preparar los alimentos. Puedes hacerlo desde los detalles del pedido.", 
-        open: false 
+    {
+        question: "¿Bajo qué condiciones puedo cancelar una orden?",
+        answer: "Para garantizar la eficiencia logística de nuestros restaurantes asociados, las cancelaciones solo son permitidas dentro de los primeros minutos, estrictamente antes de que el restaurante acepte y comience a preparar los alimentos. Puedes hacerlo desde los detalles del pedido.",
+        open: false
     },
-    { 
-        question: "¿Qué pasarelas y métodos de pago procesan?", 
-        answer: "Nuestra infraestructura de pagos es 100% segura. Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, AMEX) procesadas mediante pasarelas cifradas, billeteras digitales como PayPal, y ofrecemos la opción tradicional de pago en efectivo contra entrega.", 
-        open: false 
+    {
+        question: "¿Qué pasarelas y métodos de pago procesan?",
+        answer: "Nuestra infraestructura de pagos es 100% segura. Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, AMEX) procesadas mediante pasarelas cifradas, billeteras digitales como PayPal, y ofrecemos la opción tradicional de pago en efectivo contra entrega.",
+        open: false
     },
-    { 
-        question: "¿Cómo procedo si mi pedido llega incompleto o incorrecto?", 
+    {
+        question: "¿Cómo procedo si mi pedido llega incompleto o incorrecto?",
         answer: "Tu satisfacción es nuestra prioridad. Por favor, utiliza el botón 'Crear reporte' en esta misma pantalla. Adjunta una fotografía del pedido recibido y nuestro equipo de soporte revisará el caso.",
-        open: false 
+        open: false
     }
 ]);
 
@@ -217,7 +218,7 @@ const sendChatMessage = async () => {
     scrollToBottom();
 
     const response = await buildSupportReply(text);
-    
+
     isBotTyping.value = false;
     chatMessages.value.push({ text: response, sender: 'bot' });
     scrollToBottom();
@@ -291,7 +292,7 @@ const buildSupportReply = async (userMessage) => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menu
+                    Menú
                 </button>
             </div>
 
@@ -299,7 +300,7 @@ const buildSupportReply = async (userMessage) => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -329,15 +330,23 @@ const buildSupportReply = async (userMessage) => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menu principal
+                    Ir al menú principal
                 </button>
             </div>
         </div>
     </nav>
 
-    <header class="relative h-[65vh] flex items-center justify-center bg-cover bg-center overflow-hidden" style="background-image: url('https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1469&auto=format&fit=crop');">
+    <header class="relative h-[65vh] flex items-center justify-center overflow-hidden bg-[#0f172a]">
+        <img
+            :src="supportHero"
+            alt=""
+            aria-hidden="true"
+            class="absolute inset-0 h-full w-full object-cover"
+            fetchpriority="high"
+            decoding="async"
+        >
         <div class="absolute inset-0 bg-gradient-to-b from-[#0f172a]/95 via-[#0f172a]/80 to-[#0f172a]/20"></div>
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10"></div>
+        <div class="support-pattern absolute inset-0 opacity-10"></div>
         <div class="relative z-10 container mx-auto px-6 text-center text-white scroll-animate">
             <div class="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[#fbbf24] text-xs font-bold tracking-widest uppercase mb-6">
                 <i class="fas fa-headset mr-2"></i> Centro de Operaciones y Ayuda
@@ -345,25 +354,25 @@ const buildSupportReply = async (userMessage) => {
             <h1 class="text-5xl md:text-7xl font-extrabold mb-8 leading-tight font-display drop-shadow-2xl">
                 ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#BD0A0A]">ayudarte hoy?</span>
             </h1>
-            
+
             <div class="relative max-w-2xl mx-auto shadow-2xl rounded-full transform transition-transform hover:scale-[1.02]">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-6 text-gray-400">
                     <i class="fas fa-search text-xl"></i>
                 </div>
                 <input type="text" class="block w-full p-5 pl-14 text-base md:text-lg text-gray-900 border-none rounded-full bg-white outline-none focus:ring-4 focus:ring-[#BD0A0A]/40 transition" placeholder="Buscar 'cancelar orden', 'retraso'...">
-                <button class="absolute right-2 top-2 bottom-2 bg-[#0f172a] hover:bg-black text-white font-bold rounded-full px-8 transition-all shadow-md">Buscar</button>
+                <button class="absolute right-2 top-2 bottom-2 bg-[#0f172a] hover:bg-black text-white font-bold rounded-full px-8 transition-all shadow-md" aria-label="Buscar en soporte">Buscar</button>
             </div>
         </div>
     </header>
 
     <section class="container mx-auto px-6 mt-12 relative z-20 mb-24">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            
+
             <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-blue-600 cursor-pointer group">
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fas fa-headset"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-slate-800">Asistente FoodRush</h3>
+                <h2 class="text-2xl font-bold mb-3 text-slate-800">Asistente FoodRush</h2>
                 <p class="text-gray-500 text-base mb-6 leading-relaxed">Respuestas rápidas para dudas sobre pedidos, pagos, tiempos de entrega o restaurantes disponibles.</p>
                 <span class="text-blue-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Interactuar <i class="fas fa-arrow-right"></i></span>
             </div>
@@ -372,18 +381,18 @@ const buildSupportReply = async (userMessage) => {
                 <div class="w-16 h-16 bg-orange-50 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm relative z-10">
                     <i class="fas fa-envelope-open-text"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-slate-800 relative z-10">Crear reporte</h3>
+                <h2 class="text-2xl font-bold mb-3 text-slate-800 relative z-10">Crear reporte</h2>
                 <p class="text-gray-500 text-base mb-6 leading-relaxed relative z-10">Formulario para incidencias de pedido, cobros o soporte técnico que necesitan revisión humana.</p>
-                <span class="text-orange-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
+                <span class="text-orange-700 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
             </div>
 
             <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-green-600 group block">
                 <div class="w-16 h-16 bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fab fa-whatsapp"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-slate-800">Soporte WhatsApp</h3>
+                <h2 class="text-2xl font-bold mb-3 text-slate-800">Soporte WhatsApp</h2>
                 <p class="text-gray-500 text-base mb-6 leading-relaxed">Conéctate directamente con nuestro equipo de operaciones para soporte humano en tiempo real.</p>
-                <span class="text-green-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Chatear <i class="fas fa-external-link-alt"></i></span>
+                <span class="text-green-700 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Chatear <i class="fas fa-external-link-alt"></i></span>
             </a>
         </div>
     </section>
@@ -391,7 +400,7 @@ const buildSupportReply = async (userMessage) => {
     <section class="py-16 bg-white relative overflow-hidden">
         <div class="absolute top-0 right-0 w-1/2 h-full bg-gray-50 -skew-x-12 transform origin-top right-[-10%] z-0"></div>
         <div class="container mx-auto px-6 md:px-16 grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10 scroll-animate">
-            
+
             <div class="lg:col-span-7">
                 <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-sm mb-2 block">Base de Conocimientos</span>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-[#0f172a] mb-10 font-display">Preguntas Frecuentes</h2>
@@ -417,9 +426,9 @@ const buildSupportReply = async (userMessage) => {
                     </div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-4">¿Aún con dudas?</h2>
                     <p class="text-base text-gray-500 mb-8 leading-relaxed">Si nuestra base de conocimientos no resolvió tu inquietud, déjanos un mensaje rápido. Nuestro equipo lo enrutará al departamento correspondiente.</p>
-                    
+
                     <textarea v-model="simpleMessage" rows="5" placeholder="Escribe los detalles de tu consulta aquí..." class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 text-base outline-none focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition resize-none mb-6"></textarea>
-                    
+
                     <button @click="sendSimpleMessage" class="w-full bg-[#0f172a] hover:bg-black text-white font-bold py-4 rounded-xl shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
                         Enviar Consulta General <i class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -439,10 +448,10 @@ const buildSupportReply = async (userMessage) => {
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            
+
             <form @submit.prevent="submitTicket" class="p-6 md:p-8">
                 <div v-if="isUserLoggedIn" class="mb-6 text-sm text-blue-700 bg-blue-50 p-4 rounded-xl flex items-start gap-3 border border-blue-100">
-                    <i class="fa-solid fa-circle-check mt-1 text-lg"></i> 
+                    <i class="fa-solid fa-circle-check mt-1 text-lg"></i>
                     <p>Hemos autocompletado tus datos basados en tu sesión activa. Puedes modificarlos si el reporte corresponde a otra cuenta o franquicia.</p>
                 </div>
 
@@ -492,16 +501,16 @@ const buildSupportReply = async (userMessage) => {
                         <span class="text-xs text-green-400 font-normal flex items-center gap-1 mt-1"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> En línea</span>
                     </div>
                 </div>
-                <button @click="isChatOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
+                <button @click="isChatOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 flex items-center justify-center transition" aria-label="Cerrar chat"><i class="fas fa-times"></i></button>
             </div>
-            
+
             <div ref="chatContainer" class="flex-1 p-5 overflow-y-auto bg-gray-50 text-sm space-y-4">
-                <div v-for="(msg, index) in chatMessages" :key="index" 
+                <div v-for="(msg, index) in chatMessages" :key="index"
                      class="max-w-[85%] p-4 rounded-2xl leading-relaxed shadow-sm text-base"
                      :class="msg.sender === 'user' ? 'bg-[#0f172a] text-white self-end ml-auto rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 self-start mr-auto rounded-tl-none'">
                     <span v-html="formatMessage(msg.text)"></span>
                 </div>
-                
+
                 <div v-if="isBotTyping" class="bg-white border border-gray-100 text-gray-500 max-w-[85%] p-4 rounded-2xl self-start mr-auto rounded-tl-none shadow-sm flex items-center gap-2">
                     <div class="flex space-x-1">
                         <div class="w-2 h-2 bg-[#BD0A0A] rounded-full animate-bounce"></div>
@@ -510,16 +519,16 @@ const buildSupportReply = async (userMessage) => {
                     </div>
                 </div>
             </div>
-            
+
             <div class="p-4 bg-white border-t border-gray-100 flex items-center gap-3">
                 <input v-model="chatInput" @keyup.enter="sendChatMessage" type="text" placeholder="Pregunta lo que sea..." class="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#BD0A0A]/30">
-                <button @click="sendChatMessage" class="w-12 h-12 bg-[#BD0A0A] text-white rounded-full flex items-center justify-center hover:bg-red-800 transition shadow-lg transform hover:scale-105">
+                <button @click="sendChatMessage" class="w-12 h-12 bg-[#BD0A0A] text-white rounded-full flex items-center justify-center hover:bg-red-800 transition shadow-lg transform hover:scale-105" aria-label="Enviar mensaje">
                     <i class="fas fa-paper-plane text-sm"></i>
                 </button>
             </div>
         </div>
 
-        <button @click="isChatOpen = !isChatOpen" class="w-16 h-16 rounded-full bg-gradient-to-br from-[#BD0A0A] to-[#9B0808] text-white text-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform chat-pulse border-4 border-white">
+        <button @click="isChatOpen = !isChatOpen" class="w-16 h-16 rounded-full bg-gradient-to-br from-[#BD0A0A] to-[#9B0808] text-white text-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform chat-pulse border-4 border-white" :aria-label="isChatOpen ? 'Cerrar chat de soporte' : 'Abrir chat de soporte'" :aria-expanded="isChatOpen ? 'true' : 'false'">
             <i class="fas" :class="isChatOpen ? 'fa-chevron-down' : 'fa-comment-dots'"></i>
         </button>
     </div>
@@ -528,43 +537,43 @@ const buildSupportReply = async (userMessage) => {
         <div class="container mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
             <div class="col-span-1 md:col-span-1 flex flex-col items-center md:items-start">
                  <div class="flex items-center gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">
-                    <span class="text-[#fbbf24] font-bold text-2xl italic font-display">Food</span>
+                    <span class="text-[#BD0A0A] font-bold text-2xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-2xl italic -ml-1 font-display">Rush</span>
                 </div>
-                <p class="text-white/80 text-sm font-medium mb-6">La mejor comida de tus franquicias directo a tu puerta.</p>
+                <p class="text-white/90 text-sm font-medium mb-6">La mejor comida de tus franquicias directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Repositorio de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
-            
+
             <div class="col-span-1">
-                <h5 class="font-bold text-xl text-[#fbbf24] mb-4">Plataforma</h5>
-                <ul class="space-y-3 text-sm text-white/80">
+                <h2 class="font-bold text-xl text-white mb-4">Plataforma</h2>
+                <ul class="space-y-3 text-sm text-white/90">
                     <li><a href="#" class="hover:text-white transition">Funcionalidades Multi-tenant</a></li>
                     <li><a href="#" class="hover:text-white transition">Seguridad y Cumplimiento</a></li>
                     <li><a href="#" class="hover:text-white transition">Integraciones API</a></li>
                 </ul>
             </div>
             <div class="col-span-1">
-                <h5 class="font-bold text-xl text-[#fbbf24] mb-4">Empresa</h5>
-                <ul class="space-y-3 text-sm text-white/80">
+                <h2 class="font-bold text-xl text-white mb-4">Empresa</h2>
+                <ul class="space-y-3 text-sm text-white/90">
                     <li><router-link to="/about" class="hover:text-white transition">Nuestra Filosofía</router-link></li>
                     <li><router-link to="/about" class="hover:text-white transition">El Equipo</router-link></li>
                     <li><router-link to="/affiliate" class="hover:text-white transition">Afiliados</router-link></li>
                 </ul>
             </div>
             <div class="col-span-1">
-                <h5 class="font-bold text-xl text-[#fbbf24] mb-4">Soporte</h5>
-                <ul class="space-y-3 text-sm text-white/80">
+                <h2 class="font-bold text-xl text-white mb-4">Soporte</h2>
+                <ul class="space-y-3 text-sm text-white/90">
                     <li><span class="text-white font-bold cursor-default">Preguntas Frecuentes</span></li>
                     <li><router-link to="/terms" class="hover:text-white transition">Términos y Condiciones</router-link></li>
                 </ul>
             </div>
         </div>
         <div class="border-t border-white/10 bg-[#9B0808] py-4 text-center">
-             <div class="text-xs text-white/60 font-medium">
+             <div class="text-xs text-white/90 font-medium">
                 &copy; {{ currentYear }} FoodRush Inc. Todos los derechos reservados.
             </div>
         </div>
@@ -574,8 +583,6 @@ const buildSupportReply = async (userMessage) => {
 </template>
 
 <style scoped>
-@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&family=Titan+One&display=swap');
 
 .font-sans { font-family: 'Nunito', sans-serif; }
 .font-display { font-family: 'Titan One', cursive; }
@@ -593,6 +600,11 @@ const buildSupportReply = async (userMessage) => {
 }
 .chat-pulse { animation: pulse-border 2.5s infinite; }
 
+.support-pattern {
+    background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.85) 1px, transparent 0);
+    background-size: 20px 20px;
+}
+
 .scroll-animate {
     opacity: 0;
     transform: translateY(40px) scale(0.98);
@@ -604,16 +616,16 @@ const buildSupportReply = async (userMessage) => {
     transform: translateY(0) scale(1);
 }
 
-.fade-in-up { 
-    opacity: 0; 
+.fade-in-up {
+    opacity: 0;
     transform: translateY(30px);
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeInUp {
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 </style>

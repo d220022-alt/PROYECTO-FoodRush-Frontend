@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Validacion de telefonos. Mantiene un criterio unico en registro y perfil.
   Buscar en VS Code: telefono dominicano, validacion, formato, registro, perfil.
   Mantener estos comentarios actualizados si cambia el flujo.

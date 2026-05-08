@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Mapa operativo de administracion. Muestra pedidos activos, repartidores y seleccion en tiempo real.
   Buscar en VS Code: mapa administracion, pedidos en vivo, Leaflet, marcadores, repartidor.
   Mantener estos comentarios actualizados si cambia el flujo.

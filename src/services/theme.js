@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Estado del tema visual. Guarda preferencia claro/oscuro y la aplica al documento.
   Buscar en VS Code: modo oscuro, tema, localStorage, cliente, admin, delivery.
   Mantener estos comentarios actualizados si cambia el flujo.

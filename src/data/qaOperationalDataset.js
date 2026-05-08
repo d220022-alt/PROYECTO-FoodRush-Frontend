@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Dataset de QA para presentar flujos completos sin depender de que la DB tenga pedidos perfectos.
   Buscar en VS Code: datos QA, pedidos de prueba, graficos, administracion, delivery.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -35,12 +35,12 @@ const SAMPLE_ADDRESSES = [
 ];
 
 const SAMPLE_PRODUCTS = [
-  ['Combo firma', 'Menu estrella', 350],
+  ['Combo firma', 'Menú estrella', 350],
   ['Producto premium', 'Favorito FoodRush', 420],
   ['Bebida especial', 'Bebidas', 160],
   ['Postre de temporada', 'Postres', 220],
   ['Combo familiar', 'Combo familiar', 580],
-  ['Menu ejecutivo', 'Almuerzo rapido', 310],
+  ['Menú ejecutivo', 'Almuerzo rápido', 310],
   ['Extra popular', 'Complementos', 95],
   ['Promo express', 'Oferta activa', 260],
   ['Producto de temporada', 'Edicion limitada', 390],
