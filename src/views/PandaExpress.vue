@@ -1563,8 +1563,8 @@ onBeforeUnmount(() => {
                     sizes="(max-width: 767px) 42vw, 220px"
                     :alt="product.name"
                     class="product-media__image"
-                    :loading="idx < 4 ? 'eager' : 'lazy'"
-                    :fetchpriority="idx < 2 ? 'high' : 'auto'"
+                    loading="lazy"
+                    fetchpriority="auto"
                     decoding="async"
                   />
                 </div>
