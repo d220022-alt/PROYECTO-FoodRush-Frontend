@@ -285,9 +285,9 @@ export const franchiseConfigs = {
     heroSubtitle: "El sabor que refresca tu día",
     categories: ['Todos', "Helados", "Postres", "Combos", "Bebidas"],
     slides: [
-      "/images/slides/helados-bon-slide-1.webp",
-      "/images/slides/helados-bon-slide-2.webp",
       "/images/slides/helados-bon-slide-3.webp",
+      "/images/slides/helados-bon-slide-2.webp",
+      "/images/slides/helados-bon-slide-1.webp",
     ],
     comboPrice: 120,
     extraLabel: "Topping extra",
