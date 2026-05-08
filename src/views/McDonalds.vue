@@ -211,33 +211,44 @@ const inferCategoryFromText = (text, categories) => {
   if (!source || !Array.isArray(categories) || categories.length === 0) return '';
 
   const keywordsByCategory = {
-    hamburguesas: ['hamburguesa', 'burger', 'res', 'pollo', 'pescado', 'cerdo', 'sandwich', 'wrap'],
-    complementos: ['complemento', 'papa', 'fries', 'nugget', 'snack', 'ensalada', 'side', 'acompan'],
-    bebidas: ['bebida', 'drink', 'refresco', 'soda', 'jugo', 'frappe', 'cafe', 'coffee', 'tea'],
+    hamburguesas: ['hamburguesa', 'burger', 'sandwich', 'wrap', 'whopper', 'big mac'],
+    complementos: ['complemento', 'papa', 'papas', 'fries', 'nugget', 'snack', 'ensalada', 'side', 'acompan'],
+    bebidas: ['bebida', 'drink', 'refresco', 'soda', 'jugo', 'juice', 'frappe', 'cafe', 'coffee', 'tea', 'te'],
     postres: ['postre', 'dessert', 'helado', 'ice cream', 'sundae', 'pastel', 'cake', 'pie', 'pay', 'galleta', 'cookie'],
     pizzas: ['pizza'],
     pastas: ['pasta', 'spaghetti', 'lasagna', 'fettuccine'],
-    acompanantes: ['acompan', 'side', 'papa', 'fries', 'nugget'],
-    combos: ['combo', 'meal'],
+    acompanantes: ['acompan', 'side', 'papa', 'papas', 'fries', 'nugget', 'breadstick'],
+    combos: ['combo', 'meal', 'bucket', 'box'],
     tacos: ['taco'],
     burritos: ['burrito'],
     nachos: ['nacho'],
-    pollo: ['pollo', 'chicken'],
-    res: ['res', 'beef'],
+    pollo: ['pollo', 'chicken', 'crispy', 'tender', 'alita', 'wing'],
+    res: ['res', 'beef', 'steak'],
     'hot dogs': ['hot dog', 'hotdog', 'salchicha'],
-    donas: ['dona', 'donut'],
+    chimi: ['chimi'],
+    donas: ['dona', 'donut', 'doughnut'],
+    helados: ['helado', 'ice cream', 'sundae', 'cono'],
   };
 
-  for (const category of categories) {
-    const key = normalize(category);
-    const singular = key.endsWith('s') ? key.slice(0, -1) : key;
-    if (source.includes(key) || source.includes(singular)) return category;
+  const scored = categories
+    .map((category, index) => {
+      const key = normalize(category);
+      const singular = key.endsWith('s') ? key.slice(0, -1) : key;
+      const keywords = keywordsByCategory[key] || [];
+      let score = 0;
 
-    const keywords = keywordsByCategory[key] || [];
-    if (keywords.some((keyword) => source.includes(keyword))) return category;
-  }
+      if (source.includes(key)) score += 12;
+      if (singular && singular !== key && source.includes(singular)) score += 8;
+      keywords.forEach((keyword) => {
+        if (source.includes(keyword)) score += keyword.length > 5 ? 5 : 3;
+      });
 
-  return '';
+      return { category, index, score };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score || a.index - b.index);
+
+  return scored[0]?.category || '';
 };
 
 const getDefaultCategory = (categories = []) => {
@@ -487,14 +498,48 @@ const visibleProducts = computed(() =>
 );
 
 const buildModifiersForProduct = (product) => {
-  const base = getModifiersForCategory(`${product.category} ${product.type} ${product.name}`) || [];
-  const cloned = base.map((mod) => ({ ...mod }));
+  const productText = normalize([product.category, product.type, product.name, product.description || ''].join(' '));
+  const base = getModifiersForCategory(productText) || [];
   const brand = franchise.value || {};
   const brandSlug = normalize(brand.slug);
+  const isDrink = ['bebida', 'drink', 'refresco', 'soda', 'jugo', 'juice', 'cafe', 'coffee', 'frappe', 'te'].some((word) => productText.includes(word));
+  const isCoffee = ['cafe', 'coffee', 'latte', 'capuccino', 'cappuccino', 'espresso', 'frappe', 'te', 'chai'].some((word) => productText.includes(word));
+  const isPizza = productText.includes('pizza');
+  const isMexican = ['taco', 'burrito', 'nacho'].some((word) => productText.includes(word));
+  const isFixedProtein = ['pollo', 'chicken', 'pescado', 'fish', 'veggie', 'vegetar'].some((word) => productText.includes(word));
+
+  const labelTokens = (label) => normalize(label)
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token && !['extra', 'extras', 'agregar', 'hacer', 'con', 'de', 'del', 'la', 'el', 'version'].includes(token));
+
+  const hasSimilarLabel = (list, label) => {
+    const targetTokens = labelTokens(label);
+    if (targetTokens.length === 0) return false;
+    return list.some((mod) => {
+      const currentTokens = labelTokens(mod.label);
+      if (currentTokens.length === 0) return false;
+      const shared = targetTokens.filter((token) => currentTokens.includes(token));
+      return shared.length > 0 && (targetTokens.length <= 2 || shared.length >= 2);
+    });
+  };
+
+  const shouldKeepModifier = (mod) => {
+    const key = normalize([mod.id, mod.label].join(' '));
+    if (mod.id === 'milk' && !isCoffee) return false;
+    if (mod.id === 'ice' && !isDrink) return false;
+    if (mod.id === 'crust' && !isPizza) return false;
+    if (mod.id === 'shell' && !isMexican) return false;
+    if (mod.id === 'meat' && isFixedProtein && !isMexican) return false;
+    if (key.includes('sirope') && !isCoffee && !productText.includes('helado') && !productText.includes('postre')) return false;
+    return true;
+  };
+
+  const cloned = base.filter(shouldKeepModifier).map((mod) => ({ ...mod }));
 
   const ensureModifier = (candidate) => {
     if (!candidate || !candidate.id) return;
     if (cloned.some((mod) => mod.id === candidate.id)) return;
+    if (hasSimilarLabel(cloned, candidate.label)) return;
     cloned.push(candidate);
   };
 
@@ -503,40 +548,11 @@ const buildModifiersForProduct = (product) => {
       if (brand.comboLabel) mod.label = brand.comboLabel;
       if (brand.comboPrice !== undefined && brand.comboPrice !== null) mod.price = brand.comboPrice;
     }
-    if (mod.id === 'extra') {
-      if (brand.extraLabel) mod.label = brand.extraLabel;
-      if (brand.extraPrice !== undefined && brand.extraPrice !== null) mod.price = brand.extraPrice;
-      mod.isBrand = true;
-    }
-    if (mod.id === 'premium') {
-      if (brand.premiumLabel) mod.label = brand.premiumLabel;
-      if (brand.premiumPrice !== undefined && brand.premiumPrice !== null) mod.price = brand.premiumPrice;
-      mod.isBrand = true;
-    }
-    if (mod.id === 'large') {
-      if (brand.largeLabel) mod.label = brand.largeLabel;
-      if (brand.largePrice !== undefined && brand.largePrice !== null) mod.price = brand.largePrice;
-      mod.isBrand = true;
-    }
   });
 
   if (brandSlug === 'mcdonalds' && normalize(product.category).includes('hamburg')) {
-    ensureModifier({
-      id: 'lettuce',
-      label: 'Lechuga Extra',
-      type: 'counter',
-      max: 2,
-      price: 15,
-      isBrand: true,
-    });
-    ensureModifier({
-      id: 'pickles',
-      label: 'Pepinillos Extra',
-      type: 'counter',
-      max: 3,
-      price: 15,
-      isBrand: true,
-    });
+    ensureModifier({ id: 'lettuce', label: 'Lechuga extra', type: 'counter', max: 2, price: 15, isBrand: true });
+    ensureModifier({ id: 'pickles', label: 'Pepinillos extra', type: 'counter', max: 3, price: 15, isBrand: true });
   }
 
   const hasSize = cloned.some((mod) => mod.id === 'size' && mod.type === 'choice');
@@ -547,15 +563,11 @@ const buildModifiersForProduct = (product) => {
     const large = Math.max(1, Math.round(basePrice * 1.3));
     cloned.unshift({
       id: 'size',
-      label: 'tamaño',
+      label: 'Tamano',
       type: 'choice',
-      options: ['Pequeño', 'Mediano', 'Grande'],
+      options: ['Pequeno', 'Mediano', 'Grande'],
       default: 'Mediano',
-      priceOptions: {
-        Pequeño: small - basePrice,
-        Mediano: medium - basePrice,
-        Grande: large - basePrice,
-      },
+      priceOptions: { Pequeno: small - basePrice, Mediano: medium - basePrice, Grande: large - basePrice },
     });
   }
 
@@ -565,14 +577,10 @@ const buildModifiersForProduct = (product) => {
   const addBrandToggle = (key, label, price, skipWhenSize = false) => {
     if (!label) return;
     if (skipWhenSize && hasSizeAfter) return;
-    if (cloned.some((mod) => mod.id === key)) return;
-    brandExtras.push({
-      id: key,
-      label,
-      type: 'toggle',
-      price: Number.isFinite(price) ? price : 0,
-      isBrand: true,
-    });
+    const candidate = { id: key, label, type: 'toggle', price: Number.isFinite(price) ? price : 0, isBrand: true };
+    if (cloned.some((mod) => mod.id === key) || brandExtras.some((mod) => mod.id === key)) return;
+    if (hasSimilarLabel([...cloned, ...brandExtras], label)) return;
+    brandExtras.push(candidate);
   };
 
   addBrandToggle('extra', brand.extraLabel, brand.extraPrice);
@@ -686,12 +694,15 @@ const brandModifiers = computed(() =>
 );
 
 const sizeIconClass = computed(() => {
-  if (!selectedProduct.value) return 'fa-burger';
-  const cat = normalize(selectedProduct.value.category);
-  if (cat.includes('bebida') || cat.includes('cafe') || cat.includes('frappe') || cat.includes('te')) {
-    return 'fa-glass-water';
-  }
-  if (cat.includes('helado') || cat.includes('postre')) return 'fa-ice-cream';
+  if (!selectedProduct.value) return 'fa-utensils';
+  const source = normalize([selectedProduct.value.category, selectedProduct.value.type, selectedProduct.value.name].join(' '));
+  if (source.includes('pizza')) return 'fa-pizza-slice';
+  if (source.includes('bebida') || source.includes('cafe') || source.includes('frappe') || source.includes('te') || source.includes('refresco')) return 'fa-glass-water';
+  if (source.includes('helado') || source.includes('postre') || source.includes('dona')) return 'fa-ice-cream';
+  if (source.includes('pollo') || source.includes('chicken')) return 'fa-drumstick-bite';
+  if (source.includes('hot dog') || source.includes('hotdog')) return 'fa-hotdog';
+  if (source.includes('taco') || source.includes('burrito') || source.includes('nacho')) return 'fa-pepper-hot';
+  if (source.includes('pasta')) return 'fa-bowl-food';
   return 'fa-burger';
 });
 
@@ -802,20 +813,22 @@ const getProductMediaVariant = (category, context = 'card') => {
 };
 
 const getModifierIcon = (mod) => {
-  const key = normalize(`${mod.id} ${mod.label}`);
-  if (key.includes('carne') || key.includes('meat') || key.includes('protein')) return 'fa-drumstick-bite';
+  const key = normalize([mod.id, mod.label].join(' '));
+  if (key.includes('tamano') || key.includes('size') || key.includes('grande') || key.includes('agrandar')) return 'fa-up-right-and-down-left-from-center';
+  if (key.includes('combo') || key.includes('acompan') || key.includes('side')) return 'fa-box-open';
+  if (key.includes('carne') || key.includes('meat') || key.includes('protein') || key.includes('proteina')) return 'fa-drumstick-bite';
   if (key.includes('pollo') || key.includes('chicken')) return 'fa-drumstick-bite';
   if (key.includes('queso') || key.includes('cheese')) return 'fa-cheese';
   if (key.includes('tocino') || key.includes('bacon')) return 'fa-bacon';
-  if (key.includes('lechuga') || key.includes('lettuce')) return 'fa-leaf';
+  if (key.includes('lechuga') || key.includes('lettuce') || key.includes('vegetal')) return 'fa-leaf';
   if (key.includes('pepino') || key.includes('pickle')) return 'fa-seedling';
-  if (key.includes('salsa') || key.includes('sauce') || key.includes('ketchup')) return 'fa-bottle-droplet';
-  if (key.includes('sirope') || key.includes('syrup') || key.includes('topping')) return 'fa-ice-cream';
+  if (key.includes('salsa') || key.includes('sauce') || key.includes('ketchup') || key.includes('dip')) return 'fa-bottle-droplet';
+  if (key.includes('sirope') || key.includes('syrup') || key.includes('topping') || key.includes('glaseado') || key.includes('relleno')) return 'fa-ice-cream';
   if (key.includes('hielo') || key.includes('ice')) return 'fa-snowflake';
   if (key.includes('leche') || key.includes('milk')) return 'fa-mug-hot';
-  if (key.includes('tortilla') || key.includes('shell')) return 'fa-circle';
-  if (key.includes('orilla') || key.includes('crust') || key.includes('pizza')) return 'fa-pizza-slice';
-  if (key.includes('combo') || key.includes('acompan') || key.includes('side')) return 'fa-box';
+  if (key.includes('tortilla') || key.includes('shell')) return 'fa-circle-dot';
+  if (key.includes('orilla') || key.includes('crust') || key.includes('pizza') || key.includes('masa')) return 'fa-pizza-slice';
+  if (key.includes('pan') || key.includes('bread')) return 'fa-bread-slice';
   if (key.includes('picante') || key.includes('spicy')) return 'fa-pepper-hot';
   return 'fa-sliders';
 };
@@ -3780,6 +3793,39 @@ onBeforeUnmount(() => {
   .sticky-bottom-panel {
     bottom: 0.75rem;
     padding-top: 0.25rem;
+  }
+}
+/* Mobile customization compactness fix */
+@media (max-width: 767px) {
+  .customization-panel {
+    overflow: visible !important;
+  }
+
+  .customization-row > .flex,
+  .customization-row .option-control,
+  .customization-row .selector-grid,
+  .customization-row .counter-strip,
+  .customization-row .toggle-chip {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .customization-row .option-control {
+    align-items: stretch !important;
+    justify-content: stretch !important;
+  }
+
+  .customization-row .selector-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible !important;
+  }
+
+  .customization-row .choice-chip {
+    width: 100% !important;
+    max-width: none !important;
+    justify-content: center;
+    white-space: normal !important;
   }
 }
 </style>
