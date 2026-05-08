@@ -528,7 +528,7 @@ const buildSupportReply = async (userMessage) => {
             </div>
         </div>
 
-        <button @click="isChatOpen = !isChatOpen" class="w-16 h-16 rounded-full bg-gradient-to-br from-[#BD0A0A] to-[#9B0808] text-white text-2xl flex items-center justify-center shadow-2xl hover:scale-110 transition-transform chat-pulse border-4 border-white" :aria-label="isChatOpen ? 'Cerrar chat de soporte' : 'Abrir chat de soporte'" :aria-expanded="isChatOpen ? 'true' : 'false'">
+        <button @click="isChatOpen = !isChatOpen" class="w-16 h-16 rounded-full bg-[#1a1a2e] text-white text-2xl flex items-center justify-center shadow-2xl shadow-slate-950/20 hover:bg-[#111827] hover:scale-110 transition-transform chat-pulse border-4 border-white" :aria-label="isChatOpen ? 'Cerrar chat de soporte' : 'Abrir chat de soporte'" :aria-expanded="isChatOpen ? 'true' : 'false'">
             <i class="fas" :class="isChatOpen ? 'fa-chevron-down' : 'fa-comment-dots'"></i>
         </button>
     </div>
@@ -594,9 +594,9 @@ const buildSupportReply = async (userMessage) => {
 .electric-blink { animation: electric-blink 3s infinite ease-in-out; }
 
 @keyframes pulse-border {
-    0% { box-shadow: 0 0 0 0 rgba(189, 10, 10, 0.4); }
-    70% { box-shadow: 0 0 0 20px rgba(189, 10, 10, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(189, 10, 10, 0); }
+    0% { box-shadow: 0 0 0 0 rgba(26, 26, 46, 0.4); }
+    70% { box-shadow: 0 0 0 20px rgba(26, 26, 46, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(26, 26, 46, 0); }
 }
 .chat-pulse { animation: pulse-border 2.5s infinite; }
 
