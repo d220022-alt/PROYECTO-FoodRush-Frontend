@@ -1,6 +1,6 @@
 <!--
-  Guia rápida para presentar:
-  Favoritos del cliente. Guarda franquicias o productos que quiere repetir rápido.
+  Guia rapida para presentar:
+  Favoritos del cliente. Guarda franquicias o productos que quiere repetir rapido.
   Buscar en VS Code: favoritos, localStorage, productos guardados.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
@@ -10,7 +10,12 @@ import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import {
     APP_EVENTS,
-    addCartItem,    getFavorites,    removeFavoriteItem
+    addCartItem,
+    clearCart,
+    getCartRestaurantInfo,
+    getFavorites,
+    hasCartRestaurantConflict,
+    removeFavoriteItem
 } from '../services/storage';
 import { useCurrency } from '../utils/currency';
 
@@ -31,6 +36,23 @@ const removeFavorite = (id) => {
 };
 
 const addToCart = async (item) => {
+    if (hasCartRestaurantConflict(item)) {
+        const currentRestaurant = getCartRestaurantInfo();
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Cambiar restaurante',
+            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por este nuevo pedido.`,
+            showCancelButton: true,
+            confirmButtonText: 'Reemplazar carrito',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) {
+            return;
+        }
+
+        clearCart();
+    }
 
     addCartItem({
         ...item,

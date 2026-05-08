@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Historial de pedidos del cliente. Desde aqui se vuelve al tracking de cada orden.
   Buscar en VS Code: mis pedidos, historial, cache de pedidos, tracking, fetchOperationalDataset.
   Mantener estos comentarios actualizados si cambia el flujo.

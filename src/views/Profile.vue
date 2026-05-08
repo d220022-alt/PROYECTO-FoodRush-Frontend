@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Perfil del cliente. Muestra datos guardados, direccion y acciones de cuenta.
   Buscar en VS Code: perfil, direccion, telefono, cerrar sesion, updateUser, updateSessionProfile.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -108,7 +108,7 @@ const handleLogout = () => {
     });
 };
 
-// Menú Sections
+// Menu Sections
 const menuItems = [
     { title: "Mis Favoritos", icon: "fa-solid fa-heart", route: "/favorites" },
     { title: "Métodos de Pago", icon: "fa-regular fa-credit-card", route: "/payment-methods" },

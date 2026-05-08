@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Metodos de pago guardados. Deja preparada la UI para pagos sin tocar datos sensibles.
   Buscar en VS Code: metodos de pago, efectivo, tarjeta, paypal, preferred payment.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
       <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
         <i class="fa-regular fa-credit-card text-2xl"></i>
       </div>
-      <p class="text-gray-500 font-medium">Aún no tienes métodos guardados.</p>
+      <p class="text-gray-500 font-medium">Aun no tienes metodos guardados.</p>
     </div>
   </div>
 

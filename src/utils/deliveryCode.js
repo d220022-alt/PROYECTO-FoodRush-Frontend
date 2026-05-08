@@ -1,5 +1,5 @@
 /*
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Genera y normaliza el codigo que conecta al cliente con el repartidor al entregar.
   Buscar en VS Code: codigo de entrega, confirmacion cliente, delivery.
   Mantener estos comentarios actualizados si cambia el flujo.

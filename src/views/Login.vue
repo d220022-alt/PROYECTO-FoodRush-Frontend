@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Entrada de usuarios. Maneja login, registro, autodeteccion de zona y redireccion por rol.
   Buscar en VS Code: login, registro, usuario o correo, api.login, api.register, zona, redireccion por rol.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -434,6 +434,8 @@ const handleRegister = async () => {
 
 <style scoped>
 /* --- VARIABLES Y FUENTES --- */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Titan+One&display=swap');
+
 .login-body {
     font-family: 'Nunito', sans-serif;
     height: 100vh;
@@ -461,7 +463,7 @@ const handleRegister = async () => {
     position: absolute;
     top: 0; left: 0;
     width: 200%; height: 200%;
-    background-image: url('../assets/images/hero-bg-compact.webp');
+    background-image: url('https://img.freepik.com/free-vector/fast-food-seamless-pattern-vector-junk-food-design_53876-160459.jpg');
     background-size: 350px;
     opacity: 0.08;
     z-index: 1;

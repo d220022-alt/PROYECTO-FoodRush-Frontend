@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Flujo de pago y entrega. El cliente confirma direccion, metodo de entrega y crea el pedido.
   Buscar en VS Code: checkout, pago, delivery, pickup, ubicacion real, crear pedido, tracking, api.createOrder.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -129,16 +129,6 @@ const hasSavedPayPal = computed(() => Boolean(savedPayPalAccount.value?.email));
 const cartCount = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (Number(item.qty) || 0), 0)
 );
-
-const cartTenantIds = computed(() =>
-  [...new Set(cartItems.value.map((item) => String(item.tenantId || item.tenant_id || '').trim()).filter(Boolean))]
-);
-
-const cartFranchiseNames = computed(() =>
-  [...new Set(cartItems.value.map((item) => String(item.place || item.restaurantName || item.franchiseSlug || '').trim()).filter(Boolean))]
-);
-
-const isMultiFranchiseCart = computed(() => cartFranchiseNames.value.length > 1 || cartTenantIds.value.length > 1);
 
 const subtotal = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 0), 0)
@@ -537,40 +527,29 @@ const resolveClientId = async (identity) => {
 
 // Para presentar: convierte items del carrito a productos reales del backend cuando es posible.
 const resolveRemoteOrderItems = async () => {
-  const productsByTenant = new Map();
+  const tenantHeaders = resolveTenantHeaders();
+  const productsResponse = await api.getProducts({ limit: 300 }, tenantHeaders);
 
-  const loadProductsForTenant = async (tenantId) => {
-    const normalizedTenantId = String(tenantId || resolveTenantId());
-    if (productsByTenant.has(normalizedTenantId)) return productsByTenant.get(normalizedTenantId);
+  if (productsResponse?.success === false) {
+    throw new Error(productsResponse.message || 'No se pudo validar el catalogo del restaurante.');
+  }
 
-    const headers = { 'X-Tenant-ID': normalizedTenantId };
-    const productsResponse = await api.getProducts({ limit: 300, tenant_id: normalizedTenantId }, headers);
+  const remoteProducts = Array.isArray(productsResponse?.data) ? productsResponse.data : [];
+  const productsById = new Map(remoteProducts.map((product) => [String(product.id), product]));
 
-    if (productsResponse?.success === false) {
-      throw new Error(productsResponse.message || `No se pudo validar el catalogo de la franquicia ${normalizedTenantId}.`);
-    }
+  const missingItems = cartItems.value.filter((item) => !productsById.has(String(item.id)));
+  if (missingItems.length > 0) {
+    throw new Error(
+      `Hay productos que no existen en el backend: ${missingItems.map((item) => item.name).join(', ')}.`,
+    );
+  }
 
-    const remoteProducts = Array.isArray(productsResponse?.data) ? productsResponse.data : [];
-    const productsById = new Map(remoteProducts.map((product) => [String(product.id), product]));
-    productsByTenant.set(normalizedTenantId, productsById);
-    return productsById;
-  };
-
-  const validatedItems = [];
-
-  for (const item of cartItems.value) {
-    const itemTenantId = String(item.tenantId || item.tenant_id || resolveTenantId());
-    const productsById = await loadProductsForTenant(itemTenantId);
+  return cartItems.value.map((item) => {
     const remoteProduct = productsById.get(String(item.id));
-
-    if (!remoteProduct) {
-      throw new Error(`El producto ${item.name} no existe en el catalogo remoto de ${item.place || 'su franquicia'}.`);
-    }
-
     const remotePrice = Number.parseFloat(remoteProduct?.precio ?? remoteProduct?.price ?? item.price);
     const cartPrice = Number.parseFloat(item.price);
 
-    validatedItems.push({
+    return {
       ...item,
       id: remoteProduct?.id ?? item.id,
       price: Number.isFinite(cartPrice) && cartPrice > 0
@@ -579,12 +558,9 @@ const resolveRemoteOrderItems = async () => {
       qty: Number(item.qty),
       nombre: remoteProduct?.nombre || remoteProduct?.name || item.name,
       detalles: item.details,
-      tenant_id: itemTenantId,
-      tenantId: itemTenantId,
-    });
-  }
-
-  return validatedItems;
+      tenant_id: item.tenantId || resolveTenantId(),
+    };
+  });
 };
 
 const normalizeOrderItemForPayload = (item = {}) => {
@@ -646,9 +622,6 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       cliente_id: clientId,
       total: orderTotal,
       tenant_id: resolveTenantId(),
-      tenant_ids: cartTenantIds.value,
-      franquicias: cartFranchiseNames.value,
-      multi_franquicia: isMultiFranchiseCart.value,
       direccion_entrega: deliveryAddress,
       notas: deliveryNotes,
       estado_id: 'pendiente',
@@ -1297,7 +1270,7 @@ onBeforeUnmount(() => {
           </div>
 
           <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg flex items-center justify-between text-white overflow-hidden relative group">
-            <div class="checkout-card-pattern absolute inset-0 opacity-10"></div>
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
             <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors duration-500"></div>
             <div class="relative z-10">
               <h2 class="text-sm font-bold text-gray-300 mb-1 uppercase tracking-widest">Método de Pago</h2>
@@ -1335,10 +1308,6 @@ onBeforeUnmount(() => {
               </div>
             </a>
 
-            <div v-if="isMultiFranchiseCart" class="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-700">
-              Pedido combinado: puedes pagar productos de {{ cartFranchiseNames.length }} franquicias en este mismo carrito.
-            </div>
-
             <div v-if="cartItems.length === 0" class="text-center py-8 text-gray-400 text-sm">
               Tu carrito está vacío.<br />
               <a @click.prevent="router.push('/')" class="text-slate-800 font-bold hover:underline cursor-pointer">Ir a comprar</a>
@@ -1350,7 +1319,6 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex-grow">
                   <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">{{ item.name }}</p>
-                  <p v-if="item.place || item.franchiseSlug" class="text-[10px] font-black uppercase tracking-wide text-orange-500">{{ item.place || item.franchiseSlug }}</p>
                   <p class="text-xs text-gray-500 font-medium mt-0.5">Cant: <span class="bg-gray-100 text-slate-700 font-bold px-1.5 py-0.5 rounded ml-1">{{ item.qty }}</span></p>
                 </div>
                 <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-red-50 group-hover:text-red-600 transition-colors">{{ formatCurrency(item.price * item.qty) }}</span>
@@ -1749,6 +1717,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
 .checkout-page {
   font-family: 'Poppins', sans-serif;
   background-color: #FAFAF5; /* bg-cream from Home */
@@ -1794,11 +1764,6 @@ onBeforeUnmount(() => {
   padding: 24px;
   position: relative;
   overflow: hidden;
-}
-
-.checkout-card-pattern {
-  background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, 0.18) 50%, rgba(255, 255, 255, 0.18) 75%, transparent 75%, transparent);
-  background-size: 22px 22px;
 }
 
 .mode-btn-active {

@@ -4,15 +4,18 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import Swal from 'sweetalert2';
 import { api } from '../services/api';
-import starbucksLogo from '../assets/images/logo-starbucks-compact.webp';
-import { getProductImage, getResponsiveImageSrcset, resolveProductImage } from '../utils/productImages';
+import starbucksLogo from '../assets/images/logo-starbucks.png';
+import { getProductImage, resolveProductImage } from '../utils/productImages';
 import {
     APP_EVENTS,
     addCartItem,
+    clearCart,
     getCartCount,
+    getCartRestaurantInfo,
     getFavorites,
     getSession,
     getUnreadNotificationsCount,
+    hasCartRestaurantConflict,
     toggleFavoriteItem
 } from '../services/storage';
 
@@ -66,9 +69,9 @@ const catalogMotionKey = ref(0);
 const currentSlide = ref(0);
 let slideInterval = null;
 const slides = [
-    '/images/slides/starbucks-slide-1.webp',
-    '/images/slides/starbucks-slide-2.webp',
-    '/images/slides/starbucks-slide-3.webp'
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1600&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1600&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1600&auto=format&fit=crop'
 ];
 
 const normalizeText = (value = '') => String(value)
@@ -77,7 +80,7 @@ const normalizeText = (value = '') => String(value)
     .toLowerCase()
     .trim();
 
-const ALLOWED_CATEGORIES = ['Bebidas', 'Comida', 'Café en Casa'];
+const ALLOWED_CATEGORIES = ['Bebidas', 'Comida', 'Cafe en Casa'];
 
 const TYPE_FILTER_SYNONYMS = {
     caliente: ['caliente', 'hot'],
@@ -100,9 +103,9 @@ const TYPE_FILTER_CATEGORY_SCOPE = {
     sandwich: ['Comida'],
     panaderia: ['Comida'],
     dulce: ['Comida'],
-    grano: ['Café en Casa'],
-    molido: ['Café en Casa'],
-    capsulas: ['Café en Casa']
+    grano: ['Cafe en Casa'],
+    molido: ['Cafe en Casa'],
+    capsulas: ['Cafe en Casa']
 };
 
 const normalizeTypeKey = (value = '') => {
@@ -128,7 +131,7 @@ const inferMcCategory = (rawCategory, name, description, rawType = '') => {
     const source = normalizeText(`${rawCategory} ${rawType} ${name} ${description}`);
 
     if (!source) return '';
-    if (source.includes('cafe en casa') || source.includes('home coffee') || source.includes('whole bean') || source.includes('ground coffee') || source.includes('capsula') || source.includes('capsule') || source.includes('pod') || source.includes('k-cup') || source.includes('en grano') || source.includes('grano') || source.includes('beans') || source.includes('molido')) return 'Café en Casa';
+    if (source.includes('cafe en casa') || source.includes('home coffee') || source.includes('whole bean') || source.includes('ground coffee') || source.includes('capsula') || source.includes('capsule') || source.includes('pod') || source.includes('k-cup') || source.includes('en grano') || source.includes('grano') || source.includes('beans') || source.includes('molido')) return 'Cafe en Casa';
     if (source.includes('comida') || source.includes('food') || source.includes('sandwich') || source.includes('panini') || source.includes('bagel') || source.includes('croissant') || source.includes('muffin') || source.includes('cookie') || source.includes('brownie') || source.includes('cake')) return 'Comida';
     if (source.includes('bebida') || source.includes('drink') || source.includes('coffee') || source.includes('latte') || source.includes('cappuccino') || source.includes('americano') || source.includes('macchiato') || source.includes('frappuccino') || source.includes('frappe') || source.includes('cold brew') || source.includes('refresher') || source.includes('tea') || source.includes('te ')) return 'Bebidas';
     return '';
@@ -140,22 +143,22 @@ const inferMcType = (category, name, description, rawType = '') => {
     if (category === 'Bebidas') {
         if (source.includes('frappuccino') || source.includes('frappe')) return 'Frappuccino';
         if (source.includes('chai') || source.includes('tea') || source.includes('te ')) return 'Te';
-        if (source.includes('cold') || source.includes('frio') || source.includes('iced') || source.includes('helado')) return 'Frío';
+        if (source.includes('cold') || source.includes('frio') || source.includes('iced') || source.includes('helado')) return 'Frio';
         return 'Caliente';
     }
 
     if (category === 'Comida') {
-        if (source.includes('sandwich') || source.includes('panini') || source.includes('bagel')) return 'Sándwich';
+        if (source.includes('sandwich') || source.includes('panini') || source.includes('bagel')) return 'Sandwich';
         if (source.includes('muffin') || source.includes('cookie') || source.includes('brownie') || source.includes('cake')) return 'Dulce';
-        return 'Panadería';
+        return 'Panaderia';
     }
 
-    if (category === 'Café en Casa') {
-        if (source.includes('capsula') || source.includes('capsule') || source.includes('pod') || source.includes('k-cup')) return 'Cápsulas';
+    if (category === 'Cafe en Casa') {
+        if (source.includes('capsula') || source.includes('capsule') || source.includes('pod') || source.includes('k-cup')) return 'Capsulas';
         if (source.includes('grano') || source.includes('beans') || source.includes('whole bean')) return 'Grano';
         if (source.includes('molido') || source.includes('ground')) return 'Molido';
         const normalizedRawType = normalizeTypeKey(rawType);
-        if (normalizedRawType === 'capsulas') return 'Cápsulas';
+        if (normalizedRawType === 'capsulas') return 'Capsulas';
         if (normalizedRawType === 'grano') return 'Grano';
         if (normalizedRawType === 'molido') return 'Molido';
         return 'Molido';
@@ -221,7 +224,7 @@ const selectedProductTypeKey = computed(() => normalizeTypeKey(selectedProduct.v
 const availableSizes = computed(() => {
     const category = selectedProduct.value?.category;
     if (category === 'Comida') return ['Simple', 'Combo', 'Grande'];
-    if (category === 'Café en Casa') {
+    if (category === 'Cafe en Casa') {
         return selectedProductTypeKey.value === 'capsulas'
             ? ['Caja x10', 'Caja x20', 'Caja x30']
             : ['250g', '500g', '1kg'];
@@ -238,7 +241,7 @@ const sizeInfo = computed(() => {
         if (currentSize.value === 'Tall') {
             return {
                 title: 'Tall',
-                description: 'Ideal para una pausa rápida con el sabor clásico de Starbucks.',
+                description: 'Ideal para una pausa rapida con el sabor clasico de Starbucks.',
                 note: 'Recomendado si quieres algo ligero.'
             };
         }
@@ -246,12 +249,12 @@ const sizeInfo = computed(() => {
             return {
                 title: 'Grande',
                 description: 'Balance perfecto entre intensidad, volumen y precio.',
-                note: 'Es el tamaño más pedido.'
+                note: 'Es el tamano mas pedido.'
             };
         }
         return {
             title: 'Venti',
-            description: 'Versión grande para quienes quieren más café o bebida fría.',
+            description: 'Version grande para quienes quieren mas cafe o bebida fria.',
             note: 'Ideal para jornadas largas.'
         };
     }
@@ -260,7 +263,7 @@ const sizeInfo = computed(() => {
         if (currentSize.value === 'Simple') {
             return {
                 title: 'Simple',
-                description: 'Porción individual para un snack rápido.',
+                description: 'Porcion individual para un snack rapido.',
                 note: 'Perfecto para acompanar una bebida.'
             };
         }
@@ -274,27 +277,27 @@ const sizeInfo = computed(() => {
         return {
             title: 'Grande',
             description: 'Mas cantidad para compartir o para mayor apetito.',
-            note: 'Opción con mejor volumen.'
+            note: 'Opcion con mejor volumen.'
         };
     }
 
     if (selectedProductTypeKey.value === 'capsulas') {
         return {
             title: currentSize.value,
-            description: 'Compatible con cafeteras de cápsulas según disponibilidad.',
+            description: 'Compatible con cafeteras de capsulas segun disponibilidad.',
             note: 'Elige intensidad segun tu preferencia.'
         };
     }
 
     return {
         title: currentSize.value,
-        description: 'Café para preparar en casa, ideal para método filtrado o espresso.',
+        description: 'Cafe para preparar en casa, ideal para metodo filtrado o espresso.',
         note: 'Puedes ajustar molienda y tueste antes de agregar.'
     };
 });
 
 const sweetenerLabel = computed(() => {
-    if (sweetenerLevel.value <= 10) return 'Sin azúcar';
+    if (sweetenerLevel.value <= 10) return 'Sin azucar';
     if (sweetenerLevel.value <= 45) return 'Bajo';
     if (sweetenerLevel.value <= 75) return 'Normal';
     return 'Alto';
@@ -303,7 +306,7 @@ const sweetenerLabel = computed(() => {
 const customizationSummary = computed(() => {
     if (!selectedProduct.value) return [];
 
-    const lines = [`Tamaño: ${currentSize.value}`];
+    const lines = [`Tamano: ${currentSize.value}`];
 
     if (selectedProduct.value.category === 'Bebidas') {
         lines.push(`Leche: ${milkOption.value}`);
@@ -313,11 +316,11 @@ const customizationSummary = computed(() => {
     }
 
     if (selectedProduct.value.category === 'Comida') {
-        lines.push(`Calentar: ${warmFood.value ? 'Sí' : 'No'}`);
+        lines.push(`Calentar: ${warmFood.value ? 'Si' : 'No'}`);
         if (sideSauceQty.value > 0) lines.push(`Salsas extra: ${sideSauceQty.value}`);
     }
 
-    if (selectedProduct.value.category === 'Café en Casa') {
+    if (selectedProduct.value.category === 'Cafe en Casa') {
         if (selectedProductTypeKey.value === 'capsulas') lines.push(`Intensidad: ${capsuleIntensity.value}`);
         else {
             lines.push(`Molienda: ${grindOption.value}`);
@@ -363,7 +366,7 @@ const setRoastOption = (value) => {
 const milkInfoText = computed(() => {
     const info = {
         Entera: 'Leche clasica y cremosa. Mantiene el sabor original de la bebida.',
-        Deslactosada: 'Versión más ligera para mejor digestión, sin perder cremosidad.',
+        Deslactosada: 'Version mas ligera para mejor digestion, sin perder cremosidad.',
         Avena: 'Alternativa vegetal suave y ligeramente dulce. Puede sumar costo extra.',
         Almendra: 'Alternativa vegetal con sabor tostado y cuerpo ligero. Puede sumar costo extra.'
     };
@@ -371,22 +374,22 @@ const milkInfoText = computed(() => {
 });
 
 const temperatureInfoText = computed(() =>
-    tempOption.value === 'Frío'
-        ? 'Servido frío para una experiencia más refrescante.'
-        : 'Servido caliente para resaltar aroma y cuerpo del café.'
+    tempOption.value === 'Frio'
+        ? 'Servido frio para una experiencia mas refrescante.'
+        : 'Servido caliente para resaltar aroma y cuerpo del cafe.'
 );
 
 const sweetenerInfoText = computed(() => {
-    if (sweetenerLevel.value <= 10) return 'Sin azúcar: sabor más puro del café.';
-    if (sweetenerLevel.value <= 45) return 'Dulzor bajo: balance entre café y toque dulce.';
+    if (sweetenerLevel.value <= 10) return 'Sin azucar: sabor mas puro del cafe.';
+    if (sweetenerLevel.value <= 45) return 'Dulzor bajo: balance entre cafe y toque dulce.';
     if (sweetenerLevel.value <= 75) return 'Dulzor normal: nivel recomendado para la mayoria.';
-    return 'Dulzor alto: sabor más dulce y suave al paladar.';
+    return 'Dulzor alto: sabor mas dulce y suave al paladar.';
 });
 
 const shotInfoText = computed(() =>
     extraShotQty.value > 0
-        ? `Llevas ${extraShotQty.value} shot(s) extra para mayor intensidad y cafeína.`
-        : 'Puedes agregar shots extra para un sabor más intenso.'
+        ? `Llevas ${extraShotQty.value} shot(s) extra para mayor intensidad y cafeina.`
+        : 'Puedes agregar shots extra para un sabor mas intenso.'
 );
 
 const warmFoodInfoText = computed(() =>
@@ -404,7 +407,7 @@ const sauceInfoText = computed(() =>
 const capsuleIntensityInfoText = computed(() => {
     const info = {
         Suave: 'Perfil ligero y aromático, ideal para sabores delicados.',
-        Medio: 'Balance entre cuerpo y aroma, opción más versátil.',
+        Medio: 'Balance entre cuerpo y aroma, opcion mas versatil.',
         Intenso: 'Sabor fuerte y profundo para quienes prefieren mayor potencia.'
     };
     return info[capsuleIntensity.value] || '';
@@ -412,7 +415,7 @@ const capsuleIntensityInfoText = computed(() => {
 
 const grindInfoText = computed(() => {
     const info = {
-        Molido: 'Listo para preparar directamente en cafetera o método filtrado.',
+        Molido: 'Listo para preparar directamente en cafetera o metodo filtrado.',
         'En grano': 'Ideal para moler al momento y conservar mejor el aroma.'
     };
     return info[grindOption.value] || '';
@@ -420,9 +423,9 @@ const grindInfoText = computed(() => {
 
 const roastInfoText = computed(() => {
     const info = {
-        Suave: 'Tueste claro: notas más ácidas y aromáticas.',
+        Suave: 'Tueste claro: notas mas acidas y aromaticas.',
         Medio: 'Tueste equilibrado: sabor balanceado y cuerpo medio.',
-        Oscuro: 'Tueste intenso: sabor más fuerte y notas tostadas.'
+        Oscuro: 'Tueste intenso: sabor mas fuerte y notas tostadas.'
     };
     return info[roastOption.value] || '';
 });
@@ -445,38 +448,38 @@ const sidebarConfig = computed(() => {
         return {
             typeLabel: 'Filtros (Todos)',
             types: [
-                { key: 'Caliente', label: 'Café Caliente' },
-                { key: 'Frío', label: 'Café Frío' },
+                { key: 'Caliente', label: 'Cafe Caliente' },
+                { key: 'Frio', label: 'Cafe Frio' },
                 { key: 'Frappuccino', label: 'Frappuccino' },
-                { key: 'Te', label: 'Té / Chai' },
-                { key: 'Sándwich', label: 'Sándwiches' },
-                { key: 'Panaderia', label: 'Panadería' },
+                { key: 'Te', label: 'Te / Chai' },
+                { key: 'Sandwich', label: 'Sandwiches' },
+                { key: 'Panaderia', label: 'Panaderia' },
                 { key: 'Dulce', label: 'Postres / Dulces' },
-                { key: 'Grano', label: 'Café en Grano' },
-                { key: 'Molido', label: 'Café Molido' },
-                { key: 'Cápsulas', label: 'Cápsulas' }
+                { key: 'Grano', label: 'Cafe en Grano' },
+                { key: 'Molido', label: 'Cafe Molido' },
+                { key: 'Capsulas', label: 'Capsulas' }
             ],
             showExtra: true,
-            extraLabel: 'Sin Azúcar'
+            extraLabel: 'Sin Azucar'
         };
     } else if (currentCategory.value === 'Bebidas') {
         return {
             typeLabel: 'Tipo de Bebida',
             types: [
                 { key: 'Caliente', label: 'Caliente' },
-                { key: 'Frío', label: 'Frío' },
+                { key: 'Frio', label: 'Frio' },
                 { key: 'Frappuccino', label: 'Frappuccino' },
-                { key: 'Te', label: 'Té / Chai' }
+                { key: 'Te', label: 'Te / Chai' }
             ],
             showExtra: true,
-            extraLabel: 'Sin Azúcar'
+            extraLabel: 'Sin Azucar'
         };
     } else if (currentCategory.value === 'Comida') {
         return {
             typeLabel: 'Tipo',
             types: [
-                { key: 'Sándwich', label: 'Sándwiches' },
-                { key: 'Panaderia', label: 'Panadería' },
+                { key: 'Sandwich', label: 'Sandwiches' },
+                { key: 'Panaderia', label: 'Panaderia' },
                 { key: 'Dulce', label: 'Postres / Dulces' }
             ],
             showExtra: false
@@ -487,7 +490,7 @@ const sidebarConfig = computed(() => {
             types: [
                 { key: 'Grano', label: 'En Grano' },
                 { key: 'Molido', label: 'Molido' },
-                { key: 'Cápsulas', label: 'Cápsulas' }
+                { key: 'Capsulas', label: 'Capsulas' }
             ],
             showExtra: false
         };
@@ -634,25 +637,25 @@ const fetchProducts = async () => {
 
 const getDefaultProducts = () => [
     // Bebidas (6)
-    { id: 101, name: "Caffe Latte", category: "Bebidas", type: "Caliente", price: 190, isExtraFeature: false, img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70", description: "Espresso con leche vaporizada y espuma suave." },
-    { id: 102, name: "Cappuccino Clásico", category: "Bebidas", type: "Caliente", price: 180, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=420&q=70", description: "Espresso intenso con espuma cremosa." },
-    { id: 103, name: "Caramel Macchiato Iced", category: "Bebidas", type: "Frío", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70", description: "Leche fría con vainilla, espresso y caramelo." },
-    { id: 104, name: "Cold Brew", category: "Bebidas", type: "Frío", price: 205, isExtraFeature: true, img: "https://images.unsplash.com/photo-1517701550927-30cf4ba1f2f6?w=420&q=70", description: "Café infusionado en frío por horas, opción sin azúcar." },
-    { id: 105, name: "Mocha Frappuccino", category: "Bebidas", type: "Frappuccino", price: 245, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=420&q=70", description: "Bebida frappé de café y chocolate con crema batida." },
-    { id: 106, name: "Chai Tea Latte", category: "Bebidas", type: "Té", price: 210, isExtraFeature: false, img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=420&q=70", description: "Té chai especiado mezclado con leche caliente." },
+    { id: 101, name: "Caffe Latte", category: "Bebidas", type: "Caliente", price: 190, isExtraFeature: false, img: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80", description: "Espresso con leche vaporizada y espuma suave." },
+    { id: 102, name: "Cappuccino Clasico", category: "Bebidas", type: "Caliente", price: 180, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80", description: "Espresso intenso con espuma cremosa." },
+    { id: 103, name: "Caramel Macchiato Iced", category: "Bebidas", type: "Frio", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80", description: "Leche fría con vainilla, espresso y caramelo." },
+    { id: 104, name: "Cold Brew", category: "Bebidas", type: "Frio", price: 205, isExtraFeature: true, img: "https://images.unsplash.com/photo-1517701550927-30cf4ba1f2f6?w=500&q=80", description: "Café infusionado en frío por horas, opción sin azúcar." },
+    { id: 105, name: "Mocha Frappuccino", category: "Bebidas", type: "Frappuccino", price: 245, isExtraFeature: false, img: "https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=500&q=80", description: "Bebida frappé de café y chocolate con crema batida." },
+    { id: 106, name: "Chai Tea Latte", category: "Bebidas", type: "Te", price: 210, isExtraFeature: false, img: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=500&q=80", description: "Té chai especiado mezclado con leche caliente." },
 
     // Comida (5)
-    { id: 107, name: "Sándwich de Pavo y Queso", category: "Comida", type: "Sándwich", price: 270, isExtraFeature: false, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=420&q=70", description: "Sándwich caliente con pavo y queso derretido." },
-    { id: 108, name: "Croissant de Jamón y Queso", category: "Comida", type: "Panadería", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=420&q=70", description: "Croissant mantequilloso relleno de jamón y queso." },
-    { id: 109, name: "Bagel con Queso Crema", category: "Comida", type: "Sándwich", price: 200, isExtraFeature: false, img: "https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=420&q=70", description: "Bagel tostado con queso crema suave." },
-    { id: 110, name: "Muffin de Arándanos", category: "Comida", type: "Dulce", price: 160, isExtraFeature: true, img: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=420&q=70", description: "Muffin esponjoso, disponible versión light." },
-    { id: 111, name: "Brownie de Chocolate", category: "Comida", type: "Dulce", price: 150, isExtraFeature: false, img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=420&q=70", description: "Brownie húmedo de chocolate intenso." },
+    { id: 107, name: "Sandwich de Pavo y Queso", category: "Comida", type: "Sandwich", price: 270, isExtraFeature: false, img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=500&q=80", description: "Sandwich caliente con pavo y queso derretido." },
+    { id: 108, name: "Croissant de Jamon y Queso", category: "Comida", type: "Panaderia", price: 220, isExtraFeature: false, img: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500&q=80", description: "Croissant mantequilloso relleno de jamón y queso." },
+    { id: 109, name: "Bagel con Queso Crema", category: "Comida", type: "Sandwich", price: 200, isExtraFeature: false, img: "https://images.unsplash.com/photo-1515443961218-a51367888e4b?w=500&q=80", description: "Bagel tostado con queso crema suave." },
+    { id: 110, name: "Muffin de Arandanos", category: "Comida", type: "Dulce", price: 160, isExtraFeature: true, img: "https://images.unsplash.com/photo-1607958996333-41aef7caefaa?w=500&q=80", description: "Muffin esponjoso, disponible versión light." },
+    { id: 111, name: "Brownie de Chocolate", category: "Comida", type: "Dulce", price: 150, isExtraFeature: false, img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80", description: "Brownie húmedo de chocolate intenso." },
 
-    // Café en Casa (4)
-    { id: 112, name: "Pike Place Roast Molido", category: "Café en Casa", type: "Molido", price: 320, isExtraFeature: false, img: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=420&q=70", description: "Café molido de tueste medio para casa." },
-    { id: 113, name: "House Blend en Grano", category: "Café en Casa", type: "Grano", price: 340, isExtraFeature: false, img: "https://images.unsplash.com/photo-1494314671902-399b18174975?w=420&q=70", description: "Café en grano balanceado para preparar al momento." },
-    { id: 114, name: "Espresso Roast en Grano", category: "Café en Casa", type: "Grano", price: 360, isExtraFeature: false, img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70", description: "Tueste oscuro ideal para espresso casero." },
-    { id: 115, name: "Cápsulas Espresso", category: "Café en Casa", type: "Cápsulas", price: 420, isExtraFeature: true, img: "https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=420&q=70", description: "Cápsulas compatibles, opción descafeinada disponible." },
+    // Cafe en Casa (4)
+    { id: 112, name: "Pike Place Roast Molido", category: "Cafe en Casa", type: "Molido", price: 320, isExtraFeature: false, img: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=500&q=80", description: "Café molido de tueste medio para casa." },
+    { id: 113, name: "House Blend en Grano", category: "Cafe en Casa", type: "Grano", price: 340, isExtraFeature: false, img: "https://images.unsplash.com/photo-1494314671902-399b18174975?w=500&q=80", description: "Café en grano balanceado para preparar al momento." },
+    { id: 114, name: "Espresso Roast en Grano", category: "Cafe en Casa", type: "Grano", price: 360, isExtraFeature: false, img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80", description: "Tueste oscuro ideal para espresso casero." },
+    { id: 115, name: "Capsulas Espresso", category: "Cafe en Casa", type: "Capsulas", price: 420, isExtraFeature: true, img: "https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=500&q=80", description: "Capsulas compatibles, opción descafeinada disponible." },
 ].map(item => ({
     ...item,
     img: getSafeImage(item.img, item.name, item.category)
@@ -828,7 +831,7 @@ const openProductDetail = (product) => {
     if (product.category === 'Comida') {
         sizePrices.value = { Simple: Math.round(base * 0.85), Combo: base, Grande: Math.round(base * 1.25) };
         currentSize.value = 'Combo';
-    } else if (product.category === 'Café en Casa') {
+    } else if (product.category === 'Cafe en Casa') {
         if (productType === 'capsulas') {
             sizePrices.value = { 'Caja x10': Math.round(base * 0.7), 'Caja x20': base, 'Caja x30': Math.round(base * 1.4) };
             currentSize.value = 'Caja x20';
@@ -932,7 +935,7 @@ const updateNotificationBadge = () => {
 };
 
 const createCartItem = () => {
-    let detailsStr = `Tamaño: ${currentSize.value}`;
+    let detailsStr = `Tamano: ${currentSize.value}`;
 
     if (selectedProduct.value.category === 'Bebidas') {
         detailsStr += `, Leche: ${milkOption.value}`;
@@ -942,11 +945,11 @@ const createCartItem = () => {
     }
 
     if (selectedProduct.value.category === 'Comida') {
-        detailsStr += `, Calentar: ${warmFood.value ? 'Sí' : 'No'}`;
+        detailsStr += `, Calentar: ${warmFood.value ? 'Si' : 'No'}`;
         if (sideSauceQty.value > 0) detailsStr += `, Salsas: ${sideSauceQty.value}`;
     }
 
-    if (selectedProduct.value.category === 'Café en Casa') {
+    if (selectedProduct.value.category === 'Cafe en Casa') {
         if (selectedProductTypeKey.value === 'capsulas') {
             detailsStr += `, Intensidad: ${capsuleIntensity.value}`;
         } else {
@@ -972,6 +975,25 @@ const createCartItem = () => {
 const addToCart = async ({ silent = false } = {}) => {
     if (!selectedProduct.value) return false;
     const cartItem = createCartItem();
+
+    if (hasCartRestaurantConflict(cartItem)) {
+        const currentRestaurant = getCartRestaurantInfo();
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Cambiar restaurante',
+            text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por Starbucks.`,
+            showCancelButton: true,
+            confirmButtonText: 'Reemplazar carrito',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: bgBrand
+        });
+
+        if (!result.isConfirmed) {
+            return false;
+        }
+
+        clearCart();
+    }
 
     addCartItem(cartItem);
     updateCartBadge();
@@ -1077,16 +1099,7 @@ onBeforeUnmount(() => {
                 <div class="slider-container">
                     <div v-for="(slide, idx) in slides" :key="idx"
                          class="slide" :class="{ active: currentSlide === idx }">
-                        <img
-                            :src="slide"
-                            :srcset="getResponsiveImageSrcset(slide, [480, 900])"
-                            sizes="(max-width: 767px) 100vw, 60vw"
-                            alt="Promo Slide"
-                            class="w-full h-full object-cover object-center"
-                            :loading="idx === 0 ? 'eager' : 'lazy'"
-                            :fetchpriority="idx === 0 ? 'high' : 'auto'"
-                            decoding="async"
-                        >
+                        <img :src="slide" alt="Promo Slide" class="w-full h-full object-cover object-center">
                     </div>
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent md:hidden"></div>
@@ -1101,7 +1114,7 @@ onBeforeUnmount(() => {
 
         <div class="bg-white/95 backdrop-blur border-b border-gray-200 sticky top-[60px] md:top-[73px] z-30 shadow-sm">
             <div class="container mx-auto px-4 md:px-6 py-3 md:py-4 flex gap-3 overflow-x-auto no-scrollbar">
-                <button v-for="cat in ['Todos', 'Bebidas', 'Comida', 'Café en Casa']" :key="cat"
+                <button v-for="cat in ['Todos', 'Bebidas', 'Comida', 'Cafe en Casa']" :key="cat"
                         @click="setCategory(cat)"
                         :class="['filter-tab px-5 py-2 rounded-full font-semibold text-sm md:text-base border whitespace-nowrap', currentCategory === cat ? 'active' : 'border-gray-200 text-gray-600']">
                     {{ cat }}
@@ -1281,9 +1294,9 @@ onBeforeUnmount(() => {
 
                 <div v-if="isLoading" class="text-center py-20">
                     <div class="inline-block w-8 h-8 border-4 border-[#00704A] border-t-transparent rounded-full animate-spin"></div>
-                    <p class="text-gray-400 mt-4 font-medium">Buscando tu café...</p>
+                    <p class="text-gray-400 mt-4 font-medium">Buscando tu cafe...</p>
                 </div>
-
+                
                 <div v-else-if="visibleProducts.length === 0" class="col-span-full py-10 fade-in">
                     <div class="text-center mb-10 flex flex-col items-center">
                         <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4 border border-gray-100 shadow-sm">
@@ -1306,16 +1319,8 @@ onBeforeUnmount(() => {
                             <div class="product-media h-40 md:h-48 w-full flex items-center justify-center mb-4 relative p-2">
                                 <div class="absolute inset-0 bg-amber-100/30 rounded-full scale-0 group-hover:scale-110 transition-transform duration-500 opacity-50"></div>
                                 <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
-                                    <img
-                                        :src="product.img"
-                                        :srcset="getResponsiveImageSrcset(product.img, [160, 240, 320])"
-                                        sizes="(max-width: 767px) 42vw, 220px"
-                                        :alt="product.name"
-                                        class="product-media__image"
-                                        :loading="idx < 4 ? 'eager' : 'lazy'"
-                                        :fetchpriority="idx < 2 ? 'high' : 'auto'"
-                                        decoding="async"
-                                    >
+                                    <img :src="product.img" :alt="product.name"
+                                         class="product-media__image" loading="lazy">
                                 </div>
                             </div>
 
@@ -1342,16 +1347,8 @@ onBeforeUnmount(() => {
                         <div class="product-media h-40 md:h-48 w-full flex items-center justify-center mb-4 relative p-2">
                             <div class="absolute inset-0 bg-[#D4E9E2]/10 rounded-full scale-0 group-hover:scale-110 transition-transform duration-500 opacity-50"></div>
                             <div :class="['product-media__shell', getProductMediaVariant(product.category)]">
-                                <img
-                                    :src="product.img"
-                                    :srcset="getResponsiveImageSrcset(product.img, [160, 240, 320])"
-                                    sizes="(max-width: 767px) 42vw, 220px"
-                                    :alt="product.name"
-                                    class="product-media__image"
-                                    :loading="idx < 4 ? 'eager' : 'lazy'"
-                                    :fetchpriority="idx < 2 ? 'high' : 'auto'"
-                                    decoding="async"
-                                >
+                                <img :src="product.img" :alt="product.name"
+                                     class="product-media__image" loading="lazy">
                             </div>
                         </div>
 
@@ -1381,16 +1378,8 @@ onBeforeUnmount(() => {
                 <div class="product-detail-media relative bg-[#F6FCF9] rounded-[2.5rem] flex items-center justify-center p-8 h-80 md:h-[550px] border border-[#B8E0D2]/50 shadow-inner overflow-hidden group">
                     <div class="absolute inset-0 bg-gradient-to-tr from-[#00704A]/5 to-transparent opacity-0 group-hover:opacity-100 transition duration-700"></div>
                     <div :class="['product-detail-media__shell', getProductMediaVariant(selectedProduct.category, 'detail')]">
-                        <img
-                            :src="selectedProduct.img"
-                            :srcset="getResponsiveImageSrcset(selectedProduct.img, [420, 700])"
-                            sizes="(max-width: 767px) 88vw, 540px"
-                            :alt="selectedProduct.name"
-                            class="product-detail-media__image"
-                            loading="eager"
-                            fetchpriority="high"
-                            decoding="async"
-                        >
+                        <img :src="selectedProduct.img" :alt="selectedProduct.name"
+                             class="product-detail-media__image">
                     </div>
                 </div>
 
@@ -1402,10 +1391,10 @@ onBeforeUnmount(() => {
                         <div v-for="size in availableSizes" :key="size"
                              @click="selectSize(size)"
                              class="size-choice flex flex-col items-center gap-3 cursor-pointer group">
-                            <div :class="['w-full h-20 md:h-24 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 relative overflow-hidden',
+                            <div :class="['w-full h-20 md:h-24 rounded-2xl flex items-center justify-center border-2 transition-all duration-300 relative overflow-hidden', 
                                          currentSize === size ? 'border-[#D4E9E2] bg-[#EFF9F4] shadow-md transform -translate-y-1' : 'border-gray-100 bg-white hover:border-[#D4E9E2] hover:bg-gray-50']">
                                 <i :class="['fa-solid transition-all duration-300',
-                                           selectedProduct.category === 'Bebidas' ? 'fa-mug-hot' : selectedProduct.category === 'Café en Casa' ? 'fa-bag-shopping' : 'fa-cookie-bite',
+                                           selectedProduct.category === 'Bebidas' ? 'fa-mug-hot' : selectedProduct.category === 'Cafe en Casa' ? 'fa-bag-shopping' : 'fa-cookie-bite',
                                            currentSize === size ? 'text-[#00704A]' : 'text-gray-300 group-hover:text-gray-400',
                                            size === availableSizes[0] ? 'text-2xl' : size === availableSizes[1] ? 'text-3xl' : 'text-4xl']"></i>
                                 <div v-if="currentSize === size" class="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00704A]"></div>
@@ -1429,8 +1418,8 @@ onBeforeUnmount(() => {
                 <div class="summary-card hidden md:block">
                     <div class="summary-card__header">
                         <div>
-                            <span class="summary-card__eyebrow">Resumen rápido</span>
-                            <h4 class="summary-card__title">Tu configuración actual</h4>
+                            <span class="summary-card__eyebrow">Resumen rapido</span>
+                            <h4 class="summary-card__title">Tu configuracion actual</h4>
                         </div>
                         <span class="summary-card__badge">{{ quantityLabel }}</span>
                     </div>
@@ -1481,13 +1470,13 @@ onBeforeUnmount(() => {
 
                 <div class="studio-hero mb-6 md:mb-8">
                     <div class="studio-hero__content">
-                        <span class="studio-hero__eyebrow">Configuración en vivo</span>
+                        <span class="studio-hero__eyebrow">Configuracion en vivo</span>
                         <span class="studio-hero__label">Precio unitario</span>
                         <div class="studio-hero__price">
                             <span>{{ $money(currentUnitPrice) }}</span>
 
                         </div>
-                        <div class="studio-pill-row">
+                        <div> class="studio-pill-row">
                             <span class="studio-status-pill">{{ currentSize }}</span>
                             <span class="studio-status-pill">{{ activeCustomizationCount }} ajustes</span>
                             <span class="studio-status-pill">{{ quantityLabel }}</span>
@@ -1495,8 +1484,6 @@ onBeforeUnmount(() => {
                     </div>
                     
                 
-
-
 
                     <div class="studio-qty-panel">
                         <span class="studio-qty-panel__label">Cantidad</span>
@@ -1561,7 +1548,7 @@ onBeforeUnmount(() => {
                                 </div>
                                 <div class="option-control">
                                     <div class="selector-grid selector-grid--temp w-full">
-                                        <button v-for="opt in ['Caliente', 'Frío']" :key="opt"
+                                        <button v-for="opt in ['Caliente', 'Frio']" :key="opt"
                                                 type="button"
                                                 @click="setTempOption(opt)"
                                                 :aria-pressed="tempOption === opt"
@@ -1592,7 +1579,7 @@ onBeforeUnmount(() => {
                                 <div class="option-control">
                                     <div class="sweetness-box bg-gray-50 border border-gray-200 rounded-xl p-3 flex-1">
                                         <div class="sweetness-labels flex items-center justify-between text-[11px] font-bold text-slate-500 mb-2">
-                                            <span>Sin azúcar</span>
+                                            <span>Sin azucar</span>
                                             <span class="text-[#00704A]">{{ sweetenerLabel }}</span>
                                             <span>Alto</span>
                                         </div>
@@ -1658,7 +1645,7 @@ onBeforeUnmount(() => {
                                 </div>
                                 <div class="option-control">
                                     <div class="selector-grid selector-grid--temp w-full">
-                                        <button v-for="opt in [{label:'Sí',value:true},{label:'No',value:false}]" :key="opt.label"
+                                        <button v-for="opt in [{label:'Si',value:true},{label:'No',value:false}]" :key="opt.label"
                                                 type="button"
                                                 @click="setWarmFoodOption(opt.value)"
                                                 :aria-pressed="warmFood === opt.value"
@@ -1808,8 +1795,8 @@ onBeforeUnmount(() => {
                 <div class="summary-card mb-6 md:hidden">
                     <div class="summary-card__header">
                         <div>
-                            <span class="summary-card__eyebrow">Resumen rápido</span>
-                            <h4 class="summary-card__title">Tu configuración actual</h4>
+                            <span class="summary-card__eyebrow">Resumen rapido</span>
+                            <h4 class="summary-card__title">Tu configuracion actual</h4>
                         </div>
                         <span class="summary-card__badge">{{ quantityLabel }}</span>
                     </div>
@@ -1846,7 +1833,7 @@ onBeforeUnmount(() => {
                         </div>
                         <div class="studio-cta__actions">
                             <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
-                                <span>Añadir</span>
+                                <span>Anadir</span>
                                 <i class="fa-solid fa-cart-arrow-down"></i>
                             </button>
                             <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
@@ -1867,7 +1854,7 @@ onBeforeUnmount(() => {
                     <span class="text-[#D4E9E2] font-bold text-xl italic">Food</span>
                     <span class="text-white font-bold text-xl italic -ml-1">Rush</span>
                 </div>
-                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">El mejor café de Starbucks directo a tu puerta con FoodRush.</p>
+                <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">El mejor cafe de Starbucks directo a tu puerta con FoodRush.</p>
                 <div class="flex gap-4">
                     <a href="#" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#00704A] hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
                     <a href="#" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#00704A] hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
@@ -1901,6 +1888,7 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sora:wght@400;600;700&display=swap');
 
 body { font-family: 'Inter', sans-serif; }
 .font-heading { font-family: 'Sora', sans-serif; }
@@ -4026,7 +4014,7 @@ details > summary::-webkit-details-marker { display: none; }
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
   /* Sombra invertida para que resalte al flotar o estar pegado */
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06); 
 }
 
 .studio-cta > div {

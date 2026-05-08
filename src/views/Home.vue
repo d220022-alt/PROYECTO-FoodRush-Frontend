@@ -1,7 +1,7 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Pantalla principal del cliente. Reune busqueda, filtros, ofertas y tarjetas de franquicias.
-  Buscar en VS Code: home, inicio, busqueda, categorías, ofertas, filtros, franquicias, goToFranchise.
+  Buscar en VS Code: home, inicio, busqueda, categorias, ofertas, filtros, franquicias, goToFranchise.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -9,25 +9,24 @@ import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
 import { api } from '../services/api';
 import { useRouter } from 'vue-router';
 import { APP_EVENTS, clearSession, getCartCount, getSession, getUnreadNotificationsCount } from '../services/storage';
-import { getResponsiveImageSrcset } from '../utils/productImages';
 
 // Image Imports
-import heroBg from '@/assets/images/hero-bg-compact.webp';
-import logoStarbucks from '@/assets/images/logo-starbucks-compact.webp';
-import logoMcDonalds from '@/assets/images/logo-mcdonalds-compact.webp';
-import logoKFC from '@/assets/images/logo-kfc-compact.webp';
-import logoBurgerKing from '@/assets/images/logo-burgerking-compact.webp';
-import logoLittleCaesars from '@/assets/images/logo-littlecaesars-compact.webp';
-import logoDominos from '@/assets/images/logo-dominos-compact.webp';
-import logoPizzaHut from '@/assets/images/logo-pizzahut-compact.webp';
-import logoKrispyKreme from '@/assets/images/logo-krispykreme-compact.webp';
-import logoRicoHotDog from '@/assets/images/logo-ricohotdog-compact.webp';
-import logoPizzarelli from '@/assets/images/logo-pizzarelli-compact.webp';
-import logoBarraPayan from '@/assets/images/logo-barrapayan-compact.webp';
-import logoTacoBell from '@/assets/images/logo-tacobell-compact.webp';
-import logoHeladosBon from '@/assets/images/logo-heladosbon-compact.webp';
-import logoChilis from '@/assets/images/logo-chilis-compact.webp';
-import logoPandaExpress from '@/assets/images/logo-pandaexpress-compact.webp';
+import heroBg from '@/assets/images/hero-bg.png';
+import logoStarbucks from '@/assets/images/logo-starbucks.png';
+import logoMcDonalds from '@/assets/images/logo-mcdonalds.png';
+import logoKFC from '@/assets/images/logo-kfc.png';
+import logoBurgerKing from '@/assets/images/logo-burgerking.png';
+import logoLittleCaesars from '@/assets/images/logo-littlecaesars.png';
+import logoDominos from '@/assets/images/logo-dominos.png';
+import logoPizzaHut from '@/assets/images/logo-pizzahut.png';
+import logoKrispyKreme from '@/assets/images/logo-krispykreme.png';
+import logoRicoHotDog from '@/assets/images/logo-ricohotdog.png';
+import logoPizzarelli from '@/assets/images/logo-pizzarelli.png';
+import logoBarraPayan from '@/assets/images/logo-barrapayan.png';
+import logoTacoBell from '@/assets/images/logo-tacobell.png';
+import logoHeladosBon from '@/assets/images/logo-heladosbon.png';
+import logoChilis from '@/assets/images/logo-chilis.png';
+import logoPandaExpress from '@/assets/images/logo-pandaexpress.png';
 
 // State
 const franchises = ref([]);
@@ -37,9 +36,9 @@ const searchTerm = ref('');
 const currentCategory = ref('all');
 
 const OFFER_MESSAGES = [
-    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rápido sin revisar todo el menú.' },
+    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rapido sin revisar todo el menu.' },
     { title: 'Favorito FoodRush', badge: 'Popular', copy: 'Franquicias con ofertas y productos ideales para compartir.' },
-    { title: 'Delivery recomendado', badge: 'Envío ágil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
+    { title: 'Delivery recomendado', badge: 'Envio agil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
 ];
 
 const router = useRouter();
@@ -65,9 +64,9 @@ const syncSessionState = () => {
 const currentSlide = ref(0);
 let carouselInterval = null;
 const heroSlides = [
-    '/images/slides/home-slide-1.webp',
-    '/images/slides/home-slide-2.webp',
-    '/images/slides/home-slide-3.webp'
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=1470&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1543353071-873f17a7a088?q=80&w=1470&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1374&auto=format&fit=crop'
 ];
 const startCarousel = () => {
     carouselInterval = setInterval(() => {
@@ -185,11 +184,12 @@ const filteredFranchises = computed(() => {
     }
     if (searchTerm.value) {
         const term = searchTerm.value.toLowerCase();
-        result = result.filter(item =>
-            item.name.toLowerCase().includes(term) ||
+        result = result.filter(item => 
+            item.name.toLowerCase().includes(term) || 
             item.category.toLowerCase().includes(term)
         );
     }
+
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
     }
@@ -350,16 +350,7 @@ const filterResultText = computed(() => {
         <div class="relative h-full">
             <div v-for="(slide, idx) in heroSlides" :key="idx"
                  class="carousel-slide" :class="{ active: currentSlide === idx }">
-                <img
-                    :src="slide"
-                    :srcset="getResponsiveImageSrcset(slide, [480, 900])"
-                    sizes="100vw"
-                    class="w-full h-full object-cover brightness-[0.65]"
-                    :alt="'Slide ' + (idx + 1)"
-                    :loading="idx === 0 ? 'eager' : 'lazy'"
-                    :fetchpriority="idx === 0 ? 'high' : 'auto'"
-                    decoding="async"
-                >
+                <img :src="slide" class="w-full h-full object-cover brightness-[0.65]" :alt="'Slide ' + (idx + 1)">
             </div>
         </div>
 
@@ -505,7 +496,7 @@ const filterResultText = computed(() => {
                 </div>
 
                 <div class="franchise-logo-frame relative z-10 transition-transform duration-300 group-hover:scale-[1.03]">
-                    <img :src="item.img" :alt="item.name" class="franchise-logo-img" loading="lazy" decoding="async">
+                    <img :src="item.img" :alt="item.name" class="franchise-logo-img" loading="lazy">
                 </div>
 
                 <h3 class="franchise-title group-hover:text-primary">{{ item.name }}</h3>
@@ -516,20 +507,6 @@ const filterResultText = computed(() => {
                     <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
-<<<<<<< HEAD
-=======
-                <div class="mt-2 flex w-full flex-wrap items-center justify-center gap-2 border-t border-gray-50 pt-2 text-[11px] font-bold">
-                    <span v-if="item.delivery" class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-1 text-orange-600">
-                        <i class="fa-solid fa-motorcycle"></i> Delivery
-                    </span>
-                    <span v-if="item.pickup" class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-green-600">
-                        <i class="fa-solid fa-bag-shopping"></i> Retiro
-                    </span>
-                    <span v-if="item.delivery && !item.pickup" class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-slate-500">
-                        Solo delivery
-                    </span>
-                </div>
->>>>>>> 8da46559d625bb026753afa810ea9def0d4b2773
             </div>
         </div>
     </section>
@@ -612,6 +589,9 @@ const filterResultText = computed(() => {
 </template>
 
 <style scoped>
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
 
 /* ── Custom Tokens ── */
 .bg-cream { background-color: #FAFAF5; }

@@ -9,21 +9,17 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 
 const buildHtml = (scriptSrc = '/src/main.js', cssFiles = []) => `<!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/foodrush-icon.svg" />
     <link rel="apple-touch-icon" href="/foodrush-icon.svg" />
     <meta name="theme-color" content="#BD0A0A" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="FoodRush conecta clientes con franquicias de comida, carrito, pago, checkout, soporte y seguimiento de pedidos en tiempo real." />
-    <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-    <link rel="preconnect" href="https://proyecto-foodrush.onrender.com" crossorigin>
-    <link rel="preconnect" href="https://fxapi.app" crossorigin>
-    <link rel="dns-prefetch" href="https://images.unsplash.com">
-    <link rel="dns-prefetch" href="https://proyecto-foodrush.onrender.com">
-    <link rel="dns-prefetch" href="https://fxapi.app">
     <title>FoodRush | Tu Comida Favorita</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     ${cssFiles.map((fileName) => `<link rel="stylesheet" href="/${fileName}">`).join('\n    ')}
 </head>
 <body>
@@ -54,10 +50,8 @@ const virtualHtmlEntry = () => ({
     },
     generateBundle(_, bundle) {
         const entryChunk = Object.values(bundle).find((item) => item.type === 'chunk' && item.isEntry)
-        const entryCssFiles = new Set(entryChunk?.viteMetadata?.importedCss || [])
         const cssFiles = Object.values(bundle)
             .filter((item) => item.type === 'asset' && item.fileName.endsWith('.css'))
-            .filter((item) => entryCssFiles.has(item.fileName))
             .map((item) => item.fileName)
 
         this.emitFile({

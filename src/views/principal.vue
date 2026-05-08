@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Vista de Principal. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: afiliacion, landing empresa, registro de locales.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -7,9 +7,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import logoMcDonalds from '../assets/images/logo-mcdonalds-compact.webp';
-import logoKfc from '../assets/images/logo-kfc-compact.webp';
-import logoBurgerKing from '../assets/images/logo-burgerking-compact.webp';
 
 const route = useRoute();
 const router = useRouter();
@@ -17,10 +14,10 @@ const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-    { path: '/terms', label: 'Términos' },
+    { path: '/terms', label: 'Terminos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afíliate' }
+    { path: '/affiliate', label: 'Afiliate' }
 ];
 
 const handleScroll = () => {
@@ -102,7 +99,7 @@ onUnmounted(() => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
+                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
                 </span>
             </a>
 
@@ -123,7 +120,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menú
+                    Menu
                 </button>
             </div>
 
@@ -131,7 +128,7 @@ onUnmounted(() => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menú"
+                aria-label="Abrir menu"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -161,7 +158,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menú principal
+                    Ir al menu principal
                 </button>
             </div>
         </div>
@@ -169,8 +166,8 @@ onUnmounted(() => {
 
     <div id="default-carousel" class="relative w-full" data-carousel="slide">
         <div class="relative h-full overflow-hidden">
-            <div class="block duration-1000 ease-in-out" data-carousel-item="active">
-                <img src="/images/page-media/principal-1.webp" class="absolute block w-full h-full object-cover brightness-50" alt="Pizza">
+            <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
+                <img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?q=80&w=1981&auto=format&fit=crop" class="absolute block w-full h-full object-cover brightness-50" alt="Pizza">
                 <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-shadow" data-aos="zoom-in">BIENVENIDOS</h1>
                     <p class="text-xl md:text-2xl mb-8 max-w-2xl" data-aos="fade-up" data-aos-delay="200">Gestionamos tus antojos con la tecnología más rápida.</p>
@@ -178,7 +175,7 @@ onUnmounted(() => {
                 </div>
             </div>
             <div class="hidden duration-1000 ease-in-out" data-carousel-item>
-                <img src="/images/page-media/principal-2.webp" class="absolute block w-full h-full object-cover brightness-50" alt="Burger">
+                <img src="https://images.unsplash.com/photo-1544025162-d76694265947?q=80&w=1469&auto=format&fit=crop" class="absolute block w-full h-full object-cover brightness-50" alt="Burger">
                 <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
                     <h1 class="text-5xl md:text-7xl font-extrabold mb-4 text-shadow">CALIDAD PREMIUM</h1>
                     <p class="text-xl md:text-2xl mb-8 max-w-2xl">Las mejores franquicias en un solo lugar.</p>
@@ -186,7 +183,7 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-
+        
         <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer z-30" onclick="document.getElementById('marcas').scrollIntoView({behavior: 'smooth'})">
              <i class="fas fa-chevron-down text-white text-3xl"></i>
         </div>
@@ -195,14 +192,14 @@ onUnmounted(() => {
     <section id="marcas" class="py-20 bg-white">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16" data-aos="fade-up">
-                <span class="text-primary font-bold tracking-widest uppercase">Nuestros aliados</span>
+                <span class="text-primary font-bold tracking-widest uppercase">Nuestras Aliados</span>
                 <h2 class="text-4xl font-extrabold text-gray-900 mt-2">Top Franquicias</h2>
             </div>
-
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="100">
                     <div class="h-40 bg-yellow-50 flex items-center justify-center p-6">
-                        <img :src="logoMcDonalds" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/McDonald%27s_Golden_Arches.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">McDonald's</h3>
@@ -211,7 +208,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="200">
                     <div class="h-40 bg-gray-50 flex items-center justify-center p-6">
-                        <img :src="logoKfc" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/b/bf/KFC_logo.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">KFC</h3>
@@ -220,7 +217,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="300">
                     <div class="h-40 bg-blue-50 flex items-center justify-center p-6">
-                        <img :src="logoBurgerKing" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Burger_King_2020.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">Burger King</h3>
@@ -231,7 +228,7 @@ onUnmounted(() => {
         </div>
     </section>
 
-    <div class="relative bg-fixed bg-center bg-cover h-[500px] flex items-center justify-center" style="background-image: url('/images/page-media/principal-3.webp');">
+    <div class="relative bg-fixed bg-center bg-cover h-[500px] flex items-center justify-center" style="background-image: url('https://images.unsplash.com/photo-1550547660-d9450f859349?q=80&w=1920&auto=format&fit=crop');">
         <div class="absolute inset-0 bg-black bg-opacity-50"></div>
         <div class="relative z-10 p-8 glass-effect rounded-3xl max-w-3xl text-center mx-4" data-aos="zoom-in">
             <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4">Vive la experiencia FoodRush</h2>
@@ -277,9 +274,9 @@ onUnmounted(() => {
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" aria-label="Facebook de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="Twitter de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
             <div class="flex gap-16 text-sm text-left md:text-right">
@@ -301,7 +298,7 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-        <div class="border-t border-white/20 text-center py-4 text-xs text-white/90">
+        <div class="border-t border-white/20 text-center py-4 text-xs text-white/60">
             &copy; 2025 FoodRush Inc. Todos los derechos reservados.
         </div>
     </footer>
@@ -349,7 +346,7 @@ onUnmounted(() => {
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-
+        
         /* Corrección para que el slide ocupe toda la pantalla sin espacios blancos */
         #default-carousel {
             height: 100vh;
@@ -357,5 +354,5 @@ onUnmounted(() => {
             position: relative;
             z-index: 0;
         }
-
+    
 </style>

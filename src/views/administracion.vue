@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Panel operativo de administracion. Controla pedidos, catalogos, locales, alertas, mapa y metricas.
   Buscar en VS Code: administracion, dashboard, pedidos, mapa, delivery, metricas, paginacion, QA dataset.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -67,13 +67,13 @@ const menuGroups = [
   {
     name: 'OPERACIONES FRANQUICIAS',
     items: [
-      { id: 'orders', name: 'Recepción de pedidos', icon: 'fa-solid fa-receipt' },
-      { id: 'menu', name: 'Catálogos y precios', icon: 'fa-solid fa-burger' },
-      { id: 'franchises_list', name: 'Gestión de locales', icon: 'fa-solid fa-store' },
+      { id: 'orders', name: 'Recepcion de Pedidos', icon: 'fa-solid fa-receipt' },
+      { id: 'menu', name: 'Catalogos y Precios', icon: 'fa-solid fa-burger' },
+      { id: 'franchises_list', name: 'Gestion de Locales', icon: 'fa-solid fa-store' },
     ],
   },
   {
-    name: 'LOGÍSTICA DELIVERY',
+    name: 'LOGISTICA DELIVERY',
     items: [
       { id: 'zones', name: 'Mapa', icon: 'fa-solid fa-map-location-dot' },
       { id: 'users_fleet', name: 'Personas Conectadas', icon: 'fa-solid fa-users' },
@@ -84,10 +84,10 @@ const menuGroups = [
     name: 'CONTROL OPERATIVO',
     items: [
       { id: 'daily_close', name: 'Cierre Operativo', icon: 'fa-solid fa-cash-register' },
-      { id: 'audit', name: 'Auditoría', icon: 'fa-solid fa-clipboard-list' },
+      { id: 'audit', name: 'Auditoria', icon: 'fa-solid fa-clipboard-list' },
     ],
   },
-  { name: 'CONFIGURACIÓN', items: [{ id: 'settings', name: 'Ajustes Base', icon: 'fa-solid fa-gear' }] },
+  { name: 'CONFIGURACION', items: [{ id: 'settings', name: 'Ajustes Base', icon: 'fa-solid fa-gear' }] },
 ];
 
 const statusOptions = [
@@ -176,8 +176,8 @@ const currentViewTitle = computed(() => {
 
 const viewDescriptions = {
   dashboard: 'Resumen ejecutivo de ventas, operaciones y alertas.',
-  orders: 'Recepción, estados y seguimiento operativo de pedidos.',
-  menu: 'Catálogo, precios y disponibilidad por franquicia.',
+  orders: 'Recepcion, estados y seguimiento operativo de pedidos.',
+  menu: 'Catalogo, precios y disponibilidad por franquicia.',
   franchises_list: 'Locales activos, ventas y rendimiento por franquicia.',
   zones: 'Pedidos, repartidores y locales en tiempo real sobre el mapa.',
   users_fleet: 'Personal conectado, roles y actividad operacional.',
@@ -192,7 +192,7 @@ const currentViewDescription = computed(() => viewDescriptions[currentView.value
 const syncStatusLabel = computed(() => {
   if (errorMessage.value) return 'Revisar alerta';
   if (isRefreshing.value) return 'Sincronizando';
-  return 'Operación estable';
+  return 'Operacion estable';
 });
 
 const syncStatusClass = computed(() => {
@@ -628,7 +628,7 @@ const refreshData = async ({ silent = false } = {}) => {
       return data.value;
     } catch (error) {
       console.error('No se pudo cargar administracion', error);
-      errorMessage.value = error.message || 'No se pudo cargar la vista de administración.';
+      errorMessage.value = error.message || 'No se pudo cargar la vista de administracion.';
       return null;
     } finally {
       isLoading.value = false;
@@ -847,7 +847,7 @@ onBeforeUnmount(() => {
             <p class="truncate text-sm font-bold text-white">{{ session.userName || 'Admin Principal' }}</p>
             <p class="truncate text-[10px] font-bold uppercase text-brand-500">{{ session.userEmail || 'Superusuario' }}</p>
           </div>
-          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Cerrar sesión" @click="logout"><i class="fa-solid fa-right-from-bracket"></i></button>
+          <button type="button" class="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white" aria-label="Cerrar sesion" @click="logout"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
       </div>
     </aside>
@@ -970,15 +970,15 @@ onBeforeUnmount(() => {
             <div class="admin-module-card rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
               <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p class="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600">Acciones rápidas</p>
-                  <h3 class="mt-2 text-xl font-black text-slate-900">Mover la operación sin perder contexto</h3>
-                  <p class="mt-1 text-sm font-bold text-slate-500">Accesos directos a los módulos donde normalmente hay que actuar primero.</p>
+                  <p class="text-[10px] font-black uppercase tracking-[0.28em] text-brand-600">Acciones rapidas</p>
+                  <h3 class="mt-2 text-xl font-black text-slate-900">Mover la operacion sin perder contexto</h3>
+                  <p class="mt-1 text-sm font-bold text-slate-500">Accesos directos a los modulos donde normalmente hay que actuar primero.</p>
                 </div>
                 <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
                   <button type="button" class="admin-quick-action" @click="currentView = 'orders'"><i class="fa-solid fa-receipt"></i> Pedidos</button>
                   <button type="button" class="admin-quick-action" @click="currentView = 'zones'"><i class="fa-solid fa-map-location-dot"></i> Mapa</button>
                   <button type="button" class="admin-quick-action" @click="currentView = 'daily_close'"><i class="fa-solid fa-cash-register"></i> Cierre</button>
-                  <button type="button" class="admin-quick-action" @click="currentView = 'audit'"><i class="fa-solid fa-clipboard-list"></i> Auditoría</button>
+                  <button type="button" class="admin-quick-action" @click="currentView = 'audit'"><i class="fa-solid fa-clipboard-list"></i> Auditoria</button>
                 </div>
               </div>
             </div>
@@ -1031,7 +1031,7 @@ onBeforeUnmount(() => {
 
             <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
               <div class="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-6 xl:col-span-5">
-                <h3 class="mb-4 text-sm font-black text-slate-800">Operación delivery</h3>
+                <h3 class="mb-4 text-sm font-black text-slate-800">Operacion Delivery</h3>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div v-for="item in deliveryOpsSummary" :key="item.label" class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <div class="mb-3 flex items-center justify-between gap-2">
@@ -1211,9 +1211,9 @@ onBeforeUnmount(() => {
           <section v-if="currentView === 'menu'" class="admin-module-card rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
-                <p class="admin-section-kicker">Catálogo operativo</p>
-                <h3 class="mt-1 text-xl font-black text-slate-900">Gestión de productos</h3>
-                <p class="mt-1 text-xs font-bold text-slate-500">Catálogo real cargado desde el backend, con precio, stock y local visible.</p>
+                <p class="admin-section-kicker">Catalogo operativo</p>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Productos</h3>
+                <p class="mt-1 text-xs font-bold text-slate-500">Catalogo real cargado desde el backend, con precio, stock y local visible.</p>
               </div>
               <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <input v-model="search.products" type="text" placeholder="Buscar producto..." class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none focus:border-brand-500 sm:w-80">
@@ -1253,7 +1253,7 @@ onBeforeUnmount(() => {
             <div class="flex flex-col gap-4 border-b border-slate-100 p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <p class="admin-section-kicker">Red de locales</p>
-                <h3 class="mt-1 text-xl font-black text-slate-900">Gestión de locales</h3>
+                <h3 class="mt-1 text-xl font-black text-slate-900">Gestion de Locales</h3>
                 <p class="mt-1 text-xs font-bold text-slate-500">Todas las franquicias visibles en el sistema.</p>
               </div>
               <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
@@ -1410,7 +1410,7 @@ onBeforeUnmount(() => {
                 <div class="flex flex-col gap-4 border-b border-slate-100 p-5 xl:flex-row xl:items-center xl:justify-between">
                   <div>
                     <p class="admin-section-kicker">Mapa en vivo</p>
-                    <h3 class="mt-1 text-xl font-black text-slate-900">Operación de pedidos en tiempo real</h3>
+                    <h3 class="mt-1 text-xl font-black text-slate-900">Operacion de pedidos en tiempo real</h3>
                     <p class="mt-1 text-xs font-bold text-slate-500">Visualiza locales, clientes y repartidores activos sin editar reglas de zona.</p>
                   </div>
                   <div class="flex flex-wrap items-center gap-2">
@@ -1658,7 +1658,7 @@ onBeforeUnmount(() => {
           <section v-if="currentView === 'settings'" class="mx-auto max-w-2xl rounded-2xl border border-slate-100 bg-white shadow-sm">
             <div class="border-b border-slate-100 p-6"><h3 class="font-black text-slate-800">Estado del Sistema</h3><p class="text-xs font-bold text-slate-500">Resumen real de la integracion actual de FoodRush.</p></div>
             <div class="space-y-6 p-6">
-              <div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Usuario actual</label><input :value="session.userName || session.userEmail || 'Sin sesión'" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div>
+              <div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Usuario actual</label><input :value="session.userName || session.userEmail || 'Sin sesion'" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div>
               <div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Tenant visible</label><input :value="selectedTenantName" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div>
               <div class="grid grid-cols-2 gap-4"><div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Franquicias cargadas</label><input :value="franchises.length" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div><div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Sesiones activas</label><input :value="connectedSessionsCount" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div></div>
               <div><label class="mb-2 block text-xs font-black uppercase tracking-wider text-slate-500">Ultima sincronizacion</label><input :value="lastUpdatedAt || 'Pendiente'" readonly type="text" class="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold outline-none"></div>
@@ -1672,6 +1672,8 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 .admin-enterprise { font-family: 'Inter', sans-serif; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

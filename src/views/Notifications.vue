@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Centro de notificaciones. Ordena avisos del pedido y eventos importantes del usuario.
   Buscar en VS Code: notificaciones, leidas, servidor, mergeNotifications, pedido actualizado.
   Mantener estos comentarios actualizados si cambia el flujo.

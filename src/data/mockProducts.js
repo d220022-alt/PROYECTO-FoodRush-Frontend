@@ -1,7 +1,7 @@
 /*
-  Guia rápida para presentar:
-  Catálogo local de respaldo. Sirve cuando Render tarda o una franquicia no devuelve productos.
-  Buscar en VS Code: productos mock, fallback, franquicias, imágenes, categorías.
+  Guia rapida para presentar:
+  Catalogo local de respaldo. Sirve cuando Render tarda o una franquicia no devuelve productos.
+  Buscar en VS Code: productos mock, fallback, franquicias, imagenes, categorias.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 export const mockProducts = [
@@ -9,12 +9,12 @@ export const mockProducts = [
     "id": "prod_1_1",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Refresco Clásico",
+    "name": "Refresco Clasico",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -25,44 +25,44 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_3",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Café Doble",
+    "name": "Cafe Doble",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_4",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Té Helado Premium",
+    "name": "Te Helado Premium",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_5",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Frappé Picante",
+    "name": "Frappe Picante",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -73,8 +73,8 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -83,22 +83,22 @@ export const mockProducts = [
     "franchiseSlug": "starbucks",
     "name": "Smoothie Especial",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_8",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Sándwich Supremo",
+    "name": "Sandwich Supremo",
     "category": "Comida",
-    "type": "Sándwich",
+    "type": "Sandwich",
     "price": 170,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -109,8 +109,8 @@ export const mockProducts = [
     "category": "Comida",
     "type": "Wrap",
     "price": 200,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -121,8 +121,8 @@ export const mockProducts = [
     "category": "Comida",
     "type": "Panini",
     "price": 230,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -131,10 +131,10 @@ export const mockProducts = [
     "franchiseSlug": "starbucks",
     "name": "Croissant Picante",
     "category": "Comida",
-    "type": "Sándwich",
+    "type": "Sandwich",
     "price": 260,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -145,8 +145,8 @@ export const mockProducts = [
     "category": "Comida",
     "type": "Wrap",
     "price": 140,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -157,8 +157,8 @@ export const mockProducts = [
     "category": "Comida",
     "type": "Panini",
     "price": 170,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -167,46 +167,46 @@ export const mockProducts = [
     "franchiseSlug": "starbucks",
     "name": "Muffin Crujiente",
     "category": "Comida",
-    "type": "Sándwich",
+    "type": "Sandwich",
     "price": 200,
-    "description": "Delicioso producto de la categoría Comida en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=420&q=70",
+    "description": "Delicioso producto de la categoria Comida en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_1_15",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Café Molido Doble",
-    "category": "Café en Casa",
+    "name": "Cafe Molido Doble",
+    "category": "Cafe en Casa",
     "type": "Molido",
     "price": 180,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_16",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Café en Grano Premium",
-    "category": "Café en Casa",
+    "name": "Cafe en Grano Premium",
+    "category": "Cafe en Casa",
     "type": "Grano",
     "price": 210,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_1_17",
     "tenantId": 1,
     "franchiseSlug": "starbucks",
-    "name": "Cápsulas Picante",
-    "category": "Café en Casa",
-    "type": "Cápsulas",
+    "name": "Capsulas Picante",
+    "category": "Cafe en Casa",
+    "type": "Capsulas",
     "price": 240,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -214,11 +214,11 @@ export const mockProducts = [
     "tenantId": 1,
     "franchiseSlug": "starbucks",
     "name": "Blend Familiar",
-    "category": "Café en Casa",
+    "category": "Cafe en Casa",
     "type": "Molido",
     "price": 120,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -226,11 +226,11 @@ export const mockProducts = [
     "tenantId": 1,
     "franchiseSlug": "starbucks",
     "name": "Kit Barista Especial",
-    "category": "Café en Casa",
+    "category": "Cafe en Casa",
     "type": "Grano",
     "price": 150,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -238,23 +238,23 @@ export const mockProducts = [
     "tenantId": 1,
     "franchiseSlug": "starbucks",
     "name": "Prensa Francesa Crujiente",
-    "category": "Café en Casa",
-    "type": "Cápsulas",
+    "category": "Cafe en Casa",
+    "type": "Capsulas",
     "price": 180,
-    "description": "Delicioso producto de la categoría Café en Casa en Starbucks.",
-    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=420&q=70",
+    "description": "Delicioso producto de la categoria Cafe en Casa en Starbucks.",
+    "img": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_2_1",
     "tenantId": 2,
     "franchiseSlug": "mcdonalds",
-    "name": "Burger Clásico",
+    "name": "Burger Clasico",
     "category": "Hamburguesas",
     "type": "Res",
     "price": 180,
-    "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -265,8 +265,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pollo",
     "price": 220,
-    "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -277,8 +277,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pescado",
     "price": 260,
-    "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -289,8 +289,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Cerdo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -301,8 +301,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Res",
     "price": 340,
-    "description": "Delicioso producto de la categoría Hamburguesas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -313,8 +313,8 @@ export const mockProducts = [
     "category": "Complementos",
     "type": "Papas",
     "price": 120,
-    "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Complementos en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -325,8 +325,8 @@ export const mockProducts = [
     "category": "Complementos",
     "type": "Ensalada",
     "price": 150,
-    "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Complementos en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -337,20 +337,20 @@ export const mockProducts = [
     "category": "Complementos",
     "type": "Snacks",
     "price": 170,
-    "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Complementos en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_2_9",
     "tenantId": 2,
     "franchiseSlug": "mcdonalds",
-    "name": "Puré Picante",
+    "name": "Pure Picante",
     "category": "Complementos",
     "type": "Papas",
     "price": 190,
-    "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Complementos en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -361,8 +361,8 @@ export const mockProducts = [
     "category": "Complementos",
     "type": "Ensalada",
     "price": 90,
-    "description": "Delicioso producto de la categoría Complementos en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Complementos en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -371,10 +371,10 @@ export const mockProducts = [
     "franchiseSlug": "mcdonalds",
     "name": "Refresco Doble",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -385,44 +385,44 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_2_13",
     "tenantId": 2,
     "franchiseSlug": "mcdonalds",
-    "name": "Café Picante",
+    "name": "Cafe Picante",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_2_14",
     "tenantId": 2,
     "franchiseSlug": "mcdonalds",
-    "name": "Té Helado Familiar",
+    "name": "Te Helado Familiar",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_2_15",
     "tenantId": 2,
     "franchiseSlug": "mcdonalds",
-    "name": "Frappé Especial",
+    "name": "Frappe Especial",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -433,8 +433,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 220,
-    "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -445,8 +445,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 260,
-    "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -457,8 +457,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Galleta",
     "price": 100,
-    "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -469,8 +469,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 140,
-    "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -481,20 +481,20 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 180,
-    "description": "Delicioso producto de la categoría Postres en McDonald's.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en McDonald's.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_3_1",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Piezas Clásico",
+    "name": "Piezas Clasico",
     "category": "Pollo",
     "type": "Crispy",
     "price": 190,
-    "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en KFC.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -505,8 +505,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Original",
     "price": 230,
-    "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en KFC.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -517,8 +517,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Spicy",
     "price": 270,
-    "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en KFC.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -529,8 +529,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Crispy",
     "price": 320,
-    "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en KFC.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -541,8 +541,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Original",
     "price": 360,
-    "description": "Delicioso producto de la categoría Pollo en KFC.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en KFC.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -553,32 +553,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en KFC.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_3_7",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en KFC.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_3_8",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en KFC.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -589,8 +589,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en KFC.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -599,10 +599,10 @@ export const mockProducts = [
     "franchiseSlug": "kfc",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en KFC.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en KFC.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -610,11 +610,11 @@ export const mockProducts = [
     "tenantId": 3,
     "franchiseSlug": "kfc",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en KFC.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -622,11 +622,11 @@ export const mockProducts = [
     "tenantId": 3,
     "franchiseSlug": "kfc",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en KFC.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -634,23 +634,23 @@ export const mockProducts = [
     "tenantId": 3,
     "franchiseSlug": "kfc",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en KFC.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_3_14",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en KFC.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -658,11 +658,11 @@ export const mockProducts = [
     "tenantId": 3,
     "franchiseSlug": "kfc",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en KFC.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en KFC.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -671,10 +671,10 @@ export const mockProducts = [
     "franchiseSlug": "kfc",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en KFC.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -685,56 +685,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en KFC.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_3_18",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en KFC.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_3_19",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en KFC.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_3_20",
     "tenantId": 3,
     "franchiseSlug": "kfc",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en KFC.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en KFC.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_4_1",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Burger Clásico",
+    "name": "Burger Clasico",
     "category": "Hamburguesas",
     "type": "Res",
     "price": 180,
-    "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -745,8 +745,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pollo",
     "price": 220,
-    "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -757,8 +757,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pescado",
     "price": 260,
-    "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -769,8 +769,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Cerdo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -781,8 +781,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Res",
     "price": 340,
-    "description": "Delicioso producto de la categoría Hamburguesas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -793,32 +793,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Burger King.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_4_7",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Burger King.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_4_8",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Burger King.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -829,8 +829,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Burger King.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -839,10 +839,10 @@ export const mockProducts = [
     "franchiseSlug": "burger-king",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Burger King.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Burger King.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -850,11 +850,11 @@ export const mockProducts = [
     "tenantId": 4,
     "franchiseSlug": "burger-king",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Burger King.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -862,11 +862,11 @@ export const mockProducts = [
     "tenantId": 4,
     "franchiseSlug": "burger-king",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Burger King.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -874,23 +874,23 @@ export const mockProducts = [
     "tenantId": 4,
     "franchiseSlug": "burger-king",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Burger King.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_4_14",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Burger King.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -898,11 +898,11 @@ export const mockProducts = [
     "tenantId": 4,
     "franchiseSlug": "burger-king",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Burger King.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Burger King.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -911,10 +911,10 @@ export const mockProducts = [
     "franchiseSlug": "burger-king",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -925,56 +925,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_4_18",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_4_19",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_4_20",
     "tenantId": 4,
     "franchiseSlug": "burger-king",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Burger King.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Burger King.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_5_1",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Pepperoni Clásico",
+    "name": "Pepperoni Clasico",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -985,8 +985,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Pepperoni",
     "price": 300,
-    "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -997,8 +997,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Hawaiana",
     "price": 350,
-    "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1009,8 +1009,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Vegetariana",
     "price": 400,
-    "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1019,10 +1019,10 @@ export const mockProducts = [
     "franchiseSlug": "little-caesars",
     "name": "BBQ Picante",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 450,
-    "description": "Delicioso producto de la categoría Pizzas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1033,32 +1033,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_5_7",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_5_8",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1069,8 +1069,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1079,10 +1079,10 @@ export const mockProducts = [
     "franchiseSlug": "little-caesars",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1090,11 +1090,11 @@ export const mockProducts = [
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1102,11 +1102,11 @@ export const mockProducts = [
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1114,23 +1114,23 @@ export const mockProducts = [
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_5_14",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1138,11 +1138,11 @@ export const mockProducts = [
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1151,10 +1151,10 @@ export const mockProducts = [
     "franchiseSlug": "little-caesars",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1165,56 +1165,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_5_18",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_5_19",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_5_20",
     "tenantId": 5,
     "franchiseSlug": "little-caesars",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Little Caesars.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Little Caesars.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_6_1",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Pepperoni Clásico",
+    "name": "Pepperoni Clasico",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1225,8 +1225,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Pepperoni",
     "price": 300,
-    "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1237,8 +1237,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Hawaiana",
     "price": 350,
-    "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1249,8 +1249,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Vegetariana",
     "price": 400,
-    "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1259,10 +1259,10 @@ export const mockProducts = [
     "franchiseSlug": "dominos-pizza",
     "name": "BBQ Picante",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 450,
-    "description": "Delicioso producto de la categoría Pizzas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1273,32 +1273,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_6_7",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_6_8",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1309,8 +1309,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1319,10 +1319,10 @@ export const mockProducts = [
     "franchiseSlug": "dominos-pizza",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1330,11 +1330,11 @@ export const mockProducts = [
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1342,11 +1342,11 @@ export const mockProducts = [
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1354,23 +1354,23 @@ export const mockProducts = [
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_6_14",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1378,11 +1378,11 @@ export const mockProducts = [
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1391,10 +1391,10 @@ export const mockProducts = [
     "franchiseSlug": "dominos-pizza",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1405,56 +1405,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_6_18",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_6_19",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_6_20",
     "tenantId": 6,
     "franchiseSlug": "dominos-pizza",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Domino's Pizza.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Domino's Pizza.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_7_1",
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
-    "name": "Pepperoni Clásico",
+    "name": "Pepperoni Clasico",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1465,8 +1465,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Pepperoni",
     "price": 300,
-    "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1477,8 +1477,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Hawaiana",
     "price": 350,
-    "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1489,8 +1489,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Vegetariana",
     "price": 400,
-    "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1499,10 +1499,10 @@ export const mockProducts = [
     "franchiseSlug": "pizza-hut",
     "name": "BBQ Picante",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 450,
-    "description": "Delicioso producto de la categoría Pizzas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1513,8 +1513,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Spaghetti",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1525,8 +1525,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Lasagna",
     "price": 290,
-    "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1537,8 +1537,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Alfredo",
     "price": 330,
-    "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1549,8 +1549,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Spaghetti",
     "price": 370,
-    "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1561,8 +1561,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Lasagna",
     "price": 210,
-    "description": "Delicioso producto de la categoría Pastas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1570,11 +1570,11 @@ export const mockProducts = [
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1582,11 +1582,11 @@ export const mockProducts = [
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1594,23 +1594,23 @@ export const mockProducts = [
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_7_14",
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1618,11 +1618,11 @@ export const mockProducts = [
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1631,10 +1631,10 @@ export const mockProducts = [
     "franchiseSlug": "pizza-hut",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1645,56 +1645,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_7_18",
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_7_19",
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_7_20",
     "tenantId": 7,
     "franchiseSlug": "pizza-hut",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Pizza Hut.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizza Hut.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_8_1",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Dona Glaseada Clásico",
+    "name": "Dona Glaseada Clasico",
     "category": "Donas",
     "type": "Glaseada",
     "price": 80,
-    "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
+    "description": "Delicioso producto de la categoria Donas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1705,8 +1705,8 @@ export const mockProducts = [
     "category": "Donas",
     "type": "Chocolate",
     "price": 90,
-    "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=420&q=70",
+    "description": "Delicioso producto de la categoria Donas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1717,8 +1717,8 @@ export const mockProducts = [
     "category": "Donas",
     "type": "Rellena",
     "price": 110,
-    "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
+    "description": "Delicioso producto de la categoria Donas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1729,8 +1729,8 @@ export const mockProducts = [
     "category": "Donas",
     "type": "Glaseada",
     "price": 130,
-    "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=420&q=70",
+    "description": "Delicioso producto de la categoria Donas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1741,8 +1741,8 @@ export const mockProducts = [
     "category": "Donas",
     "type": "Chocolate",
     "price": 150,
-    "description": "Delicioso producto de la categoría Donas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=420&q=70",
+    "description": "Delicioso producto de la categoria Donas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1551024506-0bccd828d307?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1751,10 +1751,10 @@ export const mockProducts = [
     "franchiseSlug": "krispy-kreme",
     "name": "Refresco Supremo",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1765,44 +1765,44 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_8_8",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Café Premium",
+    "name": "Cafe Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_8_9",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Té Helado Picante",
+    "name": "Te Helado Picante",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_8_10",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Frappé Familiar",
+    "name": "Frappe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1813,32 +1813,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_8_12",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Dúo Premium",
+    "name": "Duo Premium",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_8_13",
     "tenantId": 8,
     "franchiseSlug": "krispy-kreme",
-    "name": "Trío Picante",
+    "name": "Trio Picante",
     "category": "Combos",
     "type": "Familiar",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1849,8 +1849,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1859,10 +1859,10 @@ export const mockProducts = [
     "franchiseSlug": "krispy-kreme",
     "name": "Supremo Especial",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1873,8 +1873,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 220,
-    "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1885,8 +1885,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 260,
-    "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1897,8 +1897,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Galleta",
     "price": 100,
-    "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1909,8 +1909,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 140,
-    "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1921,20 +1921,20 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 180,
-    "description": "Delicioso producto de la categoría Postres en Krispy Kreme.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Krispy Kreme.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_9_1",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Hot Dog Clásico Clásico",
+    "name": "Hot Dog Clasico Clasico",
     "category": "Hot Dogs",
-    "type": "Clásico",
+    "type": "Clasico",
     "price": 120,
-    "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -1945,8 +1945,8 @@ export const mockProducts = [
     "category": "Hot Dogs",
     "type": "Queso",
     "price": 150,
-    "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1957,8 +1957,8 @@ export const mockProducts = [
     "category": "Hot Dogs",
     "type": "Bacon",
     "price": 180,
-    "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1967,10 +1967,10 @@ export const mockProducts = [
     "franchiseSlug": "rico-hot-dog",
     "name": "Hot Dog Bacon Premium",
     "category": "Hot Dogs",
-    "type": "Clásico",
+    "type": "Clasico",
     "price": 210,
-    "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1981,8 +1981,8 @@ export const mockProducts = [
     "category": "Hot Dogs",
     "type": "Queso",
     "price": 240,
-    "description": "Delicioso producto de la categoría Hot Dogs en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hot Dogs en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -1993,32 +1993,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_9_7",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_9_8",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2029,8 +2029,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2039,10 +2039,10 @@ export const mockProducts = [
     "franchiseSlug": "rico-hot-dog",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2050,11 +2050,11 @@ export const mockProducts = [
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2062,11 +2062,11 @@ export const mockProducts = [
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2074,23 +2074,23 @@ export const mockProducts = [
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_9_14",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2098,11 +2098,11 @@ export const mockProducts = [
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2111,10 +2111,10 @@ export const mockProducts = [
     "franchiseSlug": "rico-hot-dog",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2125,56 +2125,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_9_18",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_9_19",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_9_20",
     "tenantId": 9,
     "franchiseSlug": "rico-hot-dog",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Rico Hot Dog.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Rico Hot Dog.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_10_1",
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
-    "name": "Pepperoni Clásico",
+    "name": "Pepperoni Clasico",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2185,8 +2185,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Pepperoni",
     "price": 300,
-    "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2197,8 +2197,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Hawaiana",
     "price": 350,
-    "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2209,8 +2209,8 @@ export const mockProducts = [
     "category": "Pizzas",
     "type": "Vegetariana",
     "price": 400,
-    "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2219,10 +2219,10 @@ export const mockProducts = [
     "franchiseSlug": "pizzarelli",
     "name": "BBQ Picante",
     "category": "Pizzas",
-    "type": "Clásica",
+    "type": "Clasica",
     "price": 450,
-    "description": "Delicioso producto de la categoría Pizzas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pizzas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2233,8 +2233,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Spaghetti",
     "price": 250,
-    "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2245,8 +2245,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Lasagna",
     "price": 290,
-    "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2257,8 +2257,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Alfredo",
     "price": 330,
-    "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2269,8 +2269,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Spaghetti",
     "price": 370,
-    "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1521389508051-d7ffb5dc8b78?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2281,8 +2281,8 @@ export const mockProducts = [
     "category": "Pastas",
     "type": "Lasagna",
     "price": 210,
-    "description": "Delicioso producto de la categoría Pastas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pastas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1525755662778-989d0524087e?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2290,11 +2290,11 @@ export const mockProducts = [
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2302,11 +2302,11 @@ export const mockProducts = [
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2314,23 +2314,23 @@ export const mockProducts = [
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_10_14",
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2338,11 +2338,11 @@ export const mockProducts = [
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2351,10 +2351,10 @@ export const mockProducts = [
     "franchiseSlug": "pizzarelli",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2365,56 +2365,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_10_18",
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_10_19",
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_10_20",
     "tenantId": 10,
     "franchiseSlug": "pizzarelli",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Pizzarelli.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Pizzarelli.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_11_1",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Burger Clásico",
+    "name": "Burger Clasico",
     "category": "Hamburguesas",
     "type": "Res",
     "price": 180,
-    "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2425,8 +2425,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pollo",
     "price": 220,
-    "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2437,8 +2437,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Pescado",
     "price": 260,
-    "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2449,8 +2449,8 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Cerdo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2461,20 +2461,20 @@ export const mockProducts = [
     "category": "Hamburguesas",
     "type": "Res",
     "price": 340,
-    "description": "Delicioso producto de la categoría Hamburguesas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Hamburguesas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_11_6",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Chimi Clásico Supremo",
+    "name": "Chimi Clasico Supremo",
     "category": "Chimi",
-    "type": "Clásico",
+    "type": "Clasico",
     "price": 200,
-    "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Chimi en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2485,8 +2485,8 @@ export const mockProducts = [
     "category": "Chimi",
     "type": "Doble",
     "price": 230,
-    "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Chimi en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2497,8 +2497,8 @@ export const mockProducts = [
     "category": "Chimi",
     "type": "Pollo",
     "price": 260,
-    "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Chimi en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2507,10 +2507,10 @@ export const mockProducts = [
     "franchiseSlug": "barra-payan",
     "name": "Chimi Pollo Picante",
     "category": "Chimi",
-    "type": "Clásico",
+    "type": "Clasico",
     "price": 300,
-    "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Chimi en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2521,8 +2521,8 @@ export const mockProducts = [
     "category": "Chimi",
     "type": "Doble",
     "price": 170,
-    "description": "Delicioso producto de la categoría Chimi en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Chimi en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2530,11 +2530,11 @@ export const mockProducts = [
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2542,11 +2542,11 @@ export const mockProducts = [
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2554,23 +2554,23 @@ export const mockProducts = [
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_11_14",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2578,11 +2578,11 @@ export const mockProducts = [
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2591,10 +2591,10 @@ export const mockProducts = [
     "franchiseSlug": "barra-payan",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2605,56 +2605,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_11_18",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_11_19",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_11_20",
     "tenantId": 11,
     "franchiseSlug": "barra-payan",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Barra Payan.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Barra Payan.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_12_1",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Taco Clásico Clásico",
+    "name": "Taco Clasico Clasico",
     "category": "Tacos",
     "type": "Res",
     "price": 110,
-    "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Tacos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2665,8 +2665,8 @@ export const mockProducts = [
     "category": "Tacos",
     "type": "Pollo",
     "price": 140,
-    "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Tacos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2677,8 +2677,8 @@ export const mockProducts = [
     "category": "Tacos",
     "type": "Veggie",
     "price": 170,
-    "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Tacos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2689,8 +2689,8 @@ export const mockProducts = [
     "category": "Tacos",
     "type": "Res",
     "price": 200,
-    "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Tacos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2701,20 +2701,20 @@ export const mockProducts = [
     "category": "Tacos",
     "type": "Pollo",
     "price": 230,
-    "description": "Delicioso producto de la categoría Tacos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Tacos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_12_6",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Burrito Clásico Supremo",
+    "name": "Burrito Clasico Supremo",
     "category": "Burritos",
     "type": "Res",
     "price": 160,
-    "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Burritos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2725,8 +2725,8 @@ export const mockProducts = [
     "category": "Burritos",
     "type": "Pollo",
     "price": 190,
-    "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Burritos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2737,8 +2737,8 @@ export const mockProducts = [
     "category": "Burritos",
     "type": "Veggie",
     "price": 220,
-    "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Burritos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2749,8 +2749,8 @@ export const mockProducts = [
     "category": "Burritos",
     "type": "Res",
     "price": 250,
-    "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Burritos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2761,20 +2761,20 @@ export const mockProducts = [
     "category": "Burritos",
     "type": "Pollo",
     "price": 130,
-    "description": "Delicioso producto de la categoría Burritos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Burritos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_12_11",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Nachos Clásicos Doble",
+    "name": "Nachos Clasicos Doble",
     "category": "Nachos",
     "type": "Queso",
     "price": 180,
-    "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
+    "description": "Delicioso producto de la categoria Nachos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2785,8 +2785,8 @@ export const mockProducts = [
     "category": "Nachos",
     "type": "Carne",
     "price": 210,
-    "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Nachos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2797,8 +2797,8 @@ export const mockProducts = [
     "category": "Nachos",
     "type": "Supreme",
     "price": 240,
-    "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
+    "description": "Delicioso producto de la categoria Nachos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2809,8 +2809,8 @@ export const mockProducts = [
     "category": "Nachos",
     "type": "Queso",
     "price": 120,
-    "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=420&q=70",
+    "description": "Delicioso producto de la categoria Nachos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2821,8 +2821,8 @@ export const mockProducts = [
     "category": "Nachos",
     "type": "Carne",
     "price": 150,
-    "description": "Delicioso producto de la categoría Nachos en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=420&q=70",
+    "description": "Delicioso producto de la categoria Nachos en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1599974579688-8dbdd335c77f?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2831,10 +2831,10 @@ export const mockProducts = [
     "franchiseSlug": "taco-bell",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2845,56 +2845,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_12_18",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_12_19",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_12_20",
     "tenantId": 12,
     "franchiseSlug": "taco-bell",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Taco Bell.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Taco Bell.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_13_1",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Cono Clásico",
+    "name": "Cono Clasico",
     "category": "Helados",
     "type": "Cono",
     "price": 120,
-    "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Helados en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -2905,8 +2905,8 @@ export const mockProducts = [
     "category": "Helados",
     "type": "Sundae",
     "price": 150,
-    "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Helados en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2917,8 +2917,8 @@ export const mockProducts = [
     "category": "Helados",
     "type": "Banana Split",
     "price": 180,
-    "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Helados en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2929,8 +2929,8 @@ export const mockProducts = [
     "category": "Helados",
     "type": "Cono",
     "price": 210,
-    "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=420&q=70",
+    "description": "Delicioso producto de la categoria Helados en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2941,8 +2941,8 @@ export const mockProducts = [
     "category": "Helados",
     "type": "Sundae",
     "price": 240,
-    "description": "Delicioso producto de la categoría Helados en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Helados en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2953,8 +2953,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 140,
-    "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2965,8 +2965,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 180,
-    "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2977,8 +2977,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Galleta",
     "price": 220,
-    "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1571115177098-24deab4843ed?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -2989,8 +2989,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Helado",
     "price": 260,
-    "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1559598467-f8b76c8155d0?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3001,8 +3001,8 @@ export const mockProducts = [
     "category": "Postres",
     "type": "Pastel",
     "price": 100,
-    "description": "Delicioso producto de la categoría Postres en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=420&q=70",
+    "description": "Delicioso producto de la categoria Postres en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3013,32 +3013,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_13_12",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Dúo Premium",
+    "name": "Duo Premium",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_13_13",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Trío Picante",
+    "name": "Trio Picante",
     "category": "Combos",
     "type": "Familiar",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3049,8 +3049,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3059,10 +3059,10 @@ export const mockProducts = [
     "franchiseSlug": "helados-bon",
     "name": "Supremo Especial",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3071,10 +3071,10 @@ export const mockProducts = [
     "franchiseSlug": "helados-bon",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3085,56 +3085,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_13_18",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_13_19",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_13_20",
     "tenantId": 13,
     "franchiseSlug": "helados-bon",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Helados Bon.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Helados Bon.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_14_1",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Parrillada Clásico",
+    "name": "Parrillada Clasico",
     "category": "Platos",
     "type": "Parrilla",
     "price": 250,
-    "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
+    "description": "Delicioso producto de la categoria Platos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3145,8 +3145,8 @@ export const mockProducts = [
     "category": "Platos",
     "type": "Tex-Mex",
     "price": 300,
-    "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=420&q=70",
+    "description": "Delicioso producto de la categoria Platos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3157,8 +3157,8 @@ export const mockProducts = [
     "category": "Platos",
     "type": "Bowl",
     "price": 350,
-    "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
+    "description": "Delicioso producto de la categoria Platos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3169,8 +3169,8 @@ export const mockProducts = [
     "category": "Platos",
     "type": "Parrilla",
     "price": 400,
-    "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=420&q=70",
+    "description": "Delicioso producto de la categoria Platos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3181,8 +3181,8 @@ export const mockProducts = [
     "category": "Platos",
     "type": "Tex-Mex",
     "price": 450,
-    "description": "Delicioso producto de la categoría Platos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=420&q=70",
+    "description": "Delicioso producto de la categoria Platos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1544025162-d76694265947?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3193,32 +3193,32 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 250,
-    "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_14_7",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Dúo Doble",
+    "name": "Duo Doble",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 300,
-    "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_14_8",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Trío Premium",
+    "name": "Trio Premium",
     "category": "Combos",
     "type": "Familiar",
     "price": 350,
-    "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3229,8 +3229,8 @@ export const mockProducts = [
     "category": "Combos",
     "type": "Individual",
     "price": 400,
-    "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3239,10 +3239,10 @@ export const mockProducts = [
     "franchiseSlug": "chilis",
     "name": "Supremo Familiar",
     "category": "Combos",
-    "type": "Dúo",
+    "type": "Duo",
     "price": 200,
-    "description": "Delicioso producto de la categoría Combos en Chili's.",
-    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=420&q=70",
+    "description": "Delicioso producto de la categoria Combos en Chili's.",
+    "img": "https://images.unsplash.com/photo-1550547660-d9450f859349?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3250,11 +3250,11 @@ export const mockProducts = [
     "tenantId": 14,
     "franchiseSlug": "chilis",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Chili's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3262,11 +3262,11 @@ export const mockProducts = [
     "tenantId": 14,
     "franchiseSlug": "chilis",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Chili's.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3274,23 +3274,23 @@ export const mockProducts = [
     "tenantId": 14,
     "franchiseSlug": "chilis",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Chili's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_14_14",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Chili's.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3298,11 +3298,11 @@ export const mockProducts = [
     "tenantId": 14,
     "franchiseSlug": "chilis",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Chili's.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Chili's.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3311,10 +3311,10 @@ export const mockProducts = [
     "franchiseSlug": "chilis",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Chili's.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3325,56 +3325,56 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Chili's.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_14_18",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Chili's.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_14_19",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Chili's.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_14_20",
     "tenantId": 14,
     "franchiseSlug": "chilis",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Chili's.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Chili's.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_15_1",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Piezas Clásico",
+    "name": "Piezas Clasico",
     "category": "Pollo",
     "type": "Crispy",
     "price": 190,
-    "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3385,8 +3385,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Original",
     "price": 230,
-    "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3397,8 +3397,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Spicy",
     "price": 270,
-    "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3409,8 +3409,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Crispy",
     "price": 320,
-    "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3421,8 +3421,8 @@ export const mockProducts = [
     "category": "Pollo",
     "type": "Original",
     "price": 360,
-    "description": "Delicioso producto de la categoría Pollo en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=420&q=70",
+    "description": "Delicioso producto de la categoria Pollo en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3433,8 +3433,8 @@ export const mockProducts = [
     "category": "Res",
     "type": "Salteado",
     "price": 260,
-    "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Res en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3445,20 +3445,20 @@ export const mockProducts = [
     "category": "Res",
     "type": "Teriyaki",
     "price": 300,
-    "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Res en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_15_8",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Res con Brócoli Premium",
+    "name": "Res con Brocoli Premium",
     "category": "Res",
     "type": "Picante",
     "price": 340,
-    "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Res en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3469,8 +3469,8 @@ export const mockProducts = [
     "category": "Res",
     "type": "Salteado",
     "price": 380,
-    "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=420&q=70",
+    "description": "Delicioso producto de la categoria Res en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3481,8 +3481,8 @@ export const mockProducts = [
     "category": "Res",
     "type": "Teriyaki",
     "price": 220,
-    "description": "Delicioso producto de la categoría Res en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Res en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3490,11 +3490,11 @@ export const mockProducts = [
     "tenantId": 15,
     "franchiseSlug": "panda-express",
     "name": "Papas Doble",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 150,
-    "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3502,11 +3502,11 @@ export const mockProducts = [
     "tenantId": 15,
     "franchiseSlug": "panda-express",
     "name": "Aros de Cebolla Premium",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 170,
-    "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3514,23 +3514,23 @@ export const mockProducts = [
     "tenantId": 15,
     "franchiseSlug": "panda-express",
     "name": "Ensalada Picante",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Snacks",
     "price": 190,
-    "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_15_14",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Puré Familiar",
-    "category": "Acompañantes",
+    "name": "Pure Familiar",
+    "category": "Acompanantes",
     "type": "Papas",
     "price": 90,
-    "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1623595119708-26b1f7300075?w=500&q=80",
     "isExtraFeature": false
   },
   {
@@ -3538,11 +3538,11 @@ export const mockProducts = [
     "tenantId": 15,
     "franchiseSlug": "panda-express",
     "name": "Coleslaw Especial",
-    "category": "Acompañantes",
+    "category": "Acompanantes",
     "type": "Ensalada",
     "price": 120,
-    "description": "Delicioso producto de la categoría Acompañantes en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=420&q=70",
+    "description": "Delicioso producto de la categoria Acompanantes en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1576107025878-4cd382211993?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3551,10 +3551,10 @@ export const mockProducts = [
     "franchiseSlug": "panda-express",
     "name": "Refresco Premium",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 150,
-    "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
@@ -3565,44 +3565,44 @@ export const mockProducts = [
     "category": "Bebidas",
     "type": "Caliente",
     "price": 180,
-    "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_15_18",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Café Familiar",
+    "name": "Cafe Familiar",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 80,
-    "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80",
     "isExtraFeature": false
   },
   {
     "id": "prod_15_19",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Té Helado Especial",
+    "name": "Te Helado Especial",
     "category": "Bebidas",
     "type": "Caliente",
     "price": 100,
-    "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=500&q=80",
     "isExtraFeature": true
   },
   {
     "id": "prod_15_20",
     "tenantId": 15,
     "franchiseSlug": "panda-express",
-    "name": "Frappé Crujiente",
+    "name": "Frappe Crujiente",
     "category": "Bebidas",
-    "type": "Frío",
+    "type": "Frio",
     "price": 120,
-    "description": "Delicioso producto de la categoría Bebidas en Panda Express.",
-    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=420&q=70",
+    "description": "Delicioso producto de la categoria Bebidas en Panda Express.",
+    "img": "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500&q=80",
     "isExtraFeature": false
   }
 ];

@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Componente raiz. Renderiza la ruta actual y controla botones globales de tema y accesibilidad.
   Buscar en VS Code: shell app, boton tema, boton accesibilidad, modo oscuro, router-view.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -17,7 +17,7 @@ const routesWithIntegratedTheme = ['/administracion', '/delivery'];
 const showGlobalThemeToggle = computed(() =>
   !routesWithIntegratedTheme.some((path) => route.path === path || route.path.startsWith(`${path}/`))
 );
-const shouldRaiseThemeToggle = computed(() => route.path === '/checkout' || route.path === '/support');
+const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
 const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking'));
 const shouldRaiseAccessibility = computed(() => route.path === '/checkout');
 const shouldRaiseAccessibilityForSupport = computed(() => route.path === '/support');

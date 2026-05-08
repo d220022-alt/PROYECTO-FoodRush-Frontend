@@ -1,5 +1,5 @@
 /*
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Une datos reales del backend con datos QA para que Admin, Delivery y Tracking hablen el mismo idioma.
   Buscar en VS Code: dataset operativo, administracion, delivery, estados de pedido, tenant.
   Mantener estos comentarios actualizados si cambia el flujo.

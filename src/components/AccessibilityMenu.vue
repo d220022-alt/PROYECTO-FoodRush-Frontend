@@ -1,5 +1,5 @@
 <!--
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Boton flotante global de accesibilidad. Abre ajustes visuales sin tocar el diseno base.
   Buscar en VS Code: boton accesibilidad, panel accesibilidad, alto contraste.
   Mantener estos comentarios actualizados si cambia el flujo.

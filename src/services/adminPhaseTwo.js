@@ -1,5 +1,5 @@
 /*
-  Guia rápida para presentar:
+  Guia rapida para presentar:
   Datos operativos de apoyo para el panel admin: alertas, metricas y movimientos de prueba.
   Buscar en VS Code: admin phase two, auditoria, cierre operativo, zonas legacy, operaciones.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -25,7 +25,7 @@ export const DEFAULT_OPERATION_ZONES = [
     active: true,
     color: '#f97316',
     keywords: ['gurabo'],
-    notes: 'Zona con alta demanda y rutas rápidas hacia el centro.',
+    notes: 'Zona con alta demanda y rutas rapidas hacia el centro.',
   },
   {
     id: 'villa-olga',
