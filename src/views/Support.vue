@@ -533,7 +533,7 @@ const buildSupportReply = async (userMessage) => {
         </button>
     </div>
 
-    <footer class="bg-[#BD0A0A] text-white mt-auto border-t-4 border-[#fbbf24]">
+    <footer class="bg-[#1a1a2e] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
             <div class="col-span-1 md:col-span-1 flex flex-col items-center md:items-start">
                  <div class="flex items-center gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">

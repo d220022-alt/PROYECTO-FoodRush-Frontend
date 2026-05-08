@@ -3198,7 +3198,7 @@ onBeforeUnmount(() => {
 }
 
 .brand-footer {
-  background: linear-gradient(135deg, var(--brand-primary-deep) 0%, var(--brand-primary) 100%);
+  background: #1a1a2e;
 }
 
 .brand-footer__badge {
