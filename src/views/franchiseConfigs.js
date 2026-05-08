@@ -1,7 +1,7 @@
 /*
-  Guia rapida para presentar:
-  Configuracion visual de franquicias: logos, categorias, slides y textos de apoyo.
-  Buscar en VS Code: configuracion franquicias, logos, colores, slides, rutas.
+  Guia rápida para presentar:
+  Configuración visual de franquicias: logos, categorías, slides y textos de apoyo.
+  Buscar en VS Code: configuración franquicias, logos, colores, slides, rutas.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import logoMcDonalds from "../assets/images/logo-mcdonalds.png";
@@ -57,8 +57,8 @@ export const franchiseConfigs = {
     accent: "#D4E9E2",
     background: "#F4FAF7",
     heroTitle: "STARBUCKS",
-    heroSubtitle: "Tu cafe favorito, siempre",
-    categories: ['Todos', "Bebidas", "Comida", "Cafe en Casa"],
+    heroSubtitle: "Tu café favorito, siempre",
+    categories: ['Todos', "Bebidas", "Comida", "Café en Casa"],
     slides: [
       "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1600&q=80",
       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1600&q=80",
@@ -70,11 +70,11 @@ export const franchiseConfigs = {
     extraLabel: "Shot extra",
     extraDescription: "Personaliza tu bebida",
     extraPrice: 35,
-    premiumLabel: "Edicion especial",
-    premiumDescription: "Version premium del producto",
+    premiumLabel: "Edición especial",
+    premiumDescription: "Versión premium del producto",
     premiumPrice: 55,
-    largeLabel: "Tamano grande",
-    largeDescription: "Sube de tamano",
+    largeLabel: "Tamaño grande",
+    largeDescription: "Sube de tamaño",
     largePrice: 45,
   },
   mcdonalds: {

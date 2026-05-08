@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Flujo de pago y entrega. El cliente confirma direccion, metodo de entrega y crea el pedido.
   Buscar en VS Code: checkout, pago, delivery, pickup, ubicacion real, crear pedido, tracking, api.createOrder.
   Mantener estos comentarios actualizados si cambia el flujo.

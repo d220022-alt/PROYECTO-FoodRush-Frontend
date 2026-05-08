@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Vista de About. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: sobre nosotros, equipo, empresa, presentacion.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -16,10 +16,10 @@ const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-    { path: '/terms', label: 'Terminos' },
+    { path: '/terms', label: 'Términos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afiliate' }
+    { path: '/affiliate', label: 'Afíliate' }
 ];
 
 const handleScroll = () => {
@@ -72,9 +72,9 @@ const setupObserver = () => {
                 entry.target.classList.add('is-visible');
             }
         });
-    }, { 
+    }, {
         threshold: 0.1, // Reducido ligeramente para móviles
-        rootMargin: "0px 0px -50px 0px" 
+        rootMargin: "0px 0px -50px 0px"
     });
 
     document.querySelectorAll('.scroll-animate').forEach((el) => {
@@ -153,7 +153,7 @@ const cultureValues = [
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menu
+                    Menú
                 </button>
             </div>
 
@@ -161,7 +161,7 @@ const cultureValues = [
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -191,7 +191,7 @@ const cultureValues = [
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menu principal
+                    Ir al menú principal
                 </button>
             </div>
         </div>
@@ -248,7 +248,7 @@ const cultureValues = [
     <section class="py-20 md:py-32 bg-[#0f172a] text-white relative overflow-hidden">
         <div class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
         <div class="absolute top-0 left-0 w-full h-12 md:h-24 bg-white -skew-y-3 transform origin-top-left"></div>
-        
+
         <div class="container mx-auto px-6 md:px-16 relative z-10 pt-10 md:pt-16">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
                 <div class="lg:col-span-5 lg:sticky lg:top-32 scroll-animate">
@@ -338,8 +338,8 @@ const cultureValues = [
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-                <div v-for="(value, index) in cultureValues" :key="index" 
-                     class="bg-white p-6 md:p-10 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group border border-gray-100 scroll-animate" 
+                <div v-for="(value, index) in cultureValues" :key="index"
+                     class="bg-white p-6 md:p-10 rounded-3xl shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 group border border-gray-100 scroll-animate"
                      :style="{ transitionDelay: `${0.1 * index}s` }">
                     <div :class="['w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mb-6 md:mb-8 transition-colors', value.themeClasses]">
                         <i :class="['fas text-2xl md:text-3xl', value.icon]"></i>
@@ -362,7 +362,7 @@ const cultureValues = [
                         Combinamos experiencia en arquitectura de sistemas distribuidos, diseño de producto y operaciones logísticas para ofrecer una solución integral de clase mundial.
                     </p>
                 </div>
-                
+
                 <div class="lg:col-span-8 space-y-8 md:space-y-12 scroll-animate mt-8 md:mt-0" style="transition-delay: 0.2s;">
                     <div v-for="(member, index) in teamMembers" :key="index" class="flex flex-col md:flex-row gap-6 md:gap-10 items-center bg-gray-50 p-6 md:p-10 rounded-3xl border border-gray-100 group shadow-sm hover:shadow-xl transition-all duration-300">
                         <div class="w-32 h-32 md:w-48 md:h-48 flex-shrink-0 relative overflow-hidden rounded-full border-4 md:border-8 border-white shadow-xl">
@@ -402,7 +402,7 @@ const cultureValues = [
                     <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
-            
+
             <div class="col-span-1">
                 <h5 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Plataforma</h5>
                 <ul class="space-y-3 text-sm text-white/80">

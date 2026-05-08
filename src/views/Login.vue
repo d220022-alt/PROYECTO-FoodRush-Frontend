@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Entrada de usuarios. Maneja login, registro, autodeteccion de zona y redireccion por rol.
   Buscar en VS Code: login, registro, usuario o correo, api.login, api.register, zona, redireccion por rol.
   Mantener estos comentarios actualizados si cambia el flujo.

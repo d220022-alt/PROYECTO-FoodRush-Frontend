@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   App del repartidor. Muestra viajes disponibles, viajes activos, wallet y perfil.
   Buscar en VS Code: delivery, repartidor, nuevos, paginacion, aceptar viaje, mapa, confirmar entrega, wallet.
   Mantener estos comentarios actualizados si cambia el flujo.

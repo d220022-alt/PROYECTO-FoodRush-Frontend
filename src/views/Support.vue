@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Vista de Support. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: soporte, preguntas frecuentes, ticket, asistente, buildSupportReply.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -16,10 +16,10 @@ const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-    { path: '/terms', label: 'Terminos' },
+    { path: '/terms', label: 'Términos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afiliate' }
+    { path: '/affiliate', label: 'Afíliate' }
 ];
 
 const handleScroll = () => {
@@ -72,7 +72,7 @@ const setupObserver = () => {
                 entry.target.classList.add('is-visible');
             }
         });
-    }, { 
+    }, {
         threshold: 0.1,
         rootMargin: "0px 0px -50px 0px"
     });
@@ -97,25 +97,25 @@ onUnmounted(() => {
 // 1. PREGUNTAS FRECUENTES (Textos expandidos)
 // ==========================================
 const faqs = ref([
-    { 
-        question: "¿Cómo puedo rastrear mi pedido en tiempo real?", 
-        answer: "Nuestro sistema cuenta con telemetría en tiempo real. Dirígete a la sección 'Historial de Pedidos' en tu perfil, selecciona el pedido en curso y podrás visualizar en el mapa la ubicación exacta del repartidor, así como el tiempo estimado de llegada.", 
-        open: false 
+    {
+        question: "¿Cómo puedo rastrear mi pedido en tiempo real?",
+        answer: "Nuestro sistema cuenta con telemetría en tiempo real. Dirígete a la sección 'Historial de Pedidos' en tu perfil, selecciona el pedido en curso y podrás visualizar en el mapa la ubicación exacta del repartidor, así como el tiempo estimado de llegada.",
+        open: false
     },
-    { 
-        question: "¿Bajo qué condiciones puedo cancelar una orden?", 
-        answer: "Para garantizar la eficiencia logística de nuestros restaurantes asociados, las cancelaciones solo son permitidas dentro de los primeros minutos, estrictamente antes de que el restaurante acepte y comience a preparar los alimentos. Puedes hacerlo desde los detalles del pedido.", 
-        open: false 
+    {
+        question: "¿Bajo qué condiciones puedo cancelar una orden?",
+        answer: "Para garantizar la eficiencia logística de nuestros restaurantes asociados, las cancelaciones solo son permitidas dentro de los primeros minutos, estrictamente antes de que el restaurante acepte y comience a preparar los alimentos. Puedes hacerlo desde los detalles del pedido.",
+        open: false
     },
-    { 
-        question: "¿Qué pasarelas y métodos de pago procesan?", 
-        answer: "Nuestra infraestructura de pagos es 100% segura. Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, AMEX) procesadas mediante pasarelas cifradas, billeteras digitales como PayPal, y ofrecemos la opción tradicional de pago en efectivo contra entrega.", 
-        open: false 
+    {
+        question: "¿Qué pasarelas y métodos de pago procesan?",
+        answer: "Nuestra infraestructura de pagos es 100% segura. Aceptamos todas las tarjetas de crédito y débito (Visa, Mastercard, AMEX) procesadas mediante pasarelas cifradas, billeteras digitales como PayPal, y ofrecemos la opción tradicional de pago en efectivo contra entrega.",
+        open: false
     },
-    { 
-        question: "¿Cómo procedo si mi pedido llega incompleto o incorrecto?", 
+    {
+        question: "¿Cómo procedo si mi pedido llega incompleto o incorrecto?",
         answer: "Tu satisfacción es nuestra prioridad. Por favor, utiliza el botón 'Crear reporte' en esta misma pantalla. Adjunta una fotografía del pedido recibido y nuestro equipo de soporte revisará el caso.",
-        open: false 
+        open: false
     }
 ]);
 
@@ -217,7 +217,7 @@ const sendChatMessage = async () => {
     scrollToBottom();
 
     const response = await buildSupportReply(text);
-    
+
     isBotTyping.value = false;
     chatMessages.value.push({ text: response, sender: 'bot' });
     scrollToBottom();
@@ -291,7 +291,7 @@ const buildSupportReply = async (userMessage) => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menu
+                    Menú
                 </button>
             </div>
 
@@ -299,7 +299,7 @@ const buildSupportReply = async (userMessage) => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -329,7 +329,7 @@ const buildSupportReply = async (userMessage) => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menu principal
+                    Ir al menú principal
                 </button>
             </div>
         </div>
@@ -345,7 +345,7 @@ const buildSupportReply = async (userMessage) => {
             <h1 class="text-5xl md:text-7xl font-extrabold mb-8 leading-tight font-display drop-shadow-2xl">
                 ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#BD0A0A]">ayudarte hoy?</span>
             </h1>
-            
+
             <div class="relative max-w-2xl mx-auto shadow-2xl rounded-full transform transition-transform hover:scale-[1.02]">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-6 text-gray-400">
                     <i class="fas fa-search text-xl"></i>
@@ -358,7 +358,7 @@ const buildSupportReply = async (userMessage) => {
 
     <section class="container mx-auto px-6 mt-12 relative z-20 mb-24">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            
+
             <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-blue-600 cursor-pointer group">
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fas fa-headset"></i>
@@ -391,7 +391,7 @@ const buildSupportReply = async (userMessage) => {
     <section class="py-16 bg-white relative overflow-hidden">
         <div class="absolute top-0 right-0 w-1/2 h-full bg-gray-50 -skew-x-12 transform origin-top right-[-10%] z-0"></div>
         <div class="container mx-auto px-6 md:px-16 grid grid-cols-1 lg:grid-cols-12 gap-16 relative z-10 scroll-animate">
-            
+
             <div class="lg:col-span-7">
                 <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-sm mb-2 block">Base de Conocimientos</span>
                 <h2 class="text-4xl md:text-5xl font-extrabold text-[#0f172a] mb-10 font-display">Preguntas Frecuentes</h2>
@@ -417,9 +417,9 @@ const buildSupportReply = async (userMessage) => {
                     </div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-4">¿Aún con dudas?</h2>
                     <p class="text-base text-gray-500 mb-8 leading-relaxed">Si nuestra base de conocimientos no resolvió tu inquietud, déjanos un mensaje rápido. Nuestro equipo lo enrutará al departamento correspondiente.</p>
-                    
+
                     <textarea v-model="simpleMessage" rows="5" placeholder="Escribe los detalles de tu consulta aquí..." class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 text-base outline-none focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition resize-none mb-6"></textarea>
-                    
+
                     <button @click="sendSimpleMessage" class="w-full bg-[#0f172a] hover:bg-black text-white font-bold py-4 rounded-xl shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
                         Enviar Consulta General <i class="fa-solid fa-arrow-right"></i>
                     </button>
@@ -439,10 +439,10 @@ const buildSupportReply = async (userMessage) => {
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            
+
             <form @submit.prevent="submitTicket" class="p-6 md:p-8">
                 <div v-if="isUserLoggedIn" class="mb-6 text-sm text-blue-700 bg-blue-50 p-4 rounded-xl flex items-start gap-3 border border-blue-100">
-                    <i class="fa-solid fa-circle-check mt-1 text-lg"></i> 
+                    <i class="fa-solid fa-circle-check mt-1 text-lg"></i>
                     <p>Hemos autocompletado tus datos basados en tu sesión activa. Puedes modificarlos si el reporte corresponde a otra cuenta o franquicia.</p>
                 </div>
 
@@ -494,14 +494,14 @@ const buildSupportReply = async (userMessage) => {
                 </div>
                 <button @click="isChatOpen = false" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/30 flex items-center justify-center transition"><i class="fas fa-times"></i></button>
             </div>
-            
+
             <div ref="chatContainer" class="flex-1 p-5 overflow-y-auto bg-gray-50 text-sm space-y-4">
-                <div v-for="(msg, index) in chatMessages" :key="index" 
+                <div v-for="(msg, index) in chatMessages" :key="index"
                      class="max-w-[85%] p-4 rounded-2xl leading-relaxed shadow-sm text-base"
                      :class="msg.sender === 'user' ? 'bg-[#0f172a] text-white self-end ml-auto rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 self-start mr-auto rounded-tl-none'">
                     <span v-html="formatMessage(msg.text)"></span>
                 </div>
-                
+
                 <div v-if="isBotTyping" class="bg-white border border-gray-100 text-gray-500 max-w-[85%] p-4 rounded-2xl self-start mr-auto rounded-tl-none shadow-sm flex items-center gap-2">
                     <div class="flex space-x-1">
                         <div class="w-2 h-2 bg-[#BD0A0A] rounded-full animate-bounce"></div>
@@ -510,7 +510,7 @@ const buildSupportReply = async (userMessage) => {
                     </div>
                 </div>
             </div>
-            
+
             <div class="p-4 bg-white border-t border-gray-100 flex items-center gap-3">
                 <input v-model="chatInput" @keyup.enter="sendChatMessage" type="text" placeholder="Pregunta lo que sea..." class="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#BD0A0A]/30">
                 <button @click="sendChatMessage" class="w-12 h-12 bg-[#BD0A0A] text-white rounded-full flex items-center justify-center hover:bg-red-800 transition shadow-lg transform hover:scale-105">
@@ -538,7 +538,7 @@ const buildSupportReply = async (userMessage) => {
                     <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
-            
+
             <div class="col-span-1">
                 <h5 class="font-bold text-xl text-[#fbbf24] mb-4">Plataforma</h5>
                 <ul class="space-y-3 text-sm text-white/80">
@@ -604,16 +604,16 @@ const buildSupportReply = async (userMessage) => {
     transform: translateY(0) scale(1);
 }
 
-.fade-in-up { 
-    opacity: 0; 
+.fade-in-up {
+    opacity: 0;
     transform: translateY(30px);
-    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+    animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeInUp {
-    to { 
-        opacity: 1; 
-        transform: translateY(0); 
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 </style>

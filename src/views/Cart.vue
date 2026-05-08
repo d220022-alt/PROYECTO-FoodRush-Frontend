@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Carrito del cliente. Resume productos agregados antes de pasar al checkout.
   Buscar en VS Code: carrito, cantidades, total, checkout, remove item, updateQty.
   Mantener estos comentarios actualizados si cambia el flujo.

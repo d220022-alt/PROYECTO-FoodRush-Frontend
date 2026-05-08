@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Mapa de navegacion del frontend. Define que vista abre cada URL y cuales requieren sesion.
   Buscar en VS Code: rutas, protectedRoutes, auth guard, portales, login.
   Mantener estos comentarios actualizados si cambia el flujo.

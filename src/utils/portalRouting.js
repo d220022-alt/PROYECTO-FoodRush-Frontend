@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Decide a que portal enviar cada sesion: cliente, administracion o delivery.
   Buscar en VS Code: redireccion por rol, admin, delivery, cliente, correo.
   Mantener estos comentarios actualizados si cambia el flujo.

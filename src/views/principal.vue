@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Vista de Principal. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: afiliacion, landing empresa, registro de locales.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -7,6 +7,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import logoMcDonalds from '../assets/images/logo-mcdonalds.png';
+import logoKfc from '../assets/images/logo-kfc.png';
+import logoBurgerKing from '../assets/images/logo-burgerking.png';
 
 const route = useRoute();
 const router = useRouter();
@@ -14,10 +17,10 @@ const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-    { path: '/terms', label: 'Terminos' },
+    { path: '/terms', label: 'Términos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afiliate' }
+    { path: '/affiliate', label: 'Afíliate' }
 ];
 
 const handleScroll = () => {
@@ -120,7 +123,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menu
+                    Menú
                 </button>
             </div>
 
@@ -128,7 +131,7 @@ onUnmounted(() => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -158,7 +161,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menu principal
+                    Ir al menú principal
                 </button>
             </div>
         </div>
@@ -183,7 +186,7 @@ onUnmounted(() => {
                 </div>
             </div>
         </div>
-        
+
         <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce cursor-pointer z-30" onclick="document.getElementById('marcas').scrollIntoView({behavior: 'smooth'})">
              <i class="fas fa-chevron-down text-white text-3xl"></i>
         </div>
@@ -192,14 +195,14 @@ onUnmounted(() => {
     <section id="marcas" class="py-20 bg-white">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16" data-aos="fade-up">
-                <span class="text-primary font-bold tracking-widest uppercase">Nuestras Aliados</span>
+                <span class="text-primary font-bold tracking-widest uppercase">Nuestros aliados</span>
                 <h2 class="text-4xl font-extrabold text-gray-900 mt-2">Top Franquicias</h2>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="100">
                     <div class="h-40 bg-yellow-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/McDonald%27s_Golden_Arches.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
+                        <img :src="logoMcDonalds" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">McDonald's</h3>
@@ -208,7 +211,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="200">
                     <div class="h-40 bg-gray-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/b/bf/KFC_logo.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
+                        <img :src="logoKfc" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">KFC</h3>
@@ -217,7 +220,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="300">
                     <div class="h-40 bg-blue-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Burger_King_2020.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
+                        <img :src="logoBurgerKing" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">Burger King</h3>
@@ -346,7 +349,7 @@ onUnmounted(() => {
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         .text-shadow { text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        
+
         /* Corrección para que el slide ocupe toda la pantalla sin espacios blancos */
         #default-carousel {
             height: 100vh;
@@ -354,5 +357,5 @@ onUnmounted(() => {
             position: relative;
             z-index: 0;
         }
-    
+
 </style>

@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Mapa que ve el cliente durante el seguimiento. Dibuja local, cliente, repartidor y ruta por calles.
   Buscar en VS Code: mapa tracking, ruta por calles, OSRM, repartidor, cliente.
   Mantener estos comentarios actualizados si cambia el flujo.

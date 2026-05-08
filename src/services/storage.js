@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Capa de localStorage. Guarda sesion, carrito, pedidos cacheados y notificaciones por usuario.
   Buscar en VS Code: localStorage, sesion, carrito, pedidos cacheados, notificaciones, delivery assignments.
   Mantener estos comentarios actualizados si cambia el flujo.

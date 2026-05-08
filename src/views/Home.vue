@@ -1,7 +1,7 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Pantalla principal del cliente. Reune busqueda, filtros, ofertas y tarjetas de franquicias.
-  Buscar en VS Code: home, inicio, busqueda, categorias, ofertas, filtros, franquicias, goToFranchise.
+  Buscar en VS Code: home, inicio, busqueda, categorías, ofertas, filtros, franquicias, goToFranchise.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -36,9 +36,9 @@ const searchTerm = ref('');
 const currentCategory = ref('all');
 
 const OFFER_MESSAGES = [
-    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rapido sin revisar todo el menu.' },
+    { title: 'Combo destacado', badge: 'Hasta 20% OFF', copy: 'Promos activas para pedir rápido sin revisar todo el menú.' },
     { title: 'Favorito FoodRush', badge: 'Popular', copy: 'Franquicias con ofertas y productos ideales para compartir.' },
-    { title: 'Delivery recomendado', badge: 'Envio agil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
+    { title: 'Delivery recomendado', badge: 'Envío ágil', copy: 'Opciones con buena experiencia de entrega y promos activas.' },
 ];
 
 const router = useRouter();
@@ -184,20 +184,17 @@ const filteredFranchises = computed(() => {
     }
     if (searchTerm.value) {
         const term = searchTerm.value.toLowerCase();
-        result = result.filter(item => 
-            item.name.toLowerCase().includes(term) || 
+        result = result.filter(item =>
+            item.name.toLowerCase().includes(term) ||
             item.category.toLowerCase().includes(term)
         );
     }
-<<<<<<< HEAD
-=======
     if (activeFilters.value.includes('pickup')) {
         result = result.filter(item => item.pickup);
     }
     if (activeFilters.value.includes('delivery') || activeFilters.value.includes('envio')) {
         result = result.filter(item => item.delivery);
     }
->>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
     }
@@ -515,8 +512,6 @@ const filterResultText = computed(() => {
                     <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
-<<<<<<< HEAD
-=======
                 <div class="mt-2 flex w-full flex-wrap items-center justify-center gap-2 border-t border-gray-50 pt-2 text-[11px] font-bold">
                     <span v-if="item.delivery" class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-1 text-orange-600">
                         <i class="fa-solid fa-motorcycle"></i> Delivery
@@ -528,7 +523,6 @@ const filterResultText = computed(() => {
                         Solo delivery
                     </span>
                 </div>
->>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
             </div>
         </div>
     </section>

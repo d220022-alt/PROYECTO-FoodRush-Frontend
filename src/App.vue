@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Componente raiz. Renderiza la ruta actual y controla botones globales de tema y accesibilidad.
   Buscar en VS Code: shell app, boton tema, boton accesibilidad, modo oscuro, router-view.
   Mantener estos comentarios actualizados si cambia el flujo.

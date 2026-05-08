@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Vista de Krispy Kreme. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: franquicia, menu, productos, fetchProducts, filtros, modal producto, addToCart, carrito.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -182,7 +182,7 @@ const inferTypeByKeywords = (text) => {
     source.includes('soda') ||
     source.includes('frappe')
   ) {
-    return 'Frio';
+    return 'Frío';
   }
 
   return '';
@@ -717,7 +717,7 @@ const modifierSummary = computed(() => {
   const lines = [];
 
   if (sizeModifier.value) {
-    lines.push(`Tamano: ${selectedSizeLabel.value}`);
+    lines.push(`Tamaño: ${selectedSizeLabel.value}`);
   }
 
   nonSizeModifiers.value.forEach((mod) => {
@@ -746,8 +746,8 @@ const sizeInfo = computed(() => {
   if (currentIndex <= 0) {
     return {
       title: currentSelection,
-      description: 'Formato ideal para una porcion ligera y una compra rapida.',
-      note: 'Buena opcion si quieres probar el producto sin irte al formato grande.',
+      description: 'Formato ideal para una porción ligera y una compra rápida.',
+      note: 'Buena opción si quieres probar el producto sin irte al formato grande.',
     };
   }
 
@@ -858,24 +858,24 @@ const syncCategory = () => {
 
 const getDefaultProducts = () => {
   const categories = (franchise.value.categories || []).filter((category) => normalize(category) !== 'todos');
-  const fallbackCategories = categories.length > 0 ? categories : ['Menu'];
+  const fallbackCategories = categories.length > 0 ? categories : ['Menú'];
   const fallbackTypeByCategory = {
     hamburguesas: 'Res',
     complementos: 'Snacks',
-    bebidas: 'Frio',
+    bebidas: 'Frío',
     postres: 'Pastel',
     pizzas: 'Especial',
-    pastas: 'Clasica',
+    pastas: 'Clásica',
     combos: 'Combo',
-    acompanantes: 'Guarnicion',
-    tacos: 'Clasico',
-    burritos: 'Clasico',
-    nachos: 'Clasico',
+    acompanantes: 'Guarnición',
+    tacos: 'Clásico',
+    burritos: 'Clásico',
+    nachos: 'Clásico',
     pollo: 'Pollo',
     res: 'Res',
-    'hot dogs': 'Clasico',
+    'hot dogs': 'Clásico',
     donas: 'Glaseada',
-    comida: 'Clasica',
+    comida: 'Clásica',
     'cafe en casa': 'Molido',
   };
 
@@ -885,10 +885,10 @@ const getDefaultProducts = () => {
       id: `fallback-${FRANCHISE_SLUG}-${index + 1}`,
       name: `${category} Especial`,
       category,
-      type: fallbackTypeByCategory[categoryKey] || 'Clasico',
+      type: fallbackTypeByCategory[categoryKey] || 'Clásico',
       price: 160 + (index * 45),
       isExtraFeature: index % 2 === 0,
-      description: `Opcion recomendada de ${franchise.value.name}.`,
+      description: `Opción recomendada de ${franchise.value.name}.`,
       img: getProductImage(`${franchise.value.name} ${category} ${index + 1}`, category),
     };
   });
@@ -1057,11 +1057,11 @@ const openProductDetail = (product) => {
   currentQty.value = 1;
   selectedProductType.value = product.type || '';
   checkFavorite();
-  
+
   // Load dynamic modifiers based on the product category + brand tweaks
   const modifiers = buildModifiersForProduct(product);
   customModifiers.value = modifiers || [];
-  
+
   // Initialize selections based on defaults
   const selections = {};
   customModifiers.value.forEach(mod => {
@@ -1108,7 +1108,7 @@ const updateModifier = (modId, value, type) => {
 const createCartItem = () => {
   const detailParts = [];
   if (selectedProductType.value) detailParts.push(`Tipo: ${selectedProductType.value}`);
-  
+
   customModifiers.value.forEach(mod => {
       const selection = modifierSelections.value[mod.id];
       if (mod.type === 'choice') {
@@ -1360,7 +1360,7 @@ onBeforeUnmount(() => {
                   </button>
                 </div>
                 <div v-if="showTypeFilter && sidebarConfig.types.length === 0" class="text-sm text-gray-400">
-                  Sin filtros para esta categoria.
+                  Sin filtros para esta categoría.
                 </div>
                 <div v-else-if="showTypeFilter" class="flex flex-wrap gap-2">
                   <button
@@ -1466,7 +1466,7 @@ onBeforeUnmount(() => {
                 <span class="text-sm md:text-base font-semibold text-slate-700">productos disponibles</span>
               </div>
               <div class="flex items-center gap-2">
-                <span class="catalog-chip">Categoria: {{ currentCategory }}</span>
+                <span class="catalog-chip">Categoría: {{ currentCategory }}</span>
                 <span v-if="activeFiltersCount > 0" class="catalog-chip catalog-chip--active" :style="{ backgroundColor: 'var(--brand-primary)' }">
                   {{ activeFiltersCount }} filtros activos
                 </span>
@@ -1489,7 +1489,7 @@ onBeforeUnmount(() => {
 
           <div v-else-if="visibleProducts.length === 0" class="col-span-full text-center py-20 text-gray-400 flex flex-col items-center">
             <i class="fa-regular fa-face-frown text-4xl mb-4 text-gray-300"></i>
-            No se encontraron productos para esta categoria.
+            No se encontraron productos para esta categoría.
           </div>
 
           <div v-else :key="catalogMotionKey" class="grid gap-3 md:gap-6" :class="productGridClass">
@@ -1590,8 +1590,8 @@ onBeforeUnmount(() => {
           <div class="summary-card hidden md:block">
             <div class="summary-card__header">
               <div>
-                <span class="summary-card__eyebrow">Resumen rapido</span>
-                <h3 class="summary-card__title">Tu configuracion actual</h3>
+                <span class="summary-card__eyebrow">Resumen rápido</span>
+                <h3 class="summary-card__title">Tu configuración actual</h3>
               </div>
               <span class="summary-card__badge">{{ quantityLabel }}</span>
             </div>
@@ -1641,7 +1641,7 @@ onBeforeUnmount(() => {
                 <i class="fa-solid fa-star"></i>
                 <i class="fa-solid fa-star-half-stroke"></i>
               </div>
-              <span class="text-gray-400 ml-3 text-sm font-medium underline decoration-gray-200 underline-offset-4 cursor-pointer hover:text-gray-600">(Multiples Reviews)</span>
+              <span class="text-gray-400 ml-3 text-sm font-medium underline decoration-gray-200 underline-offset-4 cursor-pointer hover:text-gray-600">(Múltiples reseñas)</span>
 
               <button
                 @click="toggleFavorite"
@@ -1704,7 +1704,7 @@ onBeforeUnmount(() => {
                 <div>
                   <span class="block text-sm font-bold text-slate-800">{{ mod.label }}</span>
                   <span v-if="mod.type !== 'choice' && mod.price > 0" class="text-xs font-medium" :style="{ color: 'var(--brand-primary)' }">{{ $moneySigned(mod.price) }}</span>
-                  <span v-else class="text-xs text-slate-500">{{ mod.type === 'choice' ? 'Selecciona una opcion' : mod.type === 'counter' ? 'Ajusta la cantidad' : 'Activa si lo deseas' }}</span>
+                  <span v-else class="text-xs text-slate-500">{{ mod.type === 'choice' ? 'Selecciona una opción' : mod.type === 'counter' ? 'Ajusta la cantidad' : 'Activa si lo deseas' }}</span>
                 </div>
               </div>
 
@@ -1755,8 +1755,8 @@ onBeforeUnmount(() => {
           <div class="summary-card mb-6 md:hidden">
             <div class="summary-card__header">
               <div>
-                <span class="summary-card__eyebrow">Resumen rapido</span>
-                <h3 class="summary-card__title">Tu configuracion actual</h3>
+                <span class="summary-card__eyebrow">Resumen rápido</span>
+                <h3 class="summary-card__title">Tu configuración actual</h3>
               </div>
               <span class="summary-card__badge">{{ quantityLabel }}</span>
             </div>
@@ -1798,7 +1798,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="studio-cta__actions">
                 <button type="button" class="studio-cta__button studio-cta__button--secondary" @click="addToCart">
-                  <span>Anadir</span>
+                  <span>Añadir</span>
                   <i class="fa-solid fa-cart-arrow-down"></i>
                 </button>
                 <button type="button" class="studio-cta__button studio-cta__button--primary" @click="buyNow">
@@ -1820,7 +1820,7 @@ onBeforeUnmount(() => {
             <span class="brand-footer__rush">Rush</span>
           </div>
           <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">
-            Los favoritos de {{ franchise.name }} con una experiencia mas moderna, rapida y clara.
+            Los favoritos de {{ franchise.name }} con una experiencia más moderna, rápida y clara.
           </p>
           <div class="flex gap-4">
             <a href="#" class="brand-footer__social" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
@@ -1835,7 +1835,7 @@ onBeforeUnmount(() => {
             <ul class="space-y-3 text-white/70 font-medium">
               <li><a href="#" class="hover:text-white hover:underline transition">Preguntas Frecuentes</a></li>
               <li><a href="#" class="hover:text-white hover:underline transition">Soporte</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Terminos</a></li>
+              <li><a href="#" class="hover:text-white hover:underline transition">Términos</a></li>
             </ul>
           </div>
           <div>
@@ -1843,7 +1843,7 @@ onBeforeUnmount(() => {
             <ul class="space-y-3 text-white/70 font-medium">
               <li><a href="#" class="hover:text-white hover:underline transition">Sobre Nosotros</a></li>
               <li><a href="#" class="hover:text-white hover:underline transition">Novedades</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Afiliate</a></li>
+              <li><a href="#" class="hover:text-white hover:underline transition">Afíliate</a></li>
             </ul>
           </div>
         </div>
@@ -3000,7 +3000,7 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(18px);
   /* Sombra invertida para que resalte al flotar o estar pegado */
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06); 
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.06);
 }
 
 .studio-cta > div {

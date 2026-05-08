@@ -1,6 +1,6 @@
 <!--
-  Guia rapida para presentar:
-  Favoritos del cliente. Guarda franquicias o productos que quiere repetir rapido.
+  Guia rápida para presentar:
+  Favoritos del cliente. Guarda franquicias o productos que quiere repetir rápido.
   Buscar en VS Code: favoritos, localStorage, productos guardados.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
