@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Seguimiento del pedido. Mezcla backend, cache local y dataset QA para mostrar estado, mapa y codigo.
   Buscar en VS Code: tracking, seguimiento, mapa, codigo de entrega, pedido local, pedido remoto, realtime.
   Mantener estos comentarios actualizados si cambia el flujo.

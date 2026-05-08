@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Carrito del cliente. Resume productos agregados antes de pasar al checkout.
   Buscar en VS Code: carrito, cantidades, total, checkout, remove item, updateQty.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -81,14 +81,17 @@ const totalPrice = computed(() => {
         <TransitionGroup v-else name="list" tag="div" class="relative">
             <div v-for="item in cart" :key="item.lineKey || item.id" class="border rounded-xl p-4 mb-6 flex gap-4 items-start shadow-sm bg-white hover:shadow-md transition-shadow">
                 
-                <div class="w-24 h-24 bg-gray-50 rounded-lg flex items-center justify-center p-2 shrink-0">
-                    <img :src="item.img" :alt="`Imagen de ${item.name}`" class="w-full h-full object-contain mix-blend-multiply" loading="lazy">
+                <div class="cart-image-frame w-24 h-24 rounded-lg flex items-center justify-center p-2 shrink-0">
+                    <img :src="item.img" :alt="`Imagen de ${item.name}`" class="cart-product-image w-full h-full object-contain" loading="lazy">
                 </div>
 
                 <div class="flex-1 min-w-0">
                     <div class="flex justify-between items-start mb-1">
                         <h3 class="font-bold text-slate-800 text-lg truncate">{{ item.name }}</h3>
                     </div>
+                    <p v-if="item.place || item.franchiseSlug" class="text-[11px] font-black uppercase tracking-wide text-orange-500 mb-1">
+                        {{ item.place || item.franchiseSlug }}
+                    </p>
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2">{{ item.details || 'Sin detalles adicionales' }}</p>
                     
                     <div class="flex items-center justify-between">
@@ -164,5 +167,18 @@ const totalPrice = computed(() => {
 /* Asegura que los elementos se muevan suavemente cuando uno es eliminado */
 .list-move {
   transition: transform 0.4s ease;
+}
+
+.cart-image-frame {
+  background: #f8fafc;
+}
+
+.cart-product-image {
+  mix-blend-mode: normal;
+}
+
+:global(html.foodrush-dark) .cart-image-frame {
+  background: #ffffff;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
 }
 </style>

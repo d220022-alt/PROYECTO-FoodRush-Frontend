@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Opciones de personalizacion por productos: tamanos, extras, bebidas, combos y ajustes.
   Buscar en VS Code: modificadores, opciones producto, tamanos, extras, cafe, carrito.
   Mantener estos comentarios actualizados si cambia el flujo.

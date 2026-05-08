@@ -1,6 +1,6 @@
 <!--
-  Guia rapida para presentar:
-  Vista de Terminos Condiciones. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
+  Guia rápida para presentar:
+  Vista de Términos Condiciones. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
   Buscar en VS Code: terminos, condiciones, registro, privacidad.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
@@ -28,10 +28,10 @@ const isMobileMenuOpen = ref(false);
 
 // Configuración de los ítems de navegación (puedes ajustarlos)
 const navItems = [
-    { path: '/terms', label: 'Terminos' },
+    { path: '/terms', label: 'Términos' },
     { path: '/support', label: 'Soporte' },
     { path: '/about', label: 'Nosotros' },
-    { path: '/affiliate', label: 'Afiliate' },
+    { path: '/affiliate', label: 'Afíliate' },
 ];
 
 const handleScroll = () => {
@@ -41,7 +41,7 @@ const handleScroll = () => {
     // 2. Lógica original de Scroll Spy para el sidebar lateral
     const sectionElements = document.querySelectorAll('.section-target');
     let current = 'intro';
-    
+
     sectionElements.forEach(section => {
         const sectionTop = section.offsetTop;
         if (window.scrollY >= sectionTop - 200) {
@@ -217,7 +217,7 @@ const acceptTerms = () => {
         });
         return;
     }
-    
+
     localStorage.setItem('terms_accepted', 'true');
     Swal.fire({
         icon: 'success',
@@ -239,7 +239,7 @@ onMounted(() => {
     window.addEventListener('scroll', handleScroll);
     window.addEventListener('resize', handleResize);
     window.scrollTo(0, 0);
-    
+
     // Check if user is logged in
     if (localStorage.getItem('auth_token')) {
         isLoggedIn.value = true;
@@ -282,11 +282,11 @@ onUnmounted(() => {
         ]"
     >
         <div class="mx-auto flex max-w-screen-2xl items-center justify-between px-4 md:px-12 lg:px-16">
-            
+
             <a href="#" @click.prevent="goHome" class="flex items-center space-x-2 group z-50">
                 <i :class="['fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
                              isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]']"></i>
-                
+
                 <span :class="['text-xl md:text-2xl font-extrabold tracking-wide transition-colors duration-300 font-display drop-shadow-sm',
                                 isSolid ? 'text-slate-900' : 'text-white']">
                     FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
@@ -311,7 +311,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Menu
+                    Menú
                 </button>
             </div>
 
@@ -319,7 +319,7 @@ onUnmounted(() => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden focus:outline-none"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -349,7 +349,7 @@ onUnmounted(() => {
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
-                    Ir al menu principal
+                    Ir al menú principal
                 </button>
             </div>
         </div>
@@ -389,8 +389,8 @@ onUnmounted(() => {
                     <h3 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</h3>
                     <ul class="space-y-1 text-sm text-gray-600">
                         <li v-for="(section, index) in sections" :key="section.id">
-                            <a href="#" @click.prevent="scrollToSection(section.id)" 
-                               class="term-link" 
+                            <a href="#" @click.prevent="scrollToSection(section.id)"
+                               class="term-link"
                                :class="{ 'active': currentSection === section.id }">
                                 <span class="term-link__number">{{ String(index + 1).padStart(2, '0') }}</span>
                                 <span class="term-link__text">{{ getSectionLabel(section) }}</span>
@@ -402,7 +402,7 @@ onUnmounted(() => {
 
             <div class="w-full lg:flex-1 lg:min-w-0">
                 <div class="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-gray-100 space-y-16">
-                    
+
                     <div id="intro" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
                             <span class="bg-gray-100 text-[#BD0A0A] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
@@ -551,12 +551,12 @@ onUnmounted(() => {
                                 He leído, entiendo y acepto por completo los términos y condiciones de FoodRush.
                             </label>
                         </div>
-                        
+
                         <div class="flex justify-end gap-4">
                             <button @click="goBackWithCancel" class="px-6 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition">
                                 {{ isLoggedIn ? 'Volver' : 'Cancelar' }}
                             </button>
-                            <button v-if="!isLoggedIn" @click="acceptTerms" 
+                            <button v-if="!isLoggedIn" @click="acceptTerms"
                                     :class="termsAccepted ? 'bg-[#BD0A0A] hover:bg-red-800 text-white shadow-lg shadow-red-500/30' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
                                     class="px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check" v-if="termsAccepted"></i>
@@ -618,13 +618,12 @@ onUnmounted(() => {
 
 <style scoped>
 /* Importación de fuentes necesarias para el Navbar y estilos generales */
-@import url('https://fonts.googleapis.com/css2?family=Titan+One&display=swap');
 
 html { scroll-behavior: smooth; }
 
 /* Ajuste para que los anchors no queden tapados por el menú fixed */
 .section-target {
-    scroll-margin-top: 140px; 
+    scroll-margin-top: 140px;
 }
 
 /* Estilos originales del sidebar */

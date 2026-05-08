@@ -1,18 +1,17 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Mapa de navegacion del frontend. Define que vista abre cada URL y cuales requieren sesion.
   Buscar en VS Code: rutas, protectedRoutes, auth guard, portales, login.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from './views/Home.vue'
 import Login from './views/Login.vue'
 import { getSession } from './services/storage'
 import { getPortalRouteByEmail } from './utils/portalRouting'
 
 // Para presentar: aqui empieza el mapa de URLs; si preguntan por una pantalla, busca su path en este arreglo.
 const routes = [
-    { path: '/', component: Home },
+    { path: '/', component: () => import('./views/Home.vue') },
     { path: '/login', component: Login },
     // Franquicias: cada ruta carga su vista bajo demanda para no inflar el primer bundle.
     { path: '/franchise/starbucks', component: () => import('./views/Starbucks.vue') },

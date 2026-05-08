@@ -1,5 +1,5 @@
 <!--
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   App del repartidor. Muestra viajes disponibles, viajes activos, wallet y perfil.
   Buscar en VS Code: delivery, repartidor, nuevos, paginacion, aceptar viaje, mapa, confirmar entrega, wallet.
   Mantener estos comentarios actualizados si cambia el flujo.
@@ -2447,8 +2447,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
-
 .delivery-pro {
     font-family: 'Inter', sans-serif;
     height: 100dvh;

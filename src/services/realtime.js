@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Conexion liviana a eventos en vivo. Si falla, la app sigue usando polling para no romper la demo.
   Buscar en VS Code: realtime, SSE, eventos en vivo, admin, delivery, tracking.
   Mantener estos comentarios actualizados si cambia el flujo.

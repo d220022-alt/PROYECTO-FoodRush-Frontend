@@ -1,5 +1,5 @@
 /*
-  Guia rapida para presentar:
+  Guia rápida para presentar:
   Cliente HTTP principal. Centraliza llamadas al backend, headers de tenant, token y mensajes de error.
   Buscar en VS Code: api, backend, fetch, token, X-Tenant-ID, login, register, pedidos, productos.
   Mantener estos comentarios actualizados si cambia el flujo.

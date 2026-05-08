@@ -6,6 +6,9 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import logoMcDonalds from '../assets/images/logo-mcdonalds-compact.webp';
+import logoKfc from '../assets/images/logo-kfc-compact.webp';
+import logoBurgerKing from '../assets/images/logo-burgerking-compact.webp';
 
 const route = useRoute();
 const router = useRouter();
@@ -137,7 +140,7 @@ onUnmounted(() => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -166,7 +169,7 @@ onUnmounted(() => {
                 type="button"
                 class="z-50 inline-flex h-11 w-11 items-center justify-center rounded-2xl text-2xl transition-all duration-300 md:hidden"
                 :class="isSolid ? 'bg-slate-100 text-slate-900' : 'bg-white/12 text-white backdrop-blur-sm'"
-                aria-label="Abrir menu"
+                aria-label="Abrir menú"
                 @click="isMobileMenuOpen = !isMobileMenuOpen"
             >
                 <i :class="isMobileMenuOpen ? 'fa-solid fa-xmark' : 'fa-solid fa-bars'"></i>
@@ -419,11 +422,11 @@ onUnmounted(() => {
                 <span class="text-[#BD0A0A] font-bold tracking-widest uppercase">Ellos ya confían en nosotros</span>
                 <h2 class="text-4xl font-extrabold text-gray-900 mt-2">Top Franquicias</h2>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="100">
                     <div class="h-40 bg-yellow-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/McDonald%27s_Golden_Arches.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
+                        <img :src="logoMcDonalds" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="McDonalds">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">McDonald's</h3>
@@ -432,7 +435,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="200">
                     <div class="h-40 bg-gray-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/en/b/bf/KFC_logo.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
+                        <img :src="logoKfc" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="KFC">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">KFC</h3>
@@ -441,7 +444,7 @@ onUnmounted(() => {
                 </div>
                 <div class="group bg-white rounded-2xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100" data-aos="zoom-in" data-aos-delay="300">
                     <div class="h-40 bg-blue-50 flex items-center justify-center p-6">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/Burger_King_2020.svg" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
+                        <img :src="logoBurgerKing" class="h-full object-contain filter group-hover:scale-110 transition-transform duration-500" alt="BK">
                     </div>
                     <div class="p-6">
                         <h3 class="text-xl font-bold mb-2">Burger King</h3>
@@ -490,9 +493,9 @@ onUnmounted(() => {
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor tecnología de logística para tus franquicias favoritas.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
+                    <a href="#" aria-label="Facebook de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Twitter de FoodRush" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
                 </div>
             </div>
             <div class="flex gap-16 text-sm text-left md:text-right">
