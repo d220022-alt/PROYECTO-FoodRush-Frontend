@@ -189,15 +189,7 @@ const filteredFranchises = computed(() => {
             item.category.toLowerCase().includes(term)
         );
     }
-<<<<<<< HEAD
-=======
-    if (activeFilters.value.includes('pickup')) {
-        result = result.filter(item => item.pickup);
-    }
-    if (activeFilters.value.includes('delivery') || activeFilters.value.includes('envio')) {
-        result = result.filter(item => item.delivery);
-    }
->>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
+
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
     }
@@ -515,20 +507,6 @@ const filterResultText = computed(() => {
                     <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
-<<<<<<< HEAD
-=======
-                <div class="mt-2 flex w-full flex-wrap items-center justify-center gap-2 border-t border-gray-50 pt-2 text-[11px] font-bold">
-                    <span v-if="item.delivery" class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-1 text-orange-600">
-                        <i class="fa-solid fa-motorcycle"></i> Delivery
-                    </span>
-                    <span v-if="item.pickup" class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-green-600">
-                        <i class="fa-solid fa-bag-shopping"></i> Retiro
-                    </span>
-                    <span v-if="item.delivery && !item.pickup" class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-slate-500">
-                        Solo delivery
-                    </span>
-                </div>
->>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
             </div>
         </div>
     </section>
@@ -741,6 +719,7 @@ const filterResultText = computed(() => {
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
 }
 .franchise-meta {
     display: flex;
