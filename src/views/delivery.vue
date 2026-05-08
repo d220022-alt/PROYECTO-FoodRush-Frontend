@@ -1166,7 +1166,7 @@ const acceptOrder = async (id) => {
             currentTab.value = 'active';
             saveState();
             await refreshData({ silent: true });
-            showToast('Pedido QA aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
+            showToast('Pedido QA aceptado. Pide el código al cliente cuando lo tengas frente a ti.');
             return;
         }
 
@@ -1187,7 +1187,7 @@ const acceptOrder = async (id) => {
         currentTab.value = 'active';
         saveState();
         await refreshData({ silent: true });
-        showToast('Pedido aceptado. Pide el codigo al cliente cuando lo tengas frente a ti.');
+        showToast('Pedido aceptado. Pide el código al cliente cuando lo tengas frente a ti.');
     } catch (error) {
         console.error('No se pudo aceptar el pedido', error);
         showToast(error.message || 'No se pudo aceptar el pedido.', 'error');
@@ -1290,7 +1290,7 @@ const updateOrderStatus = async (status) => {
         });
         saveState();
         syncRouteFromState();
-        showToast('Llegaste al destino. Pide el codigo al cliente para confirmar.');
+        showToast('Llegaste al destino. Pide el código al cliente para confirmar.');
     }
 };
 
@@ -1367,11 +1367,11 @@ const handleDeliveryPhoto = (event) => {
     deliveryProofFileName.value = file.name ? `${file.name} cargada` : 'Foto de entrega cargada';
 };
 
-// Para presentar: entrega segura; compara codigo del cliente, evidencia y marca el pedido entregado.
+// Para presentar: entrega segura; compara código del cliente, evidencia y marca el pedido entregado.
 const completeDelivery = async () => {
     if (!state.activeOrder) return;
     if (!deliveryCodeMatches.value) {
-        showToast('Codigo de entrega incorrecto.', 'error');
+        showToast('Código de entrega incorrecto.', 'error');
         return;
     }
     if (!deliveryProofFile.value) {
@@ -1400,7 +1400,7 @@ const completeDelivery = async () => {
         } else {
             const response = await api.updateOrder(deliveredOrder.id, {
                 estado_id: ORDER_STATUS_CODES.delivered,
-                nota: `Entrega confirmada con codigo ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
+                nota: `Entrega confirmada con código ${normalizedDeliveryCode.value}. Evidencia: ${deliveryProofFile.value?.name || 'foto'}.`,
             }, buildTenantHeaders(deliveredOrder.tenantId));
             await syncDeliveryAssignment(deliveredOrder, 'delivered', 'delivered');
             updateCachedOrderStatus(deliveredOrder.id, response?.data?.estado_id || response?.data?.estado?.id || ORDER_STATUS_CODES.delivered, null, {
@@ -1930,7 +1930,7 @@ onBeforeUnmount(() => {
 
                                 <div class="mb-4 rounded-xl border border-orange-200 bg-orange-50 p-3 shadow-sm">
                                     <div class="mb-2 flex items-center justify-between border-b border-orange-200/50 pb-2">
-                                        <p class="text-[10px] font-bold uppercase text-slate-500">Codigo de entrega</p>
+                                        <p class="text-[10px] font-bold uppercase text-slate-500">Código de entrega</p>
                                         <p class="rounded-lg bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#f97316] shadow-sm">
                                             Pidelo al cliente
                                         </p>
@@ -2334,11 +2334,11 @@ onBeforeUnmount(() => {
 
                 <div class="space-y-4">
                     <div class="rounded-2xl border border-orange-100 bg-orange-50 p-3 text-xs font-bold text-slate-600">
-                        Pide al cliente el codigo del pedido, toma una evidencia y confirma solo cuando el pedido ya este en sus manos.
+                        Pide al cliente el código del pedido, toma una evidencia y confirma solo cuando el pedido ya esté en sus manos.
                     </div>
 
                     <div>
-                        <label class="mb-2 block text-[11px] font-black uppercase tracking-wide text-slate-500">Codigo del cliente</label>
+                        <label class="mb-2 block text-[11px] font-black uppercase tracking-wide text-slate-500">Código del cliente</label>
                         <input
                             v-model="deliveryConfirmCode"
                             type="text"
@@ -2348,7 +2348,7 @@ onBeforeUnmount(() => {
                             class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xl font-black tracking-[0.25em] text-slate-800 outline-none focus:border-[#f97316] focus:bg-white"
                         >
                         <p v-if="deliveryConfirmCode && !deliveryCodeMatches" class="mt-2 text-[11px] font-bold text-red-500">
-                            Ese codigo no coincide con el pedido activo.
+                            Ese código no coincide con el pedido activo.
                         </p>
                     </div>
 

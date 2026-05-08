@@ -533,6 +533,7 @@ const getStatusBadgeClass = (statusValue) => {
   if (key === 'pendiente') return 'bg-yellow-100 text-yellow-700';
   if (key === 'preparando') return 'bg-blue-100 text-blue-700';
   if (key === 'en camino') return 'bg-purple-100 text-purple-700';
+  if (key === 'en destino') return 'bg-indigo-100 text-indigo-700';
   if (key === 'entregado') return 'bg-green-100 text-green-700';
   if (key === 'cancelado') return 'bg-red-100 text-red-700';
   return 'bg-slate-100 text-slate-700';

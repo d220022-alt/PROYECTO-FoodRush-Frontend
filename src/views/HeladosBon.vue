@@ -487,7 +487,7 @@ const visibleProducts = computed(() =>
 );
 
 const buildModifiersForProduct = (product) => {
-  const base = getModifiersForCategory(product.category) || [];
+  const base = getModifiersForCategory(`${product.category} ${product.type} ${product.name}`) || [];
   const cloned = base.map((mod) => ({ ...mod }));
   const brand = franchise.value || {};
   const brandSlug = normalize(brand.slug);
@@ -767,7 +767,7 @@ const sizeInfo = computed(() => {
 });
 
 const defaultDescription = computed(() =>
-  `Disfruta del sabor Ãºnico de ${franchise.value.name}.`,
+  `Disfruta del sabor único de ${franchise.value.name}.`,
 );
 
 const modifierIntro = computed(() =>
@@ -1120,7 +1120,7 @@ const createCartItem = () => {
       } else if (mod.type === 'counter' && selection > 0) {
           detailParts.push(`+${selection} ${mod.label}`);
       } else if (mod.type === 'toggle' && selection) {
-          detailParts.push(`${mod.label}: SÃ­`);
+          detailParts.push(`${mod.label}: Sí`);
       }
   });
 
@@ -1150,7 +1150,7 @@ const addToCart = async ({ silent = false } = {}) => {
     const result = await Swal.fire({
       icon: 'warning',
       title: 'Cambiar restaurante',
-      text: `Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}. Si continúas, se reemplazará por ${franchise.value.name}.`,
+      text: `FoodRush permite una franquicia por pedido. Tu carrito actual es de ${currentRestaurant?.name || 'otra franquicia'}; si continúas, borraremos ese carrito y lo cambiaremos por ${franchise.value.name}.`,
       showCancelButton: true,
       confirmButtonText: 'Reemplazar carrito',
       cancelButtonText: 'Cancelar',

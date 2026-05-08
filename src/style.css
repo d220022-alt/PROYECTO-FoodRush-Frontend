@@ -1,7 +1,7 @@
 /*
   Guia rapida para presentar:
-  Estilos globales compartidos por cliente, tracking, admin y delivery. Tambien vive aqui el tema oscuro global.
-  Buscar en VS Code: CSS global, responsive, dark mode, layout, Tailwind.
+  Estilos globales compartidos por cliente, tracking, admin y delivery. Tambien viven aqui tema oscuro y accesibilidad global.
+  Buscar en VS Code: CSS global, responsive, dark mode, accesibilidad, layout, Tailwind.
   Mantener estos comentarios actualizados si cambia el flujo.
 */
 @tailwind base;
@@ -165,8 +165,16 @@ html.foodrush-dark body {
   box-shadow: 0 24px 50px rgba(15, 23, 42, 0.22);
 }
 
+.foodrush-theme-toggle--with-accessibility {
+  bottom: calc(4.75rem + env(safe-area-inset-bottom));
+}
+
 .foodrush-theme-toggle--raised {
   bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+.foodrush-theme-toggle--with-accessibility.foodrush-theme-toggle--raised {
+  bottom: calc(10.25rem + env(safe-area-inset-bottom));
 }
 
 .foodrush-theme-toggle--tracking {
@@ -178,6 +186,260 @@ html.foodrush-dark .foodrush-theme-toggle {
   border-color: rgba(249, 115, 22, 0.42);
   color: #fdba74;
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.5);
+}
+
+.foodrush-accessibility-widget {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  z-index: 1300;
+  display: flex;
+  align-items: flex-end;
+  font-family: 'Poppins', sans-serif;
+}
+
+.foodrush-accessibility-widget--raised {
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+}
+
+.foodrush-accessibility-widget--support {
+  bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+
+.foodrush-accessibility-button {
+  display: inline-flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d90429, #f48c06);
+  color: #ffffff;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.22);
+  font-size: 1.45rem;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.foodrush-accessibility-button:hover,
+.foodrush-accessibility-button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 54px rgba(15, 23, 42, 0.28);
+}
+
+.foodrush-accessibility-button:focus-visible,
+.foodrush-accessibility-close:focus-visible,
+.foodrush-accessibility-option:focus-visible,
+.foodrush-accessibility-size-options button:focus-visible,
+.foodrush-accessibility-reset:focus-visible {
+  outline: 3px solid rgba(249, 115, 22, 0.38);
+  outline-offset: 3px;
+}
+
+.foodrush-accessibility-panel {
+  position: absolute;
+  right: 0;
+  bottom: 4.1rem;
+  width: min(19.25rem, calc(100vw - 2rem));
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.22);
+  padding: 1rem;
+  color: #1f2937;
+  backdrop-filter: blur(18px);
+}
+
+.foodrush-accessibility-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.foodrush-accessibility-panel__header p {
+  margin: 0;
+  color: #111827;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.foodrush-accessibility-panel__header span {
+  display: block;
+  margin-top: 0.15rem;
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.foodrush-accessibility-close {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #475569;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.foodrush-accessibility-close:hover {
+  background: #fee2e2;
+  color: #d90429;
+}
+
+.foodrush-accessibility-group {
+  margin-bottom: 0.65rem;
+}
+
+.foodrush-accessibility-label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.foodrush-accessibility-size-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.foodrush-accessibility-size-options button,
+.foodrush-accessibility-option,
+.foodrush-accessibility-reset {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  color: #1f2937;
+  font-weight: 800;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.foodrush-accessibility-size-options button {
+  min-height: 2.55rem;
+  border-radius: 0.9rem;
+}
+
+.foodrush-accessibility-size-options button:hover,
+.foodrush-accessibility-option:hover,
+.foodrush-accessibility-reset:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(249, 115, 22, 0.38);
+}
+
+.foodrush-accessibility-size-options button.active,
+.foodrush-accessibility-option.active {
+  border-color: transparent;
+  background: #111827;
+  color: #ffffff;
+}
+
+.foodrush-accessibility-option {
+  display: flex;
+  width: 100%;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+}
+
+.foodrush-accessibility-option i {
+  width: 1.1rem;
+  color: #f97316;
+  text-align: center;
+}
+
+.foodrush-accessibility-option.active i {
+  color: #fdba74;
+}
+
+.foodrush-accessibility-reset {
+  width: 100%;
+  min-height: 2.65rem;
+  margin-top: 0.75rem;
+  border-radius: 0.9rem;
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.foodrush-accessibility-reset:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+html.foodrush-dark .foodrush-accessibility-panel {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(16, 24, 39, 0.96);
+  color: var(--fr-text);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52);
+}
+
+html.foodrush-dark .foodrush-accessibility-panel__header p {
+  color: var(--fr-text);
+}
+
+html.foodrush-dark .foodrush-accessibility-panel__header span,
+html.foodrush-dark .foodrush-accessibility-label {
+  color: #9aa8bd;
+}
+
+html.foodrush-dark .foodrush-accessibility-close,
+html.foodrush-dark .foodrush-accessibility-size-options button,
+html.foodrush-dark .foodrush-accessibility-option,
+html.foodrush-dark .foodrush-accessibility-reset {
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--fr-text);
+}
+
+html.foodrush-dark .foodrush-accessibility-size-options button.active,
+html.foodrush-dark .foodrush-accessibility-option.active {
+  background: linear-gradient(135deg, #e11d48, #f97316);
+  color: #ffffff;
+}
+
+html.foodrush-a11y-font-large {
+  font-size: 112.5%;
+}
+
+html.foodrush-a11y-font-extra {
+  font-size: 125%;
+}
+
+html.foodrush-a11y-contrast {
+  filter: contrast(1.16) saturate(1.08);
+}
+
+html.foodrush-a11y-contrast .foodrush-accessibility-panel,
+html.foodrush-a11y-contrast .foodrush-accessibility-button,
+html.foodrush-a11y-contrast .foodrush-theme-toggle {
+  filter: none;
+}
+
+html.foodrush-a11y-underline a,
+html.foodrush-a11y-underline button[class*="link"],
+html.foodrush-a11y-underline .router-link-active {
+  text-decoration: underline !important;
+  text-underline-offset: 0.18em;
+}
+
+html.foodrush-a11y-reduce-motion *,
+html.foodrush-a11y-reduce-motion *::before,
+html.foodrush-a11y-reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.001ms !important;
 }
 
 html.foodrush-dark .bg-cream,
@@ -493,6 +755,10 @@ html.foodrush-dark .delivery-onboarding .hide-scrollbar {
 @media (min-width: 768px) {
   .foodrush-theme-toggle {
     top: 1.25rem;
+    bottom: auto;
+  }
+
+  .foodrush-theme-toggle--with-accessibility {
     bottom: auto;
   }
 

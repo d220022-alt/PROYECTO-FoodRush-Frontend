@@ -13,7 +13,8 @@ export const CURRENCY_OPTIONS = [
     label: 'RD',
     currencyName: 'Peso dominicano',
     country: 'Republica Dominicana',
-    suffix: '$RD',
+    prefix: 'RD$',
+    suffix: '',
     dopPerUnit: 1,
     decimals: 0,
   },
@@ -22,7 +23,8 @@ export const CURRENCY_OPTIONS = [
     label: 'EEUU',
     currencyName: 'Dolar estadounidense',
     country: 'Estados Unidos',
-    suffix: '$US',
+    prefix: 'US$',
+    suffix: '',
     dopPerUnit: 59,
     decimals: 2,
   },
@@ -31,7 +33,8 @@ export const CURRENCY_OPTIONS = [
     label: 'Euro',
     currencyName: 'Euro',
     country: 'Union Europea',
-    suffix: 'EUR',
+    prefix: 'EUR ',
+    suffix: '',
     dopPerUnit: 64,
     decimals: 2,
   },
@@ -251,10 +254,10 @@ export const formatCurrency = (amount, options = {}) => {
   if (options.compact && absolute >= 1000) {
     const compactValue = absolute / 1000;
     const compactDecimals = compactValue >= 10 ? 0 : 1;
-    return `${sign}${formatNumber(compactValue, compactDecimals)}k${currency.suffix}`;
+    return `${sign}${currency.prefix || ''}${formatNumber(compactValue, compactDecimals)}k${currency.suffix || ''}`;
   }
 
-  return `${sign}${formatNumber(absolute, decimals)}${currency.suffix}`;
+  return `${sign}${currency.prefix || ''}${formatNumber(absolute, decimals)}${currency.suffix || ''}`;
 };
 
 export const formatSignedCurrency = (amount, options = {}) => {

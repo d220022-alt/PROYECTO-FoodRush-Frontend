@@ -45,6 +45,8 @@ const getStatusColor = (status) => {
         return 'text-blue-600 bg-blue-50';
     case 'en camino':
         return 'text-orange-600 bg-orange-50';
+    case 'en destino':
+        return 'text-indigo-600 bg-indigo-50';
     case 'entregado':
         return 'text-green-600 bg-green-50';
     case 'cancelado':
@@ -153,17 +155,18 @@ onMounted(() => {
 
                     <div class="p-4">
                         <div v-if="(order.statusLabel || order.estado?.descripcion || '').toLowerCase() !== 'cancelado'" class="mb-5">
-                            <div class="relative mb-2 flex justify-between px-1 text-[10px] font-bold text-gray-400 sm:text-xs">
+                            <div class="relative mb-2 grid grid-cols-5 gap-1 px-1 text-[10px] font-bold text-gray-400 sm:text-xs">
                                 <span :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 1 ? 'text-orange-500' : ''">Solicitado</span>
                                 <span class="text-center" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 2 ? 'text-orange-500' : ''">Preparando</span>
                                 <span class="text-center" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 3 ? 'text-orange-500' : ''">En Camino</span>
-                                <span class="text-right" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 4 ? 'text-green-500' : ''">Entregado</span>
+                                <span class="text-center" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 4 ? 'text-indigo-500' : ''">En destino</span>
+                                <span class="text-right" :class="getProgressStep(order.statusLabel || order.estado?.descripcion) >= 5 ? 'text-green-500' : ''">Entregado</span>
                             </div>
                             <div class="relative flex h-2 w-full overflow-hidden rounded-full bg-gray-100">
                                 <div
                                     class="h-full bg-orange-500 transition-all duration-700 ease-out"
-                                    :class="getProgressStep(order.statusLabel || order.estado?.descripcion) === 4 ? 'bg-green-500' : ''"
-                                    :style="`width: ${(getProgressStep(order.statusLabel || order.estado?.descripcion) / 4) * 100}%`"
+                                    :class="getProgressStep(order.statusLabel || order.estado?.descripcion) === 5 ? 'bg-green-500' : ''"
+                                    :style="`width: ${(getProgressStep(order.statusLabel || order.estado?.descripcion) / 5) * 100}%`"
                                 ></div>
                             </div>
                         </div>

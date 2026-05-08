@@ -85,21 +85,21 @@ const handleLogout = () => {
 };
 
 const franchiseMetadata = {
-    "Starbucks Coffee": { img: logoStarbucks, category: "Bebidas", rating: 4.8, pickup: true, promo: true },
-    "McDonald's": { img: logoMcDonalds, category: "Hamburguesa", rating: 4.7, pickup: true, promo: false },
-    "KFC": { img: logoKFC, category: "Pollo", rating: 4.6, pickup: false, promo: true },
-    "Burger King": { img: logoBurgerKing, category: "Hamburguesa", rating: 4.3, pickup: true, promo: true },
-    "Little Caesars": { img: logoLittleCaesars, category: "Pizza", rating: 4.5, pickup: true, promo: false },
-    "Domino's Pizza": { img: logoDominos, category: "Pizza", rating: 4.8, pickup: true, promo: true },
-    "Pizza Hut": { img: logoPizzaHut, category: "Pizza", rating: 4.6, pickup: false, promo: false },
-    "Krispy Kreme": { img: logoKrispyKreme, category: "Postres", rating: 4.9, pickup: true, promo: true },
-    "Rico Hot Dog": { img: logoRicoHotDog, category: "Criolla", rating: 4.2, pickup: true, promo: false },
-    "Pizzarelli": { img: logoPizzarelli, category: "Pizza", rating: 4.7, pickup: true, promo: true },
-    "Barra Payán": { img: logoBarraPayan, category: "Criolla", rating: 4.9, pickup: true, promo: false },
-    "Taco Bell": { img: logoTacoBell, category: "Tacos", rating: 4.4, pickup: false, promo: true },
-    "Helados Bon": { img: logoHeladosBon, category: "Postres", rating: 4.8, pickup: true, promo: true },
-    "Chili's Grill & Bar": { img: logoChilis, category: "Mexicana", rating: 4.5, pickup: false, promo: false },
-    "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, pickup: true, promo: true }
+    "Starbucks Coffee": { img: logoStarbucks, category: "Bebidas", rating: 4.8, delivery: true, pickup: true, promo: true },
+    "McDonald's": { img: logoMcDonalds, category: "Hamburguesa", rating: 4.7, delivery: true, pickup: true, promo: false },
+    "KFC": { img: logoKFC, category: "Pollo", rating: 4.6, delivery: true, pickup: false, promo: true },
+    "Burger King": { img: logoBurgerKing, category: "Hamburguesa", rating: 4.3, delivery: true, pickup: true, promo: true },
+    "Little Caesars": { img: logoLittleCaesars, category: "Pizza", rating: 4.5, delivery: true, pickup: true, promo: false },
+    "Domino's Pizza": { img: logoDominos, category: "Pizza", rating: 4.8, delivery: true, pickup: true, promo: true },
+    "Pizza Hut": { img: logoPizzaHut, category: "Pizza", rating: 4.6, delivery: true, pickup: false, promo: false },
+    "Krispy Kreme": { img: logoKrispyKreme, category: "Postres", rating: 4.9, delivery: true, pickup: true, promo: true },
+    "Rico Hot Dog": { img: logoRicoHotDog, category: "Criolla", rating: 4.2, delivery: true, pickup: true, promo: false },
+    "Pizzarelli": { img: logoPizzarelli, category: "Pizza", rating: 4.7, delivery: true, pickup: true, promo: true },
+    "Barra Payán": { img: logoBarraPayan, category: "Criolla", rating: 4.9, delivery: true, pickup: true, promo: false },
+    "Taco Bell": { img: logoTacoBell, category: "Tacos", rating: 4.4, delivery: true, pickup: false, promo: true },
+    "Helados Bon": { img: logoHeladosBon, category: "Postres", rating: 4.8, delivery: true, pickup: true, promo: true },
+    "Chili's Grill & Bar": { img: logoChilis, category: "Mexicana", rating: 4.5, delivery: true, pickup: false, promo: false },
+    "Panda Express": { img: logoPandaExpress, category: "Asiática", rating: 4.7, delivery: true, pickup: true, promo: true }
 };
 
 // Para presentar: fallback visual; mantiene la home viva aunque Render tarde o falle temporalmente.
@@ -110,6 +110,7 @@ const buildFallbackFranchises = () =>
         category: meta.category || 'General',
         rating: meta.rating || 4,
         img: meta.img || logoStarbucks,
+        delivery: meta.delivery !== undefined ? meta.delivery : true,
         pickup: meta.pickup !== undefined ? meta.pickup : true,
         promo: meta.promo !== undefined ? meta.promo : false
     }));
@@ -135,6 +136,7 @@ const fetchFranchises = async () => {
                     category: meta.category || 'General',
                     rating: meta.rating || 4.0,
                     img: meta.img || logoStarbucks,
+                    delivery: meta.delivery !== undefined ? meta.delivery : true,
                     pickup: meta.pickup !== undefined ? meta.pickup : true,
                     promo: meta.promo !== undefined ? meta.promo : false
                 };
@@ -187,6 +189,15 @@ const filteredFranchises = computed(() => {
             item.category.toLowerCase().includes(term)
         );
     }
+<<<<<<< HEAD
+=======
+    if (activeFilters.value.includes('pickup')) {
+        result = result.filter(item => item.pickup);
+    }
+    if (activeFilters.value.includes('delivery') || activeFilters.value.includes('envio')) {
+        result = result.filter(item => item.delivery);
+    }
+>>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
     if (activeFilters.value.includes('descuentos') || activeFilters.value.includes('cupones')) {
         result = result.filter(item => item.promo);
     }
@@ -504,6 +515,20 @@ const filterResultText = computed(() => {
                     <span class="franchise-category">{{ item.category }}</span>
                 </div>
 
+<<<<<<< HEAD
+=======
+                <div class="mt-2 flex w-full flex-wrap items-center justify-center gap-2 border-t border-gray-50 pt-2 text-[11px] font-bold">
+                    <span v-if="item.delivery" class="inline-flex items-center gap-1 rounded-full bg-orange-50 px-2 py-1 text-orange-600">
+                        <i class="fa-solid fa-motorcycle"></i> Delivery
+                    </span>
+                    <span v-if="item.pickup" class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-1 text-green-600">
+                        <i class="fa-solid fa-bag-shopping"></i> Retiro
+                    </span>
+                    <span v-if="item.delivery && !item.pickup" class="inline-flex items-center gap-1 rounded-full bg-slate-50 px-2 py-1 text-slate-500">
+                        Solo delivery
+                    </span>
+                </div>
+>>>>>>> b2aceac433606b031d59db5c5f08e07fe66d75f7
             </div>
         </div>
     </section>

@@ -1,12 +1,13 @@
 <!--
   Guia rapida para presentar:
-  Componente raiz. Renderiza la ruta actual y controla el boton global de modo claro/oscuro.
-  Buscar en VS Code: shell app, boton tema, modo oscuro, router-view.
+  Componente raiz. Renderiza la ruta actual y controla botones globales de tema y accesibilidad.
+  Buscar en VS Code: shell app, boton tema, boton accesibilidad, modo oscuro, router-view.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
+import AccessibilityMenu from './components/AccessibilityMenu.vue';
 import { useTheme } from './services/theme';
 
 const route = useRoute();
@@ -18,6 +19,8 @@ const showGlobalThemeToggle = computed(() =>
 );
 const shouldRaiseThemeToggle = computed(() => route.path === '/checkout');
 const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking'));
+const shouldRaiseAccessibility = computed(() => route.path === '/checkout');
+const shouldRaiseAccessibilityForSupport = computed(() => route.path === '/support');
 </script>
 
 <template>
@@ -31,6 +34,7 @@ const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking')
     type="button"
     class="foodrush-theme-toggle"
     :class="{
+      'foodrush-theme-toggle--with-accessibility': true,
       'foodrush-theme-toggle--raised': shouldRaiseThemeToggle,
       'foodrush-theme-toggle--tracking': shouldLowerThemeToggle,
     }"
@@ -40,4 +44,8 @@ const shouldLowerThemeToggle = computed(() => route.path.startsWith('/tracking')
   >
     <i :class="isDarkMode ? 'fa-solid fa-sun' : 'fa-solid fa-moon'"></i>
   </button>
+  <AccessibilityMenu
+    :raised="shouldRaiseAccessibility"
+    :support-raised="shouldRaiseAccessibilityForSupport"
+  />
 </template>

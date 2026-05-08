@@ -24,6 +24,7 @@ export const ORDER_STATUS_CODES = {
   pending: 'pendiente',
   preparing: 'preparando',
   inTransit: 'en camino',
+  arrived: 'en destino',
   delivered: 'entregado',
   cancelled: 'cancelado',
 };
@@ -41,6 +42,7 @@ const STATUS_VARIANTS = {
   pendiente: 'bg-amber-50 text-amber-700 border-amber-200',
   preparando: 'bg-sky-50 text-sky-700 border-sky-200',
   'en camino': 'bg-violet-50 text-violet-700 border-violet-200',
+  'en destino': 'bg-indigo-50 text-indigo-700 border-indigo-200',
   entregado: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   cancelado: 'bg-rose-50 text-rose-700 border-rose-200',
 };
@@ -49,8 +51,9 @@ const STATUS_ORDER = {
   pendiente: 0,
   preparando: 1,
   'en camino': 2,
-  entregado: 3,
-  cancelado: 4,
+  'en destino': 3,
+  entregado: 4,
+  cancelado: 5,
 };
 
 const FALLBACK_COLORS = ['#ea580c', '#0f766e', '#2563eb', '#b45309', '#7c3aed'];
@@ -93,6 +96,7 @@ export const normalizeStatusKey = (value = '') => {
   if (!normalized) return 'pendiente';
   if (normalized.includes('cancel')) return 'cancelado';
   if (normalized.includes('entreg')) return 'entregado';
+  if (normalized.includes('destino') || normalized.includes('llego') || normalized.includes('llegada') || normalized.includes('arrived')) return 'en destino';
   if (normalized.includes('transito') || normalized.includes('camino') || normalized.includes('ruta') || normalized.includes('shipping')) return 'en camino';
   if (normalized.includes('pend') || normalized.includes('recib') || normalized.includes('solicit')) return 'pendiente';
   if (normalized.includes('prepar') || normalized.includes('confirm')) return 'preparando';
@@ -170,7 +174,8 @@ export const getStatusVariant = (label = '') =>
 export const getOrderProgressStep = (label = '') => {
   const statusKey = getStatusKey(label);
   if (statusKey === 'cancelado') return 0;
-  if (statusKey === 'entregado') return 4;
+  if (statusKey === 'entregado') return 5;
+  if (statusKey === 'en destino') return 4;
   if (statusKey === 'en camino') return 3;
   if (statusKey === 'preparando') return 2;
   return 1;

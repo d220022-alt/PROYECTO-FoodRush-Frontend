@@ -114,7 +114,7 @@ const faqs = ref([
     },
     { 
         question: "¿Cómo procedo si mi pedido llega incompleto o incorrecto?", 
-        answer: "Tu satisfacción es nuestra prioridad. Por favor, utiliza el botón 'Crear Ticket' en esta misma pantalla. Adjunta una fotografía del pedido recibido y nuestro equipo de resolución prioritaria (Tier 2) procesará un reembolso o reposición inmediata.", 
+        answer: "Tu satisfacción es nuestra prioridad. Por favor, utiliza el botón 'Crear reporte' en esta misma pantalla. Adjunta una fotografía del pedido recibido y nuestro equipo de soporte revisará el caso.",
         open: false 
     }
 ]);
@@ -143,7 +143,7 @@ const sendSimpleMessage = () => {
 };
 
 // ==========================================
-// 3. TICKET MODAL 
+// 3. MODAL DE REPORTE
 // ==========================================
 const isTicketModalOpen = ref(false);
 const isUserLoggedIn = ref(false);
@@ -166,14 +166,14 @@ const openTicketModal = () => {
     isTicketModalOpen.value = true;
 };
 
-// Para presentar: flujo de ticket; valida datos, simula envio y deja confirmacion al usuario.
+// Para presentar: flujo de reporte; valida datos, simula envio y deja confirmacion al usuario.
 const submitTicket = () => {
     isTicketModalOpen.value = false;
     Swal.fire({
         icon: 'success',
-        title: '¡Ticket Generado!',
+        title: 'Reporte enviado',
         text: 'Tu código de seguimiento es #FR-' + Math.floor(Math.random() * 10000) + '. Un especialista lo está revisando.',
-        confirmButtonColor: '#BD0A0A',
+        confirmButtonColor: '#0f172a',
         customClass: { popup: 'rounded-3xl shadow-2xl', confirmButton: 'rounded-xl px-6 py-3 font-bold' }
     });
     ticketForm.value.message = '';
@@ -236,9 +236,9 @@ const buildSupportReply = async (userMessage) => {
     if (/(pedido|orden|rastrear|llega|tiempo)/i.test(lowerInput)) return "El tiempo promedio de entrega es de 30 a 45 minutos. Entra a Mis Pedidos para abrir el seguimiento del pedido activo.";
 
     const fallbacks = [
-        `Entiendo tu consulta sobre "${userMessage}". Para resolverla más rápido, revisa las preguntas frecuentes o genera un ticket desde esta misma pantalla.`,
-        `Sobre "${userMessage}", lo más recomendable es abrir un ticket si se trata de un pedido, cobro o incidencia técnica.`,
-        `Puedo ayudarte con pedidos, restaurantes, pagos y tiempos de entrega. Si tu caso requiere revisión humana, usa el formulario de ticket.`,
+        `Entiendo tu consulta sobre "${userMessage}". Para resolverla más rápido, revisa las preguntas frecuentes o genera un reporte desde esta misma pantalla.`,
+        `Sobre "${userMessage}", lo más recomendable es abrir un reporte si se trata de un pedido, cobro o incidencia técnica.`,
+        `Puedo ayudarte con pedidos, restaurantes, pagos y tiempos de entrega. Si tu caso requiere revisión humana, usa el formulario de reporte.`,
         `Para "${userMessage}", puedes escribir más detalles en la consulta general o contactar al soporte por WhatsApp.`
     ];
     return fallbacks[Math.floor(Math.random() * fallbacks.length)];
@@ -351,15 +351,15 @@ const buildSupportReply = async (userMessage) => {
                     <i class="fas fa-search text-xl"></i>
                 </div>
                 <input type="text" class="block w-full p-5 pl-14 text-base md:text-lg text-gray-900 border-none rounded-full bg-white outline-none focus:ring-4 focus:ring-[#BD0A0A]/40 transition" placeholder="Buscar 'cancelar orden', 'retraso'...">
-                <button class="absolute right-2 top-2 bottom-2 bg-[#BD0A0A] hover:bg-red-800 text-white font-bold rounded-full px-8 transition-all shadow-md">Buscar</button>
+                <button class="absolute right-2 top-2 bottom-2 bg-[#0f172a] hover:bg-black text-white font-bold rounded-full px-8 transition-all shadow-md">Buscar</button>
             </div>
         </div>
     </header>
 
-    <section class="container mx-auto px-6 -mt-20 relative z-20 mb-24">
+    <section class="container mx-auto px-6 mt-12 relative z-20 mb-24">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             
-            <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white cursor-pointer group">
+            <div @click="isChatOpen = true" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-blue-600 cursor-pointer group">
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fas fa-headset"></i>
                 </div>
@@ -368,17 +368,16 @@ const buildSupportReply = async (userMessage) => {
                 <span class="text-blue-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Interactuar <i class="fas fa-arrow-right"></i></span>
             </div>
 
-            <div @click="openTicketModal" class="bg-white p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-[#BD0A0A] cursor-pointer group relative overflow-hidden">
-                <div class="absolute -right-6 -top-6 text-[#BD0A0A]/5 text-9xl"><i class="fas fa-ticket-alt"></i></div>
-                <div class="w-16 h-16 bg-red-50 text-[#BD0A0A] group-hover:bg-[#BD0A0A] group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm relative z-10">
+            <div @click="openTicketModal" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white cursor-pointer group relative overflow-hidden">
+                <div class="w-16 h-16 bg-orange-50 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm relative z-10">
                     <i class="fas fa-envelope-open-text"></i>
                 </div>
-                <h3 class="text-2xl font-bold mb-3 text-slate-800 relative z-10">Generar Ticket</h3>
-                <p class="text-gray-500 text-base mb-6 leading-relaxed relative z-10">Escalamiento oficial para incidencias técnicas, disputas de cobros o reclamos sobre un pedido.</p>
-                <span class="text-[#BD0A0A] font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Formulario <i class="fas fa-arrow-right"></i></span>
+                <h3 class="text-2xl font-bold mb-3 text-slate-800 relative z-10">Crear reporte</h3>
+                <p class="text-gray-500 text-base mb-6 leading-relaxed relative z-10">Formulario para incidencias de pedido, cobros o soporte técnico que necesitan revisión humana.</p>
+                <span class="text-orange-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
             </div>
 
-            <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border border-white group block">
+            <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-green-600 group block">
                 <div class="w-16 h-16 bg-green-50 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fab fa-whatsapp"></i>
                 </div>
@@ -433,10 +432,10 @@ const buildSupportReply = async (userMessage) => {
         <div class="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-3xl overflow-hidden transform transition-all fade-in-up">
             <div class="flex items-center justify-between p-6 md:p-8 border-b border-gray-100 bg-gray-50/50">
                 <div>
-                    <h3 class="text-2xl font-extrabold text-gray-900 font-display">Portal de Escalamiento</h3>
-                    <p class="text-sm text-gray-500 mt-1">Generación de ticket oficial de soporte</p>
+                    <h3 class="text-2xl font-extrabold text-gray-900 font-display">Reporte de soporte</h3>
+                    <p class="text-sm text-gray-500 mt-1">Describe la incidencia para que soporte la revise.</p>
                 </div>
-                <button @click="isTicketModalOpen = false" class="text-gray-400 hover:text-white bg-gray-200 hover:bg-[#BD0A0A] rounded-full w-10 h-10 flex justify-center items-center transition shadow-sm">
+                <button @click="isTicketModalOpen = false" class="text-gray-400 hover:text-white bg-gray-200 hover:bg-[#0f172a] rounded-full w-10 h-10 flex justify-center items-center transition shadow-sm">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
@@ -473,8 +472,8 @@ const buildSupportReply = async (userMessage) => {
                 </div>
                 <div class="flex justify-end gap-4">
                     <button type="button" @click="isTicketModalOpen = false" class="px-8 py-4 font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">Cancelar</button>
-                    <button type="submit" class="bg-[#BD0A0A] hover:bg-red-800 text-white font-bold px-10 py-4 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center gap-2">
-                        <i class="fas fa-paper-plane"></i> Emitir Ticket Oficial
+                    <button type="submit" class="bg-[#0f172a] hover:bg-black text-white font-bold px-10 py-4 rounded-xl shadow-lg transition-transform transform hover:-translate-y-1 flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Enviar reporte
                     </button>
                 </div>
             </form>
