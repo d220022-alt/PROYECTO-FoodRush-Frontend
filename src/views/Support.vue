@@ -33,18 +33,18 @@ const desktopLinkClasses = (path) => [
     'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
         ? isSolid.value
-            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+            ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
             : 'bg-white/14 text-white ring-1 ring-white/20 backdrop-blur-md'
         : isSolid.value
-            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
             : 'text-white/85 hover:bg-white/10 hover:text-white'
 ];
 
 const mobileLinkClasses = (path) => [
     'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
-        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+        ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
 ];
 
 const navigate = (path) => {
@@ -262,7 +262,7 @@ const buildSupportReply = async (userMessage) => {
                 <i
                     :class="[
                         'fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
-                        isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]',
+                        isSolid ? 'text-[#1a1a2e]' : 'text-[#fbbf24]',
                     ]"
                 ></i>
                 <span
@@ -271,7 +271,7 @@ const buildSupportReply = async (userMessage) => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#1a1a2e]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -326,7 +326,7 @@ const buildSupportReply = async (userMessage) => {
 
                 <button
                     type="button"
-                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#1a1a2e] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#111827]"
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
@@ -352,14 +352,14 @@ const buildSupportReply = async (userMessage) => {
                 <i class="fas fa-headset mr-2"></i> Centro de Operaciones y Ayuda
             </div>
             <h1 class="text-5xl md:text-7xl font-extrabold mb-8 leading-tight font-display drop-shadow-2xl">
-                ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#BD0A0A]">ayudarte hoy?</span>
+                ¿En qué podemos <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#1a1a2e]">ayudarte hoy?</span>
             </h1>
 
             <div class="relative max-w-2xl mx-auto shadow-2xl rounded-full transform transition-transform hover:scale-[1.02]">
                 <div class="absolute inset-y-0 left-0 flex items-center pl-6 text-gray-400">
                     <i class="fas fa-search text-xl"></i>
                 </div>
-                <input type="text" class="block w-full p-5 pl-14 text-base md:text-lg text-gray-900 border-none rounded-full bg-white outline-none focus:ring-4 focus:ring-[#BD0A0A]/40 transition" placeholder="Buscar 'cancelar orden', 'retraso'...">
+                <input type="text" class="block w-full p-5 pl-14 text-base md:text-lg text-gray-900 border-none rounded-full bg-white outline-none focus:ring-4 focus:ring-[#1a1a2e]/30 transition" placeholder="Buscar 'cancelar orden', 'retraso'...">
                 <button class="absolute right-2 top-2 bottom-2 bg-[#0f172a] hover:bg-black text-white font-bold rounded-full px-8 transition-all shadow-md" aria-label="Buscar en soporte">Buscar</button>
             </div>
         </div>
@@ -377,13 +377,13 @@ const buildSupportReply = async (userMessage) => {
                 <span class="text-blue-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Interactuar <i class="fas fa-arrow-right"></i></span>
             </div>
 
-            <div @click="openTicketModal" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-red-600 cursor-pointer group relative overflow-hidden">
-                <div class="w-16 h-16 bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm relative z-10">
+            <div @click="openTicketModal" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-slate-800 cursor-pointer group relative overflow-hidden">
+                <div class="w-16 h-16 bg-slate-100 text-slate-800 group-hover:bg-[#1a1a2e] group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm relative z-10">
                     <i class="fas fa-envelope-open-text"></i>
                 </div>
                 <h2 class="text-2xl font-bold mb-3 text-slate-800 relative z-10">Crear reporte</h2>
                 <p class="text-gray-500 text-base mb-6 leading-relaxed relative z-10">Formulario para incidencias de pedido, cobros o soporte técnico que necesitan revisión humana.</p>
-                <span class="text-red-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
+                <span class="text-slate-800 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider relative z-10">Reportar <i class="fas fa-arrow-right"></i></span>
             </div>
 
             <a href="https://wa.me/18493504608?text=Hola%20FoodRush,%20tengo%20una%20consulta." target="_blank" class="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl hover:-translate-y-3 transition-all duration-300 border-t-8 border-green-600 group block">
@@ -408,7 +408,7 @@ const buildSupportReply = async (userMessage) => {
                     <div v-for="(faq, idx) in faqs" :key="idx" class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md border border-gray-100 overflow-hidden transition-all duration-300 group">
                         <button @click="toggleFaq(idx)" class="w-full flex justify-between items-center text-left outline-none">
                             <span class="font-bold text-lg text-slate-800 pr-4">{{ faq.question }}</span>
-                            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-[#BD0A0A] group-hover:text-white transition-colors">
+                            <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center flex-shrink-0 group-hover:bg-[#1a1a2e] group-hover:text-white transition-colors">
                                 <i class="fa-solid fa-chevron-down text-sm transition-transform duration-300" :class="{'rotate-180': faq.open}"></i>
                             </div>
                         </button>
@@ -427,7 +427,7 @@ const buildSupportReply = async (userMessage) => {
                     <h2 class="text-3xl font-bold text-slate-800 mb-4">¿Aún con dudas?</h2>
                     <p class="text-base text-gray-500 mb-8 leading-relaxed">Si nuestra base de conocimientos no resolvió tu inquietud, déjanos un mensaje rápido. Nuestro equipo lo enrutará al departamento correspondiente.</p>
 
-                    <textarea v-model="simpleMessage" rows="5" placeholder="Escribe los detalles de tu consulta aquí..." class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 text-base outline-none focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition resize-none mb-6"></textarea>
+                    <textarea v-model="simpleMessage" rows="5" placeholder="Escribe los detalles de tu consulta aquí..." class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-5 text-base outline-none focus:border-[#1a1a2e] focus:ring-4 focus:ring-[#1a1a2e]/10 transition resize-none mb-6"></textarea>
 
                     <button @click="sendSimpleMessage" class="w-full bg-[#0f172a] hover:bg-black text-white font-bold py-4 rounded-xl shadow-xl transition transform hover:-translate-y-1 flex items-center justify-center gap-3">
                         Enviar Consulta General <i class="fa-solid fa-arrow-right"></i>
@@ -458,16 +458,16 @@ const buildSupportReply = async (userMessage) => {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Nombre Completo</label>
-                        <input v-model="ticketForm.name" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition" placeholder="Tu nombre" required>
+                        <input v-model="ticketForm.name" type="text" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#1a1a2e] focus:ring-4 focus:ring-[#1a1a2e]/10 transition" placeholder="Tu nombre" required>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Correo Electrónico</label>
-                        <input v-model="ticketForm.email" type="email" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition" placeholder="correo@ejemplo.com" required>
+                        <input v-model="ticketForm.email" type="email" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#1a1a2e] focus:ring-4 focus:ring-[#1a1a2e]/10 transition" placeholder="correo@ejemplo.com" required>
                     </div>
                 </div>
                 <div class="mb-6">
                     <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Categoría del Incidente</label>
-                    <select v-model="ticketForm.subject" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 transition font-medium appearance-none">
+                    <select v-model="ticketForm.subject" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#1a1a2e] focus:ring-4 focus:ring-[#1a1a2e]/10 transition font-medium appearance-none">
                         <option>Reportar incidencia con pedido</option>
                         <option>Problemas de facturación / Cobros</option>
                         <option>Afiliación de nueva Franquicia</option>
@@ -477,7 +477,7 @@ const buildSupportReply = async (userMessage) => {
                 </div>
                 <div class="mb-8">
                     <label class="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Descripción Detallada</label>
-                    <textarea v-model="ticketForm.message" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#BD0A0A] focus:ring-4 focus:ring-[#BD0A0A]/10 resize-none transition" placeholder="Proporciona número de orden, nombres de restaurante y cualquier detalle relevante..." required></textarea>
+                    <textarea v-model="ticketForm.message" rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-4 outline-none focus:bg-white focus:border-[#1a1a2e] focus:ring-4 focus:ring-[#1a1a2e]/10 resize-none transition" placeholder="Proporciona número de orden, nombres de restaurante y cualquier detalle relevante..." required></textarea>
                 </div>
                 <div class="flex justify-end gap-4">
                     <button type="button" @click="isTicketModalOpen = false" class="px-8 py-4 font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition">Cancelar</button>
@@ -513,16 +513,16 @@ const buildSupportReply = async (userMessage) => {
 
                 <div v-if="isBotTyping" class="bg-white border border-gray-100 text-gray-500 max-w-[85%] p-4 rounded-2xl self-start mr-auto rounded-tl-none shadow-sm flex items-center gap-2">
                     <div class="flex space-x-1">
-                        <div class="w-2 h-2 bg-[#BD0A0A] rounded-full animate-bounce"></div>
-                        <div class="w-2 h-2 bg-[#BD0A0A] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-2 h-2 bg-[#BD0A0A] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                        <div class="w-2 h-2 bg-[#1a1a2e] rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-[#1a1a2e] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-[#1a1a2e] rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                     </div>
                 </div>
             </div>
 
             <div class="p-4 bg-white border-t border-gray-100 flex items-center gap-3">
-                <input v-model="chatInput" @keyup.enter="sendChatMessage" type="text" placeholder="Pregunta lo que sea..." class="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#BD0A0A]/30">
-                <button @click="sendChatMessage" class="w-12 h-12 bg-[#BD0A0A] text-white rounded-full flex items-center justify-center hover:bg-red-800 transition shadow-lg transform hover:scale-105" aria-label="Enviar mensaje">
+                <input v-model="chatInput" @keyup.enter="sendChatMessage" type="text" placeholder="Pregunta lo que sea..." class="flex-1 bg-gray-100 border-none rounded-full px-5 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1a1a2e]/30">
+                <button @click="sendChatMessage" class="w-12 h-12 bg-[#1a1a2e] text-white rounded-full flex items-center justify-center hover:bg-[#111827] transition shadow-lg transform hover:scale-105" aria-label="Enviar mensaje">
                     <i class="fas fa-paper-plane text-sm"></i>
                 </button>
             </div>
@@ -537,14 +537,14 @@ const buildSupportReply = async (userMessage) => {
         <div class="container mx-auto px-10 py-16 grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
             <div class="col-span-1 md:col-span-1 flex flex-col items-center md:items-start">
                  <div class="flex items-center gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">
-                    <span class="text-[#BD0A0A] font-bold text-2xl italic font-display">Food</span>
+                    <span class="text-[#1a1a2e] font-bold text-2xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-2xl italic -ml-1 font-display">Rush</span>
                 </div>
                 <p class="text-white/90 text-sm font-medium mb-6">La mejor comida de tus franquicias directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="Repositorio de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="Repositorio de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
 
@@ -589,7 +589,7 @@ const buildSupportReply = async (userMessage) => {
 
 @keyframes electric-blink {
     0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.7)); }
-    50% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(189, 10, 10, 0.9)); }
+    50% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.85)); }
 }
 .electric-blink { animation: electric-blink 3s infinite ease-in-out; }
 
