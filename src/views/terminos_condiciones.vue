@@ -389,7 +389,7 @@ onUnmounted(() => {
                             </span>
                         </div>
                     </div>
-                    <h3 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</h3>
+                    <p class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</p>
                     <ul class="space-y-1 text-sm text-gray-600">
                         <li v-for="(section, index) in sections" :key="section.id">
                             <a :href="`#${section.id}`" @click.prevent="scrollToSection(section.id)"
@@ -408,7 +408,7 @@ onUnmounted(() => {
 
                     <div id="intro" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">1</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">1</span>
                             Introducción
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -418,7 +418,7 @@ onUnmounted(() => {
 
                     <div id="uso" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">2</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">2</span>
                             Uso de la Plataforma Multi-Tenant
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -433,7 +433,7 @@ onUnmounted(() => {
 
                     <div id="cuentas" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">3</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">3</span>
                             Registro y Seguridad de la Cuenta
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -443,7 +443,7 @@ onUnmounted(() => {
 
                     <div id="pedidos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">4</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">4</span>
                             Pedidos y Pagos
                         </h2>
                         <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 rounded-r">
@@ -456,7 +456,7 @@ onUnmounted(() => {
 
                     <div id="cancelaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">5</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">5</span>
                             Política de Reembolso y Cancelación
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -466,7 +466,7 @@ onUnmounted(() => {
 
                     <div id="propiedad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">6</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">6</span>
                             Propiedad Intelectual
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -476,7 +476,7 @@ onUnmounted(() => {
 
                     <div id="datos" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">7</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">7</span>
                             Protección de Datos (Ley 172-13)
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -486,7 +486,7 @@ onUnmounted(() => {
 
                     <div id="leyes" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">8</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">8</span>
                             Legislación Aplicable y Jurisdicción
                         </h2>
                         <p class="text-gray-600 leading-relaxed mb-4">
@@ -499,7 +499,7 @@ onUnmounted(() => {
 
                     <div id="responsabilidad" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">9</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">9</span>
                             Limitación de Responsabilidad
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -509,7 +509,7 @@ onUnmounted(() => {
 
                     <div id="conducta" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">10</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">10</span>
                             Conducta del Usuario
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -525,7 +525,7 @@ onUnmounted(() => {
 
                     <div id="modificaciones" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">11</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">11</span>
                             Modificaciones a los Términos
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -535,7 +535,7 @@ onUnmounted(() => {
 
                     <div id="contacto" class="section-target" data-aos="fade-up">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-                            <span class="bg-gray-100 text-[#f97316] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-gray-200">12</span>
+                            <span class="bg-orange-50 text-[#9a3412] w-8 h-8 rounded-full flex items-center justify-center text-sm border border-orange-200">12</span>
                             Contacto Legal
                         </h2>
                         <p class="text-gray-600 leading-relaxed">
@@ -560,13 +560,13 @@ onUnmounted(() => {
                                 {{ isLoggedIn ? 'Volver' : 'Cancelar' }}
                             </button>
                             <button v-if="!isLoggedIn" @click="acceptTerms"
-                                    :class="termsAccepted ? 'bg-[#0f172a] hover:bg-black text-white shadow-lg shadow-slate-900/20' : 'bg-gray-300 text-gray-500 cursor-not-allowed'"
+                                    :class="termsAccepted ? 'bg-[#0f172a] hover:bg-black text-white shadow-lg shadow-slate-900/20' : 'bg-gray-200 text-gray-700 cursor-not-allowed'"
                                     class="px-8 py-3 rounded-xl font-bold transition-all flex items-center gap-2">
                                 <i class="fa-solid fa-check" v-if="termsAccepted"></i>
                                 Confirmar y Aceptar
                             </button>
                             <button v-else disabled
-                                    class="bg-gray-300 text-gray-500 cursor-not-allowed px-8 py-3 rounded-xl font-bold flex items-center gap-2">
+                                    class="bg-gray-200 text-gray-700 cursor-not-allowed px-8 py-3 rounded-xl font-bold flex items-center gap-2">
                                 <i class="fa-solid fa-check"></i>
                                 Términos Aceptados
                             </button>
@@ -582,7 +582,7 @@ onUnmounted(() => {
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div class="mb-8 md:mb-0 flex flex-col items-center md:items-start">
                  <div class="terms-footer-logo flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg mx-auto md:mx-0">
-                    <span class="text-orange-500 font-bold text-xl italic font-display">Food</span>
+                    <span class="text-[#9a3412] font-bold text-xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-xl italic -ml-1 font-display">Rush</span>
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs text-center md:text-left">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
@@ -594,7 +594,7 @@ onUnmounted(() => {
             </div>
             <div class="flex gap-16 text-sm text-left md:text-right mx-auto md:mx-0 mt-8 md:mt-0">
                 <div>
-                    <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</h4>
+                    <p class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</p>
                     <ul class="space-y-3 text-white/90 font-medium">
                         <li><router-link to="/support" class="hover:text-white hover:underline">Preguntas Frecuentes</router-link></li>
                         <li><router-link to="/support" class="hover:text-white hover:underline">Soporte</router-link></li>
@@ -602,7 +602,7 @@ onUnmounted(() => {
                     </ul>
                 </div>
                 <div>
-                    <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Empresa</h4>
+                    <p class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Empresa</p>
                     <ul class="space-y-3 text-white/90 font-medium">
                         <li><router-link to="/about" class="hover:text-white hover:underline">Sobre Nosotros</router-link></li>
                         <li><router-link to="/about" class="hover:text-white hover:underline">Equipo FoodRush</router-link></li>
