@@ -11,7 +11,7 @@ import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
 const router = useRouter();
-const supportHero = 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1469&auto=format&fit=crop';
+const supportHero = '/images/page-media/about-8.webp';
 const currentYear = ref(new Date().getFullYear());
 const isScrolled = ref(false);
 const isMobileMenuOpen = ref(false);
@@ -542,18 +542,18 @@ const buildSupportReply = async (userMessage) => {
                 </div>
                 <p class="text-white/90 text-sm font-medium mb-6">La mejor comida de tus franquicias directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="Repositorio de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-github"></i></a>
+                    <span role="img" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-facebook-f"></i></span>
+                    <span role="img" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-instagram"></i></span>
+                    <span role="img" aria-label="Repositorio de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-github"></i></span>
                 </div>
             </div>
 
             <div class="col-span-1">
                 <h2 class="font-bold text-xl text-white mb-4">Plataforma</h2>
                 <ul class="space-y-3 text-sm text-white/90">
-                    <li><a href="#" class="hover:text-white transition">Funcionalidades Multi-tenant</a></li>
-                    <li><a href="#" class="hover:text-white transition">Seguridad y Cumplimiento</a></li>
-                    <li><a href="#" class="hover:text-white transition">Integraciones API</a></li>
+                    <li><router-link to="/about" class="hover:text-white transition">Funcionalidades Multi-tenant</router-link></li>
+                    <li><router-link to="/terms" class="hover:text-white transition">Seguridad y cumplimiento</router-link></li>
+                    <li><router-link to="/support" class="hover:text-white transition">Soporte operativo</router-link></li>
                 </ul>
             </div>
             <div class="col-span-1">

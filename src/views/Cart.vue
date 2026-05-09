@@ -95,7 +95,7 @@ const totalPrice = computed(() => {
                     <p class="text-xs text-gray-400 mb-4 line-clamp-2">{{ item.details || 'Sin detalles adicionales' }}</p>
                     
                     <div class="flex items-center justify-between">
-                         <span class="bg-orange-50 text-orange-600 px-3 py-1 rounded text-sm font-bold" aria-label="Precio unitario">
+                         <span class="bg-orange-50 text-orange-600 px-3 py-1 rounded text-sm font-bold" title="Precio unitario">
                              {{ formatCurrency(item.price) }}
                          </span>
                          

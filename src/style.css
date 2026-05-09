@@ -706,6 +706,50 @@ html.foodrush-dark .catalog-surface {
   color: var(--fr-text) !important;
 }
 
+.catalog-surface .brand-hero-panel,
+.catalog-surface .brand-hero-panel__logo-side {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.12), transparent 28%),
+    radial-gradient(circle at 82% 78%, var(--brand-accent-soft), transparent 46%),
+    linear-gradient(135deg, #111827 0%, #1a1a2e 100%) !important;
+}
+
+html.foodrush-dark .catalog-surface .brand-hero-panel,
+html.foodrush-dark .catalog-surface .brand-hero-panel__logo-side {
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 30%),
+    radial-gradient(circle at 80% 78%, rgba(251, 191, 36, 0.14), transparent 46%),
+    linear-gradient(135deg, #070b14 0%, #111827 100%) !important;
+}
+
+html.foodrush-dark .catalog-surface .catalog-toolbar {
+  background: linear-gradient(180deg, rgba(16, 24, 39, 0.96), rgba(12, 18, 31, 0.96)) !important;
+  border-color: var(--fr-border) !important;
+  color: var(--fr-text) !important;
+}
+
+html.foodrush-dark .catalog-surface .catalog-toolbar .text-slate-700 {
+  color: #dbe4f0 !important;
+}
+
+html.foodrush-dark .catalog-surface .catalog-chip {
+  background: rgba(15, 23, 42, 0.82) !important;
+  border-color: var(--fr-border) !important;
+  color: #dbe4f0 !important;
+}
+
+.catalog-surface .filter-collapse-btn {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #334155 !important;
+}
+
+html.foodrush-dark .catalog-surface .filter-collapse-btn {
+  background: rgba(15, 23, 42, 0.86) !important;
+  border-color: var(--fr-border) !important;
+  color: #e2e8f0 !important;
+}
+
 html.foodrush-dark .catalog-surface footer {
   background-color: #07100d !important;
   border-color: var(--fr-border) !important;
@@ -835,8 +879,24 @@ html.foodrush-dark .support-page .support-footer-logo {
   background: #ffffff !important;
 }
 
+html.foodrush-dark .support-page .support-footer-logo span:first-child {
+  color: #1a1a2e !important;
+}
+
+html.foodrush-dark .support-page .support-footer-logo span:last-child {
+  color: #1f2937 !important;
+}
+
 html.foodrush-dark .terms-page .terms-footer-logo {
   background: #ffffff !important;
+}
+
+html.foodrush-dark .terms-page .terms-footer-logo span:first-child {
+  color: #f97316 !important;
+}
+
+html.foodrush-dark .terms-page .terms-footer-logo span:last-child {
+  color: #1f2937 !important;
 }
 
 html.foodrush-dark .terms-page .term-link.active,

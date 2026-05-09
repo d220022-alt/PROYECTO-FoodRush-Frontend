@@ -98,9 +98,9 @@ onUnmounted(() => {
 });
 
 const teamMembers = [
-    { name: "Rardiel", role: "Arquitectura, backend y multi-tenant", image: "/images/page-media/about-1.webp", icon: "fa-server", social: "#" },
-    { name: "Yirbert", role: "Producto, frontend e interfaz", image: "/images/page-media/about-2.webp", icon: "fa-code", social: "#" },
-    { name: "Aysmar", role: "Operaciones y documentación", image: "/images/page-media/about-3.webp", icon: "fa-pen-nib", social: "#" }
+    { name: "Rardiel", role: "Arquitectura, backend y multi-tenant", image: "/images/page-media/about-1.webp", icon: "fa-server" },
+    { name: "Yirbert", role: "Producto, frontend e interfaz", image: "/images/page-media/about-2.webp", icon: "fa-code" },
+    { name: "Aysmar", role: "Operaciones y documentación", image: "/images/page-media/about-3.webp", icon: "fa-pen-nib" }
 ];
 
 const cultureValues = [
@@ -207,7 +207,7 @@ const cultureValues = [
         <div class="relative z-10 container mx-auto px-4 md:px-6 text-center text-white scroll-animate">
             <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-xs md:text-sm mb-4 md:mb-6 block">Proyecto FoodRush</span>
             <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 md:mb-8 leading-tight md:leading-[0.95] font-display drop-shadow-2xl">
-                Conoce <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#c2410c]">FoodRush</span>
+                Nosotros en <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#c2410c]">FoodRush</span>
             </h1>
             <p class="text-lg md:text-2xl font-light text-gray-200 max-w-4xl mx-auto leading-relaxed md:leading-relaxed opacity-90 px-2">
                 FoodRush integra franquicias, clientes, administradores y repartidores en una plataforma clara para pedidos, pagos, seguimiento y soporte.
@@ -257,7 +257,7 @@ const cultureValues = [
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-start">
                 <div class="lg:col-span-5 lg:sticky lg:top-32 scroll-animate">
                     <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-sm">Ingeniería de Plataforma</span>
-                    <h2 class="text-4xl md:text-5xl font-extrabold mt-2 mb-6 md:mb-8 font-display leading-tight">Arquitectura <br class="hidden md:block">Multi-Tenant <br class="hidden md:block">Aislada</h2>
+                    <h2 class="text-4xl md:text-5xl font-extrabold mt-2 mb-6 md:mb-8 font-display leading-tight">Arquitectura <br class="hidden md:block">Multi-Tenant <br class="hidden md:block">Organizada</h2>
                     <p class="text-gray-300 text-base md:text-lg leading-relaxed mb-8 md:mb-10">
                         La plataforma usa una lógica multi-tenant para separar información y comportamiento por franquicia. Esto permite mostrar catálogos, pedidos y flujos administrativos de forma ordenada durante la revisión del proyecto.
                     </p>
@@ -267,7 +267,7 @@ const cultureValues = [
                 <div class="lg:col-span-7 space-y-6 md:space-y-12 scroll-animate" style="transition-delay: 0.3s;">
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
                         <i class="fa-solid fa-database text-4xl md:text-5xl text-[#fbbf24] mb-6 block"></i>
-                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Aislamiento y Cifrado</h3>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Separación por tenant</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
                                 FoodRush separa los datos por tenant y aplica validaciones de acceso para que cada flujo consulte la información que le corresponde.
@@ -279,7 +279,7 @@ const cultureValues = [
                     </div>
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
                         <i class="fa-solid fa-network-wired text-4xl md:text-5xl text-[#c2410c] mb-6 block"></i>
-                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Escalabilidad Horizontal</h3>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Estructura preparada para crecer</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
                                 La interfaz está organizada para responder de forma estable en vistas de catálogo, carrito, checkout, tracking y administración.
@@ -288,7 +288,7 @@ const cultureValues = [
                     </div>
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
                         <i class="fa-solid fa-chart-line text-4xl md:text-5xl text-[#42b883] mb-6 block"></i>
-                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Inteligencia Operativa</h3>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Indicadores operativos</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
                                 Las pantallas administrativas y de seguimiento muestran estados, totales y datos operativos suficientes para validar el flujo completo.
@@ -317,17 +317,15 @@ const cultureValues = [
                     </div>
                 </div>
                 <div class="md:col-span-4 bg-[#F5F5F5] p-8 md:p-10 rounded-3xl border border-gray-100 flex flex-col justify-center scroll-animate mt-8 md:mt-0" style="transition-delay: 0.2s;">
-                    <i class="fas fa-quote-left text-4xl md:text-5xl text-[#c2410c]/20 mb-6 md:mb-8"></i>
-                    <p class="text-xl md:text-2xl font-light text-[#0f172a] leading-snug mb-6 md:mb-8">
-                        "FoodRush nos permite mostrar el pedido, el pago y el seguimiento de una forma mucho más organizada."
+                    <i class="fas fa-clipboard-check text-4xl md:text-5xl text-[#c2410c]/25 mb-6 md:mb-8"></i>
+                    <h3 class="text-2xl font-extrabold text-[#0f172a] mb-4">Evidencia del proyecto</h3>
+                    <p class="text-lg font-light text-[#0f172a] leading-snug mb-6">
+                        La revisión puede seguir un pedido desde el catálogo hasta checkout, tracking, soporte, administración y delivery.
                     </p>
-                    <div class="flex items-center gap-4">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-12 h-12 rounded-full border-2 border-[#c2410c]/30" alt="Testimonio de cliente">
-                        <div>
-                            <p class="font-bold text-[#0f172a]">Carlos Méndez</p>
-                            <p class="text-sm text-gray-500">Propietario, 'El Sabor Local'</p>
-                        </div>
-                    </div>
+                    <router-link to="/support" class="inline-flex w-fit items-center gap-2 rounded-full bg-[#1a1a2e] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#111827]">
+                        Revisar soporte
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </router-link>
                 </div>
             </div>
         </div>
@@ -401,26 +399,26 @@ const cultureValues = [
                 </div>
                 <p class="text-white/80 text-sm font-medium mb-6 max-w-xs">La mejor comida de tus franquicias directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" aria-label="GitHub de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-github"></i></a>
+                    <span role="img" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-facebook-f"></i></span>
+                    <span role="img" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-instagram"></i></span>
+                    <span role="img" aria-label="GitHub de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-github"></i></span>
                 </div>
             </div>
 
             <div class="col-span-1">
                 <h3 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Plataforma</h3>
                 <ul class="space-y-3 text-sm text-white/80">
-                    <li><a href="#" class="hover:text-white transition">Funcionalidades Multi-tenant</a></li>
-                    <li><a href="#" class="hover:text-white transition">Seguridad y Cumplimiento</a></li>
-                    <li><a href="#" class="hover:text-white transition">Integraciones API</a></li>
+                    <li><router-link to="/about" class="hover:text-white transition">Funcionalidades Multi-tenant</router-link></li>
+                    <li><router-link to="/terms" class="hover:text-white transition">Seguridad y cumplimiento</router-link></li>
+                    <li><router-link to="/support" class="hover:text-white transition">Soporte operativo</router-link></li>
                 </ul>
             </div>
             <div class="col-span-1">
                 <h3 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Empresa</h3>
                 <ul class="space-y-3 text-sm text-white/80">
-                    <li><a href="#" class="hover:text-white transition">Nuestra Filosofía</a></li>
-                    <li><a href="#" class="hover:text-white transition">El Equipo</a></li>
-                    <li><a href="#" class="hover:text-white transition">Carreras</a></li>
+                    <li><router-link to="/about" class="hover:text-white transition">Nuestra filosofía</router-link></li>
+                    <li><router-link to="/about" class="hover:text-white transition">El equipo</router-link></li>
+                    <li><router-link to="/affiliate" class="hover:text-white transition">Afiliación</router-link></li>
                 </ul>
             </div>
             <div class="col-span-1">

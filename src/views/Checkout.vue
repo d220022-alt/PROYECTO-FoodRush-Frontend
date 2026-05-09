@@ -1126,7 +1126,7 @@ onBeforeUnmount(() => {
               <button @click="goBack" class="md:hidden text-gray-500 hover:text-primary transition">
                 <i class="fa-solid fa-arrow-left text-xl"></i>
               </button>
-              <a href="#" @click.prevent="router.push('/')" class="flex items-center space-x-2 group">
+                <a href="/" @click.prevent="router.push('/')" class="flex items-center space-x-2 group">
                   <i class="fas fa-bolt text-2xl md:text-3xl text-primary transform group-hover:scale-110 transition-transform"></i>
                   <span class="self-center text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
                       FOOD<span class="text-primary">RUSH</span>

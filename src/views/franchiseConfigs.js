@@ -278,7 +278,7 @@ export const franchiseConfigs = {
     name: "Helados Bon",
     tenantId: 13,
     logo: logoHeladosBon,
-    primary: "#E63946",
+    primary: "#B91C1C",
     accent: "#FFFFFF",
     background: "#FFF6F8",
     heroTitle: "HELADOS BON",

@@ -286,7 +286,7 @@ onUnmounted(() => {
     >
         <div class="mx-auto flex max-w-screen-2xl items-center justify-between px-4 md:px-12 lg:px-16">
 
-            <a href="#" @click.prevent="goHome" class="flex items-center space-x-2 group z-50">
+                <a href="/" @click.prevent="goHome" class="flex items-center space-x-2 group z-50">
                 <i :class="['fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
                              isSolid ? 'text-[#f97316]' : 'text-[#fbbf24]']"></i>
 
@@ -392,7 +392,7 @@ onUnmounted(() => {
                     <h3 class="font-bold text-gray-900 mb-4 uppercase text-xs tracking-wider border-b pb-2">Tabla de Contenido</h3>
                     <ul class="space-y-1 text-sm text-gray-600">
                         <li v-for="(section, index) in sections" :key="section.id">
-                            <a href="#" @click.prevent="scrollToSection(section.id)"
+                            <a :href="`#${section.id}`" @click.prevent="scrollToSection(section.id)"
                                class="term-link"
                                :class="{ 'active': currentSection === section.id }">
                                 <span class="term-link__number">{{ String(index + 1).padStart(2, '0') }}</span>
@@ -587,26 +587,26 @@ onUnmounted(() => {
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs text-center md:text-left">La mejor comida de tus franquicias favoritas directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/40 transition"><i class="fa-brands fa-twitter"></i></a>
+                    <span class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-facebook-f"></i></span>
+                    <span class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-instagram"></i></span>
+                    <span class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-brands fa-twitter"></i></span>
                 </div>
             </div>
             <div class="flex gap-16 text-sm text-left md:text-right mx-auto md:mx-0 mt-8 md:mt-0">
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Ayuda</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="#" @click.prevent="router.push('/support')" class="hover:text-white hover:underline">Preguntas Frecuentes</a></li>
-                        <li><a href="#" @click.prevent="router.push('/support')" class="hover:text-white hover:underline">Soporte</a></li>
-                        <li><a href="#" @click.prevent="router.push('/terms')" class="hover:text-white hover:underline">Términos</a></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline">Preguntas Frecuentes</router-link></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline">Soporte</router-link></li>
+                        <li><router-link to="/terms" class="hover:text-white hover:underline">Términos</router-link></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2">Empresa</h4>
                     <ul class="space-y-3 text-white/90 font-medium">
-                        <li><a href="#" @click.prevent="router.push('/about')" class="hover:text-white hover:underline">Sobre Nosotros</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline">Blog</a></li>
-                        <li><a href="#" @click.prevent="router.push('/affiliate')" class="hover:text-white hover:underline">Afíliate</a></li>
+                        <li><router-link to="/about" class="hover:text-white hover:underline">Sobre Nosotros</router-link></li>
+                        <li><router-link to="/about" class="hover:text-white hover:underline">Equipo FoodRush</router-link></li>
+                        <li><router-link to="/affiliate" class="hover:text-white hover:underline">Afíliate</router-link></li>
                     </ul>
                 </div>
             </div>

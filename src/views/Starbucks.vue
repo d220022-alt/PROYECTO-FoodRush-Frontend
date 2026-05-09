@@ -1873,26 +1873,26 @@ onBeforeUnmount(() => {
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">El mejor café de Starbucks directo a tu puerta con FoodRush.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#00704A] hover:text-white transition"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#00704A] hover:text-white transition"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-[#00704A] hover:text-white transition"><i class="fa-brands fa-twitter"></i></a>
+                    <span class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"><i class="fa-brands fa-facebook-f"></i></span>
+                    <span class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"><i class="fa-brands fa-instagram"></i></span>
+                    <span class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"><i class="fa-brands fa-twitter"></i></span>
                 </div>
             </div>
             <div class="flex flex-col md:flex-row gap-8 md:gap-16 text-sm text-left md:text-right w-full md:w-auto">
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2 md:border-none inline-block w-full md:w-auto">Ayuda</h4>
                     <ul class="space-y-3 text-white/70 font-medium">
-                        <li><a href="#" class="hover:text-white hover:underline transition">Preguntas Frecuentes</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline transition">Soporte</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline transition">Términos</a></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline transition">Preguntas Frecuentes</router-link></li>
+                        <li><router-link to="/support" class="hover:text-white hover:underline transition">Soporte</router-link></li>
+                        <li><router-link to="/terms" class="hover:text-white hover:underline transition">Términos</router-link></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2 md:border-none inline-block w-full md:w-auto">Empresa</h4>
                     <ul class="space-y-3 text-white/70 font-medium">
-                        <li><a href="#" class="hover:text-white hover:underline transition">Sobre Nosotros</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline transition">Oportunidades</a></li>
-                        <li><a href="#" class="hover:text-white hover:underline transition">Afíliate</a></li>
+                        <li><router-link to="/about" class="hover:text-white hover:underline transition">Sobre Nosotros</router-link></li>
+                        <li><router-link to="/about" class="hover:text-white hover:underline transition">Equipo FoodRush</router-link></li>
+                        <li><router-link to="/affiliate" class="hover:text-white hover:underline transition">Afíliate</router-link></li>
                     </ul>
                 </div>
             </div>

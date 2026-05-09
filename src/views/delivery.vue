@@ -2434,7 +2434,7 @@ onBeforeUnmount(() => {
 
                     <input ref="reportEvidenceInput" type="file" class="hidden" accept="image/*" @change="handleReportEvidenceChange">
 
-                    <button type="button" class="mt-2 w-full rounded-xl bg-[#ef4444] py-3.5 text-sm font-black text-white active:bg-red-600" @click="submitReport">
+                    <button type="button" class="mt-2 w-full rounded-xl bg-[#1a1a2e] py-3.5 text-sm font-black text-white shadow-sm active:bg-[#111827]" @click="submitReport">
                         <span v-if="isSubmittingReport"><i class="fa-solid fa-spinner fa-spin"></i> ENVIANDO...</span>
                         <span v-else>ENVIAR EVIDENCIA</span>
                     </button>

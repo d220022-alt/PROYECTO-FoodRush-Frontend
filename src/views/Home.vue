@@ -306,7 +306,7 @@ const filterResultText = computed(() => {
     </div>
     <nav class="bg-white shadow-sm py-3 md:py-4 sticky top-0 z-50 transition-all border-b border-gray-100">
         <div class="max-w-screen-xl flex items-center justify-between mx-auto px-3 sm:px-4 md:px-12 gap-3">
-            <a href="#" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
+                        <a href="#top" @click.prevent="scrollToSection('top')" class="flex items-center space-x-2 group">
                 <i class="fas fa-bolt text-xl sm:text-2xl md:text-3xl text-primary electric-blink transform group-hover:scale-110 transition-transform"></i>
                 <span class="self-center text-xl sm:text-2xl font-extrabold whitespace-nowrap text-dark tracking-tighter font-sans">
                     FOOD<span class="text-primary">RUSH</span>
@@ -314,7 +314,7 @@ const filterResultText = computed(() => {
             </a>
 
             <nav class="hidden md:flex gap-8 font-medium">
-                <a href="#" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
+                        <a href="#top" @click.prevent="scrollToSection('top')" class="text-primary font-bold border-b-2 border-primary pb-1">Inicio</a>
             </nav>
 
             <div class="flex items-center gap-2 sm:gap-4">
@@ -546,9 +546,9 @@ const filterResultText = computed(() => {
                 </div>
                 <p class="text-gray-400 text-sm mb-6 font-medium max-w-xs leading-relaxed">Conectando tus antojos con las mejores franquicias del mundo.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center hover:bg-primary hover:text-white transition duration-300"><i class="fa-brands fa-twitter"></i></a>
+                    <span class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-brands fa-facebook-f"></i></span>
+                    <span class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-brands fa-instagram"></i></span>
+                    <span class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-brands fa-twitter"></i></span>
                 </div>
             </div>
             <div class="flex gap-12 md:gap-20 text-sm text-left md:text-right w-full md:w-auto">
@@ -564,7 +564,7 @@ const filterResultText = computed(() => {
                     <h4 class="font-bold mb-4 text-lg text-white">Empresa</h4>
                     <ul class="space-y-3 text-gray-400 font-medium">
                         <li><a @click.prevent="router.push('/about')" class="hover:text-accent transition cursor-pointer">Sobre Nosotros</a></li>
-                        <li><a href="#" class="hover:text-accent transition">Blog Corporativo</a></li>
+                        <li><router-link to="/about" class="hover:text-accent transition">Equipo FoodRush</router-link></li>
                         <li><a @click.prevent="router.push('/affiliate')" class="hover:text-accent transition">Afíliate</a></li>
                     </ul>
                 </div>

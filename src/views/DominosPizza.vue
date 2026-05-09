@@ -1886,9 +1886,9 @@ onBeforeUnmount(() => {
             Los favoritos de {{ franchise.name }} con una experiencia más moderna, rápida y clara.
           </p>
           <div class="flex gap-4">
-            <a href="#" class="brand-footer__social" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="#" class="brand-footer__social" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" class="brand-footer__social" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></a>
+            <span class="brand-footer__social" role="img" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></span>
+            <span class="brand-footer__social" role="img" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></span>
+            <span class="brand-footer__social" role="img" aria-label="Twitter"><i class="fa-brands fa-twitter"></i></span>
           </div>
         </div>
 
@@ -1896,17 +1896,17 @@ onBeforeUnmount(() => {
           <div>
             <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2 md:border-none inline-block w-full md:w-auto">Ayuda</h4>
             <ul class="space-y-3 text-white/70 font-medium">
-              <li><a href="#" class="hover:text-white hover:underline transition">Preguntas Frecuentes</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Soporte</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Términos</a></li>
+              <li><router-link to="/support" class="hover:text-white hover:underline transition">Preguntas Frecuentes</router-link></li>
+              <li><router-link to="/support" class="hover:text-white hover:underline transition">Soporte</router-link></li>
+              <li><router-link to="/terms" class="hover:text-white hover:underline transition">Términos</router-link></li>
             </ul>
           </div>
           <div>
             <h4 class="font-bold mb-4 text-lg border-b border-white/20 pb-2 md:border-none inline-block w-full md:w-auto">Empresa</h4>
             <ul class="space-y-3 text-white/70 font-medium">
-              <li><a href="#" class="hover:text-white hover:underline transition">Sobre Nosotros</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Novedades</a></li>
-              <li><a href="#" class="hover:text-white hover:underline transition">Afíliate</a></li>
+              <li><router-link to="/about" class="hover:text-white hover:underline transition">Sobre Nosotros</router-link></li>
+              <li><router-link to="/about" class="hover:text-white hover:underline transition">Equipo FoodRush</router-link></li>
+              <li><router-link to="/affiliate" class="hover:text-white hover:underline transition">Afíliate</router-link></li>
             </ul>
           </div>
         </div>
