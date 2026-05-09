@@ -44,18 +44,18 @@ const desktopLinkClasses = (path) => [
     'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
         ? isSolid.value
-            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+            ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
             : 'bg-white/14 text-white ring-1 ring-white/20 backdrop-blur-md'
         : isSolid.value
-            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
             : 'text-white/85 hover:bg-white/10 hover:text-white'
 ];
 
 const mobileLinkClasses = (path) => [
     'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
-        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+        ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
 ];
 
 const navigate = (path) => {
@@ -115,7 +115,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-<div class="font-sans antialiased bg-gray-50 overflow-x-hidden flex flex-col min-h-screen">
+<div class="affiliate-page font-sans antialiased bg-gray-50 text-gray-800 overflow-x-hidden flex flex-col min-h-screen">
 
     <!-- NAVBAR IGUAL DE ELEGANTE -->
     <nav
@@ -131,7 +131,7 @@ onUnmounted(() => {
                 <i
                     :class="[
                         'fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
-                        isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]',
+                        isSolid ? 'text-[#c2410c]' : 'text-[#fbbf24]',
                     ]"
                 ></i>
                 <span
@@ -140,7 +140,7 @@ onUnmounted(() => {
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span :class="isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]'">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#c2410c]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -194,7 +194,7 @@ onUnmounted(() => {
                 </a>
                 <button
                     type="button"
-                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#1a1a2e] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#111827]"
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
@@ -207,7 +207,7 @@ onUnmounted(() => {
     <!-- CAROUSEL ORIENTADO A AFILIADOS -->
     <div id="default-carousel" class="relative w-full" data-carousel="slide">
         <div class="relative h-full overflow-hidden">
-            <div class="hidden duration-1000 ease-in-out" data-carousel-item="active">
+            <div class="absolute inset-0 duration-1000 ease-in-out" data-carousel-item="active">
                 <img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1974&auto=format&fit=crop" class="absolute block w-full h-full object-cover brightness-50" alt="Restaurant Kitchen">
                 <div class="absolute inset-0 flex flex-col justify-center items-center text-center text-white p-4">
                     <span class="text-[#fbbf24] font-bold tracking-widest uppercase mb-4" data-aos="fade-down">Plataforma Multi-Inquilino</span>
@@ -229,7 +229,7 @@ onUnmounted(() => {
     <section class="py-20 bg-white overflow-hidden">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16" data-aos="fade-up">
-                <span class="text-[#BD0A0A] font-bold tracking-widest uppercase">¿Por qué unirte?</span>
+                <span class="text-[#c2410c] font-bold tracking-widest uppercase">¿Por qué unirte?</span>
                 <h2 class="text-4xl font-extrabold text-gray-900 mt-2">Beneficios Exclusivos para Aliados</h2>
                 <p class="mt-4 text-gray-600 max-w-2xl mx-auto">Potenciamos tu negocio con tecnología de punta y una red logística impecable.</p>
             </div>
@@ -237,7 +237,7 @@ onUnmounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <!-- Beneficio 1 -->
                 <div class="bg-gray-50 rounded-2xl p-6 text-center hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-                    <div class="w-14 h-14 bg-red-100 text-[#BD0A0A] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <div class="w-14 h-14 bg-orange-100 text-[#c2410c] rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                         <i class="fas fa-chart-line"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-2">Más Ventas</h3>
@@ -275,7 +275,7 @@ onUnmounted(() => {
     <section id="registro-afiliados" class="py-24 bg-gray-900 relative overflow-hidden">
         <!-- Decoración de fondo -->
         <div class="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-            <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#BD0A0A] rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+            <div class="absolute -top-40 -right-40 w-96 h-96 bg-[#f97316] rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
             <div class="absolute top-40 -left-40 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         </div>
 
@@ -284,28 +284,28 @@ onUnmounted(() => {
                 
                 <!-- Columna Izquierda: Copy y Pasos -->
                 <div class="w-full lg:w-5/12 p-8 lg:p-12 text-white">
-                    <h2 class="text-4xl font-extrabold mb-4">Empieza a vender en <span class="text-[#BD0A0A]">FoodRush</span></h2>
+                    <h2 class="text-4xl font-extrabold mb-4">Empieza a vender en <span class="text-[#fbbf24]">FoodRush</span></h2>
                     <p class="text-gray-300 mb-8 text-lg">Únete a la red de franquicias más eficiente. Completa el formulario y un asesor se pondrá en contacto contigo en menos de 24 horas.</p>
                     
                     <div class="space-y-6">
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#BD0A0A] flex items-center justify-center font-bold">1</div>
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#c2410c] flex items-center justify-center font-bold">1</div>
                             <div>
-                                <h4 class="text-lg font-bold">Llena tus datos</h4>
+                                <h3 class="text-lg font-bold">Llena tus datos</h3>
                                 <p class="text-sm text-gray-400">Queremos conocer sobre tu restaurante.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#BD0A0A] flex items-center justify-center font-bold">2</div>
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#c2410c] flex items-center justify-center font-bold">2</div>
                             <div>
-                                <h4 class="text-lg font-bold">Configuramos tu menú</h4>
+                                <h3 class="text-lg font-bold">Configuramos tu menú</h3>
                                 <p class="text-sm text-gray-400">Subimos tus platillos y fotos a nuestra app.</p>
                             </div>
                         </div>
                         <div class="flex items-start gap-4">
-                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#BD0A0A] flex items-center justify-center font-bold">3</div>
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full bg-[#c2410c] flex items-center justify-center font-bold">3</div>
                             <div>
-                                <h4 class="text-lg font-bold">¡Recibe pedidos!</h4>
+                                <h3 class="text-lg font-bold">¡Recibe pedidos!</h3>
                                 <p class="text-sm text-gray-400">Comienza a ganar dinero de inmediato.</p>
                             </div>
                         </div>
@@ -322,7 +322,7 @@ onUnmounted(() => {
                         </div>
                         <h3 class="text-3xl font-bold text-gray-900 mb-2">¡Solicitud Enviada!</h3>
                         <p class="text-gray-600 text-lg">Gracias por confiar en FoodRush. Nuestro equipo revisará tu información y te contactaremos muy pronto.</p>
-                        <button @click="showSuccess = false" class="mt-8 text-[#BD0A0A] font-semibold hover:underline">Enviar otra solicitud</button>
+                        <button @click="showSuccess = false" class="mt-8 text-[#1a1a2e] font-semibold hover:underline">Enviar otra solicitud</button>
                     </div>
 
                     <!-- El Formulario -->
@@ -331,63 +331,63 @@ onUnmounted(() => {
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Nombre del Propietario</label>
+                                <label for="nombre-responsable-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Nombre del Propietario</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-user text-gray-400"></i>
                                     </div>
-                                    <input v-model="afiliateForm.nombreResponsable" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" placeholder="Ej. Juan Pérez" required>
+                                    <input id="nombre-responsable-afiliado" v-model="afiliateForm.nombreResponsable" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" placeholder="Ej. Juan Pérez" required>
                                 </div>
                             </div>
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Nombre del Local / Franquicia</label>
+                                <label for="nombre-local-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Nombre del Local / Franquicia</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-store text-gray-400"></i>
                                     </div>
-                                    <input v-model="afiliateForm.nombreLocal" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" placeholder="Ej. Burger Palace" required>
+                                    <input id="nombre-local-afiliado" v-model="afiliateForm.nombreLocal" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" placeholder="Ej. Burger Palace" required>
                                 </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Correo Electrónico</label>
+                                <label for="email-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Correo Electrónico</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-envelope text-gray-400"></i>
                                     </div>
-                                    <input v-model="afiliateForm.email" type="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" placeholder="contacto@restaurante.com" required>
+                                    <input id="email-afiliado" v-model="afiliateForm.email" type="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" placeholder="contacto@restaurante.com" required>
                                 </div>
                             </div>
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Teléfono Móvil</label>
+                                <label for="telefono-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Teléfono Móvil</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-phone text-gray-400"></i>
                                     </div>
-                                    <input v-model="afiliateForm.telefono" type="tel" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" placeholder="+1 234 567 8900" required>
+                                    <input id="telefono-afiliado" v-model="afiliateForm.telefono" type="tel" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" placeholder="+1 234 567 8900" required>
                                 </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Ciudad de Operación</label>
+                                <label for="ciudad-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Ciudad de Operación</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-map-marker-alt text-gray-400"></i>
                                     </div>
-                                    <input v-model="afiliateForm.ciudad" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" placeholder="Tu ciudad" required>
+                                    <input id="ciudad-afiliado" v-model="afiliateForm.ciudad" type="text" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" placeholder="Tu ciudad" required>
                                 </div>
                             </div>
                             <div>
-                                <label class="block mb-1 text-sm font-medium text-gray-700">Especialidad (Tipo de comida)</label>
+                                <label for="tipo-comida-afiliado" class="block mb-1 text-sm font-medium text-gray-700">Especialidad (Tipo de comida)</label>
                                 <div class="relative">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                         <i class="fas fa-utensils text-gray-400"></i>
                                     </div>
-                                    <select v-model="afiliateForm.tipoComida" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full pl-10 p-3 transition-colors" required>
+                                    <select id="tipo-comida-afiliado" v-model="afiliateForm.tipoComida" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-xl focus:ring-[#f97316] focus:border-[#f97316] block w-full pl-10 p-3 transition-colors" required>
                                         <option value="" disabled selected>Selecciona una opción</option>
                                         <option value="rapida">Comida Rápida / Hamburguesas</option>
                                         <option value="pizza">Pizzas e Italiano</option>
@@ -401,11 +401,11 @@ onUnmounted(() => {
                         </div>
 
                         <div class="flex items-center pt-2">
-                            <input id="terminos" type="checkbox" required class="w-4 h-4 text-[#BD0A0A] bg-gray-100 border-gray-300 rounded focus:ring-[#BD0A0A] focus:ring-2">
-                            <label for="terminos" class="ml-2 text-sm font-medium text-gray-600">Acepto los <a href="/terms" class="text-[#BD0A0A] hover:underline">términos y condiciones</a> de afiliación.</label>
+                            <input id="terminos" type="checkbox" required class="w-4 h-4 text-[#f97316] bg-gray-100 border-gray-300 rounded focus:ring-[#f97316] focus:ring-2">
+                            <label for="terminos" class="ml-2 text-sm font-medium text-gray-600">Acepto los <a href="/terms" class="text-[#1a1a2e] underline decoration-2 underline-offset-2 hover:text-[#c2410c]">términos y condiciones</a> de afiliación.</label>
                         </div>
 
-                        <button type="submit" :disabled="isSubmitting" class="w-full text-white bg-[#BD0A0A] hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-bold rounded-xl text-lg px-5 py-4 text-center transition-all flex justify-center items-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-red-500/30">
+                        <button type="submit" :disabled="isSubmitting" class="w-full text-white bg-[#1a1a2e] hover:bg-[#111827] focus:ring-4 focus:outline-none focus:ring-orange-200 font-bold rounded-xl text-lg px-5 py-4 text-center transition-all flex justify-center items-center gap-2 mt-4 disabled:opacity-70 disabled:cursor-not-allowed shadow-lg shadow-slate-500/20">
                             <span v-if="isSubmitting"><i class="fas fa-circle-notch fa-spin"></i> Procesando solicitud...</span>
                             <span v-else>Enviar Solicitud de Afiliación <i class="fas fa-paper-plane ml-1"></i></span>
                         </button>
@@ -419,7 +419,7 @@ onUnmounted(() => {
     <section id="marcas" class="py-20 bg-gray-50">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16" data-aos="fade-up">
-                <span class="text-[#BD0A0A] font-bold tracking-widest uppercase">Ellos ya confían en nosotros</span>
+                <span class="text-[#c2410c] font-bold tracking-widest uppercase">Ellos ya confían en nosotros</span>
                 <h2 class="text-4xl font-extrabold text-gray-900 mt-2">Top Franquicias</h2>
             </div>
 
@@ -459,8 +459,8 @@ onUnmounted(() => {
     <section class="py-20 bg-white">
         <div class="container mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-gray-50 p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group border-b-4 border-transparent hover:border-[#BD0A0A]" data-aos="fade-up" data-aos-delay="100">
-                    <div class="w-16 h-16 bg-red-100 text-[#BD0A0A] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl group-hover:bg-[#BD0A0A] group-hover:text-white transition-colors">
+                <div class="bg-gray-50 p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 text-center group border-b-4 border-transparent hover:border-[#c2410c]" data-aos="fade-up" data-aos-delay="100">
+                    <div class="w-16 h-16 bg-orange-100 text-[#c2410c] rounded-full flex items-center justify-center mx-auto mb-6 text-2xl group-hover:bg-[#c2410c] group-hover:text-white transition-colors">
                         <i class="fas fa-rocket"></i>
                     </div>
                     <h3 class="text-2xl font-bold mb-4">Misión</h3>
@@ -484,11 +484,11 @@ onUnmounted(() => {
         </div>
     </section>
 
-   <footer class="bg-[#BD0A0A] text-white mt-auto">
+   <footer class="bg-[#1a1a2e] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-start md:items-center">
             <div class="mb-8 md:mb-0">
                  <div class="flex items-center gap-2 mb-4 bg-white w-fit px-3 py-1 rounded shadow-lg">
-                    <span class="text-[#BD0A0A] font-bold text-xl italic">Food</span>
+                    <span class="text-[#c2410c] font-bold text-xl italic">Food</span>
                     <span class="text-slate-800 font-bold text-xl italic -ml-1">Rush</span>
                 </div>
                 <p class="text-white/90 text-sm mb-6 font-medium max-w-xs">La mejor tecnología de logística para tus franquicias favoritas.</p>
@@ -541,13 +541,13 @@ onUnmounted(() => {
                     <form class="space-y-4" action="#">
                         <div>
                             <label for="email" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Tu email</label>
-                            <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full p-2.5" placeholder="nombre@foodrush.com" required>
+                            <input type="email" name="email" id="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#f97316] focus:border-[#f97316] block w-full p-2.5" placeholder="nombre@foodrush.com" required>
                         </div>
                         <div>
                             <label for="password" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Contraseña</label>
-                            <input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#BD0A0A] focus:border-[#BD0A0A] block w-full p-2.5" required>
+                            <input type="password" name="password" id="password" placeholder="••••••••" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-[#f97316] focus:border-[#f97316] block w-full p-2.5" required>
                         </div>
-                        <button type="submit" class="w-full text-white bg-[#BD0A0A] hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors">Entrar a tu cuenta</button>
+                        <button type="submit" class="w-full text-white bg-[#1a1a2e] hover:bg-[#111827] focus:ring-4 focus:outline-none focus:ring-orange-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors">Entrar a tu cuenta</button>
                     </form>
                 </div>
             </div>

@@ -753,13 +753,74 @@ html.foodrush-dark .delivery-onboarding .hide-scrollbar {
 }
 
 html.foodrush-dark .support-page,
-html.foodrush-dark .terms-page {
+html.foodrush-dark .terms-page,
+html.foodrush-dark .about-page,
+html.foodrush-dark .affiliate-page {
   background: #070b14 !important;
   color: #f8fafc !important;
 }
 
-html.foodrush-dark .support-page section.bg-white {
+html.foodrush-dark .support-page section.bg-white,
+html.foodrush-dark .about-page section.bg-white,
+html.foodrush-dark .affiliate-page section.bg-white {
   background: #0d1424 !important;
+}
+
+html.foodrush-dark .about-page section.bg-\[\#F5F5F5\],
+html.foodrush-dark .affiliate-page section.bg-gray-50,
+html.foodrush-dark .affiliate-page .bg-gray-50 {
+  background: #101827 !important;
+}
+
+html.foodrush-dark .about-page .bg-white,
+html.foodrush-dark .affiliate-page .bg-white {
+  background-color: #101827 !important;
+  border-color: var(--fr-border) !important;
+  color: #f8fafc !important;
+}
+
+html.foodrush-dark .about-page h1,
+html.foodrush-dark .about-page h2,
+html.foodrush-dark .about-page h3,
+html.foodrush-dark .about-page h4,
+html.foodrush-dark .about-page h5,
+html.foodrush-dark .about-page p,
+html.foodrush-dark .affiliate-page h1,
+html.foodrush-dark .affiliate-page h2,
+html.foodrush-dark .affiliate-page h3,
+html.foodrush-dark .affiliate-page h4,
+html.foodrush-dark .affiliate-page p,
+html.foodrush-dark .affiliate-page label {
+  color: inherit !important;
+}
+
+html.foodrush-dark .about-page .text-gray-500,
+html.foodrush-dark .about-page .text-gray-600,
+html.foodrush-dark .about-page .text-gray-700,
+html.foodrush-dark .affiliate-page .text-gray-500,
+html.foodrush-dark .affiliate-page .text-gray-600,
+html.foodrush-dark .affiliate-page .text-gray-700 {
+  color: #cbd5e1 !important;
+}
+
+html.foodrush-dark .affiliate-page input,
+html.foodrush-dark .affiliate-page select {
+  background-color: #0d1424 !important;
+  border-color: var(--fr-border) !important;
+  color: #f8fafc !important;
+}
+
+html.foodrush-dark .affiliate-page input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.brand-footer {
+  background: #1a1a2e !important;
+  color: #ffffff !important;
+}
+
+.brand-footer {
+  border-top-color: #fbbf24 !important;
 }
 
 html.foodrush-dark .support-page .support-pattern {

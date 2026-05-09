@@ -745,7 +745,7 @@ const processOrder = async () => {
                  icon: 'error',
                  title: 'Pago Declinado',
                  text: 'El banco ha rechazado la transacción. Por favor, intenta con otra tarjeta.',
-                 confirmButtonColor: '#BD0A0A'
+                 confirmButtonColor: '#1a1a2e'
              });
           }
       }
@@ -853,7 +853,7 @@ const processOrder = async () => {
               icon: usedLocalFallback ? 'info' : 'success',
               title: confirmationTitle,
               html: `Tu pedido <b>#${finalOrder.id}</b> quedo en estado <b>Pendiente de confirmacion</b>.<br><br><span class="text-sm text-gray-500">${confirmationDetail}</span>`,
-              confirmButtonColor: '#BD0A0A',
+              confirmButtonColor: '#1a1a2e',
               allowOutsideClick: false
           }).then(() => {
               clearCart();
@@ -1151,7 +1151,7 @@ onBeforeUnmount(() => {
                     <div class="flex items-center gap-3">
                         <div class="flex flex-col items-end">
                             <span class="font-bold text-slate-700 text-sm">{{ userName.split(' ')[0] }}</span>
-                            <button @click="handleLogout" class="text-[11px] text-red-500 font-bold hover:underline">Cerrar sesión</button>
+                            <button @click="handleLogout" class="text-[11px] text-slate-500 font-bold hover:text-slate-900 hover:underline">Cerrar sesión</button>
                         </div>
                         <div @click="router.push('/profile')" class="w-10 h-10 bg-orange-50 rounded-full flex items-center justify-center text-accent cursor-pointer hover:bg-orange-100 transition border border-orange-100 shadow-sm">
                             <i class="fa-regular fa-user"></i>
@@ -1159,7 +1159,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-sm">
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-5 py-2 rounded-full font-bold hover:bg-[#111827] transition flex items-center gap-2 shadow-sm text-sm">
                     <i class="fa-solid fa-user text-xs"></i> Iniciar Sesión
                 </button>
             </div>
@@ -1177,7 +1177,7 @@ onBeforeUnmount(() => {
                 <button
                   id="btn-delivery"
                   class="px-8 py-2 rounded-full transition-all duration-300 relative overflow-hidden"
-                  :class="currentMode === 'delivery' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(189,10,10,0.2)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
+                  :class="currentMode === 'delivery' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(15,23,42,0.18)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
                   @click="setMode('delivery')"
                 >
                   <i class="fa-solid fa-bicycle mr-2 transition-transform duration-300" :class="currentMode === 'delivery' ? 'scale-110 translate-x-1' : ''"></i>
@@ -1186,7 +1186,7 @@ onBeforeUnmount(() => {
                 <button
                   id="btn-pickup"
                   class="px-8 py-2 rounded-full transition-all duration-300 relative overflow-hidden"
-                  :class="currentMode === 'pickup' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(189,10,10,0.2)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
+                  :class="currentMode === 'pickup' ? 'mode-btn-active scale-105 shadow-[0_4px_12px_rgba(15,23,42,0.18)]' : 'mode-btn-inactive text-slate-500 hover:text-slate-700'"
                   @click="setMode('pickup')"
                 >
                   <i class="fa-solid fa-store mr-2 transition-transform duration-300" :class="currentMode === 'pickup' ? 'scale-110 -translate-x-1' : ''"></i>
@@ -1195,13 +1195,13 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div class="border border-slate-200/60 rounded-2xl p-1.5 mb-8 relative shadow-sm hover:shadow-lg hover:border-red-100 transition-all duration-500 bg-white/50 backdrop-blur-sm group">
-              <div class="absolute inset-0 bg-gradient-to-r from-red-500/5 to-orange-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div class="border border-slate-200/60 rounded-2xl p-1.5 mb-8 relative shadow-sm hover:shadow-lg hover:border-orange-100 transition-all duration-500 bg-white/50 backdrop-blur-sm group">
+              <div class="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
               <div id="map" ref="mapEl" class="rounded-xl overflow-hidden shadow-inner h-[200px] z-10 relative"></div>
               <button
                 v-show="currentMode === 'delivery'"
                 type="button"
-                class="absolute bottom-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-800 shadow-lg ring-1 ring-red-100 transition hover:-translate-y-0.5 hover:bg-red-600 hover:text-white disabled:cursor-wait disabled:opacity-80 disabled:hover:translate-y-0"
+                class="absolute bottom-4 left-4 z-20 inline-flex items-center gap-2 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-800 shadow-lg ring-1 ring-orange-100 transition hover:-translate-y-0.5 hover:bg-[#1a1a2e] hover:text-white disabled:cursor-wait disabled:opacity-80 disabled:hover:translate-y-0"
                 :disabled="isLocatingUser"
                 @click="requestRealLocation"
               >
@@ -1226,7 +1226,7 @@ onBeforeUnmount(() => {
             <div class="space-y-4 bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
               <div class="flex items-start justify-between border-b border-gray-100 pb-4">
                 <div class="flex gap-4 items-center">
-                  <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center text-red-500 shadow-sm border border-red-100">
+                  <div class="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center text-orange-600 shadow-sm border border-orange-100">
                     <i class="fa-solid fa-location-dot text-lg"></i>
                   </div>
                   <div>
@@ -1237,7 +1237,7 @@ onBeforeUnmount(() => {
                 <button
                   v-show="currentMode === 'delivery'"
                   id="btn-edit-address"
-                  class="text-xs px-3 py-1.5 rounded-lg font-bold text-red-600 bg-red-50 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm"
+                  class="text-xs px-3 py-1.5 rounded-lg font-bold text-slate-700 bg-slate-50 hover:bg-[#1a1a2e] hover:text-white transition-all duration-300 shadow-sm"
                   @click="editAddress"
                 >
                   Editar
@@ -1262,30 +1262,30 @@ onBeforeUnmount(() => {
 
             <div v-show="currentMode === 'delivery'" id="delivery-options-container" class="mt-8 border-t border-gray-100 pt-6 transition-all duration-500 animate-fade-in">
               <h3 class="text-left text-slate-800 font-extrabold mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-clock text-red-500"></i>
+                <i class="fa-solid fa-clock text-orange-500"></i>
                 Opciones de entrega
               </h3>
               <div class="grid grid-cols-2 gap-4">
                 <label class="cursor-pointer group">
                   <input v-model="deliveryType" type="radio" name="delivery_type" value="basic" class="radio-box hidden" />
-                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-red-200 hover:bg-red-50/30">
+                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-orange-200 hover:bg-orange-50/30">
                     <div class="radio-indicator flex-shrink-0"></div>
                     <div class="flex-grow">
-                      <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">Básica</p>
+                      <p class="text-sm font-bold text-slate-700 group-hover:text-orange-700 transition-colors">Básica</p>
                       <p class="text-[10px] text-gray-500 mt-0.5">30-45 min</p>
                     </div>
-                    <i class="fa-solid fa-bolt text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    <i class="fa-solid fa-bolt text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                   </div>
                 </label>
                 <label class="cursor-pointer group">
                   <input v-model="deliveryType" type="radio" name="delivery_type" value="scheduled" class="radio-box hidden" />
-                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-red-200 hover:bg-red-50/30">
+                  <div class="border-2 border-gray-100 rounded-xl p-4 flex items-center gap-3 transition-all duration-300 hover:border-orange-200 hover:bg-orange-50/30">
                     <div class="radio-indicator flex-shrink-0"></div>
                     <div class="flex-grow">
-                      <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">Programar</p>
+                      <p class="text-sm font-bold text-slate-700 group-hover:text-orange-700 transition-colors">Programar</p>
                       <p class="text-[10px] text-gray-500 mt-0.5">Elegir hora</p>
                     </div>
-                    <i class="fa-regular fa-calendar text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    <i class="fa-regular fa-calendar text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                   </div>
                 </label>
               </div>
@@ -1298,7 +1298,7 @@ onBeforeUnmount(() => {
 
           <div class="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 shadow-lg flex items-center justify-between text-white overflow-hidden relative group">
             <div class="checkout-card-pattern absolute inset-0 opacity-10"></div>
-            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-red-500/20 transition-colors duration-500"></div>
+            <div class="absolute -right-6 -top-6 w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-colors duration-500"></div>
             <div class="relative z-10">
               <h2 class="text-sm font-bold text-gray-300 mb-1 uppercase tracking-widest">Método de Pago</h2>
               <div class="flex items-center gap-3 mt-2">
@@ -1326,10 +1326,10 @@ onBeforeUnmount(() => {
         <div class="lg:col-span-5 space-y-6">
           <div class="bg-white rounded-2xl p-6 shadow-sm">
             <a @click.prevent="router.push('/cart')" class="flex justify-between items-center mb-4 border-b pb-2 cursor-pointer hover:opacity-70 transition group">
-              <h2 class="text-lg text-slate-600 font-bold group-hover:text-red-600 transition-colors">Resumen de carrito</h2>
+              <h2 class="text-lg text-slate-600 font-bold group-hover:text-slate-900 transition-colors">Resumen de carrito</h2>
               <div class="relative">
-                <i class="fa-solid fa-cart-shopping text-slate-400 group-hover:text-red-500 text-xl transition-colors"></i>
-                <span class="absolute -top-2 -right-2 bg-red-600 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <i class="fa-solid fa-cart-shopping text-slate-400 group-hover:text-orange-500 text-xl transition-colors"></i>
+                <span class="absolute -top-2 -right-2 bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                   {{ cartCount }}
                 </span>
               </div>
@@ -1344,16 +1344,16 @@ onBeforeUnmount(() => {
               <a @click.prevent="router.push('/')" class="text-slate-800 font-bold hover:underline cursor-pointer">Ir a comprar</a>
             </div>
             <div v-else class="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-              <div v-for="(item, index) in cartItems" :key="index" class="flex gap-4 items-center border border-gray-100 p-3 rounded-xl mb-3 hover:shadow-md hover:border-red-100 transition-all duration-300 bg-white group cursor-default">
-                <div class="w-14 h-14 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:bg-red-50 transition-colors">
+              <div v-for="(item, index) in cartItems" :key="index" class="flex gap-4 items-center border border-gray-100 p-3 rounded-xl mb-3 hover:shadow-md hover:border-orange-100 transition-all duration-300 bg-white group cursor-default">
+                <div class="w-14 h-14 bg-gray-50 rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-100 group-hover:bg-orange-50 transition-colors">
                   <img :src="item.img" :alt="item.name" class="h-full object-contain transform group-hover:scale-110 transition-transform duration-300" />
                 </div>
                 <div class="flex-grow">
-                  <p class="text-sm font-bold text-slate-700 group-hover:text-red-600 transition-colors">{{ item.name }}</p>
+                  <p class="text-sm font-bold text-slate-700 group-hover:text-orange-700 transition-colors">{{ item.name }}</p>
                   <p v-if="item.place || item.franchiseSlug" class="text-[10px] font-black uppercase tracking-wide text-orange-500">{{ item.place || item.franchiseSlug }}</p>
                   <p class="text-xs text-gray-500 font-medium mt-0.5">Cant: <span class="bg-gray-100 text-slate-700 font-bold px-1.5 py-0.5 rounded ml-1">{{ item.qty }}</span></p>
                 </div>
-                <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-red-50 group-hover:text-red-600 transition-colors">{{ formatCurrency(item.price * item.qty) }}</span>
+                <span class="font-bold text-base text-slate-800 bg-gray-50 px-3 py-1 rounded-lg group-hover:bg-orange-50 group-hover:text-orange-700 transition-colors">{{ formatCurrency(item.price * item.qty) }}</span>
               </div>
             </div>
 
@@ -1449,7 +1449,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <button
-                class="block w-full text-center text-sm text-red-600 font-bold mt-4 hover:bg-red-50 border border-transparent hover:border-red-100 py-3 rounded-xl transition-all duration-300"
+                class="block w-full text-center text-sm text-slate-700 font-bold mt-4 hover:bg-slate-50 border border-transparent hover:border-slate-200 py-3 rounded-xl transition-all duration-300"
                 @click="openPaymentModal"
               >
                 Cambiar Metodo de Pago
@@ -1489,7 +1489,7 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <button
-                class="block w-full text-center text-sm text-red-600 font-bold mt-4 hover:bg-red-50 border border-transparent hover:border-red-100 py-3 rounded-xl transition-all duration-300"
+                class="block w-full text-center text-sm text-slate-700 font-bold mt-4 hover:bg-slate-50 border border-transparent hover:border-slate-200 py-3 rounded-xl transition-all duration-300"
                 @click="openPaymentModal"
               >
                 Cambiar Método de Pago
@@ -1501,7 +1501,7 @@ onBeforeUnmount(() => {
 
       <div class="fixed bottom-0 left-0 w-full bg-white border-t p-4 z-40 flex justify-center lg:static lg:bg-transparent lg:border-none lg:p-0 lg:mt-8">
         <button
-          class="w-full max-w-4xl bg-gradient-to-r from-red-600 to-orange-500 text-white font-extrabold text-xl py-4 rounded-xl shadow-[0_8px_15px_rgba(189,10,10,0.2)] hover:shadow-[0_12px_20px_rgba(189,10,10,0.3)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+          class="w-full max-w-4xl bg-gradient-to-r from-[#1a1a2e] to-[#c2410c] text-white font-extrabold text-xl py-4 rounded-xl shadow-[0_8px_15px_rgba(15,23,42,0.2)] hover:shadow-[0_12px_20px_rgba(194,65,12,0.18)] hover:-translate-y-1 transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
           @click="processOrder"
           :disabled="isProcessing || cartItems.length === 0"
         >
@@ -1534,7 +1534,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="space-y-2">
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectCash"
           >
             <div class="flex items-center gap-4">
@@ -1546,7 +1546,7 @@ onBeforeUnmount(() => {
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectCard(false)"
           >
             <div class="flex items-center gap-4">
@@ -1561,7 +1561,7 @@ onBeforeUnmount(() => {
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectPayPal"
           >
             <div class="flex items-center gap-4">
@@ -1589,7 +1589,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="space-y-2">
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectCash"
           >
             <div class="flex items-center gap-4">
@@ -1601,7 +1601,7 @@ onBeforeUnmount(() => {
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectCard(false)"
           >
             <div class="flex items-center gap-4">
@@ -1616,7 +1616,7 @@ onBeforeUnmount(() => {
             <i class="fa-solid fa-chevron-right text-gray-300"></i>
           </div>
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectPayPal"
           >
             <div class="flex items-center gap-4">
@@ -1644,7 +1644,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="space-y-2">
           <div
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectCard(true)"
           >
             <div class="flex items-center gap-4">
@@ -1657,7 +1657,7 @@ onBeforeUnmount(() => {
           </div>
           <div
             v-if="hasSavedCard"
-            class="flex items-center justify-between p-4 hover:bg-red-50 rounded-xl cursor-pointer border border-transparent hover:border-red-100 hover:shadow-sm transition-all duration-300 group"
+            class="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl cursor-pointer border border-transparent hover:border-slate-200 hover:shadow-sm transition-all duration-300 group"
             @click="selectStoredCard"
           >
             <div class="flex items-center gap-4">
@@ -1758,8 +1758,8 @@ onBeforeUnmount(() => {
 .bg-cream { background-color: #FAFAF5; }
 .bg-dark { background-color: #1a1a2e; }
 .text-dark { color: #1a1a2e; }
-.text-primary { color: #D90429; }
-.bg-primary { background-color: #D90429; }
+.text-primary { color: #f97316; }
+.bg-primary { background-color: #1a1a2e; }
 .text-accent { color: #F48C06; }
 .font-display { font-family: 'Titan One', cursive; }
 
@@ -1771,12 +1771,12 @@ onBeforeUnmount(() => {
 }
 
 .radio-box:checked + div {
-  border-color: #BD0A0A;
-  background-color: #fff0f0;
+  border-color: #f97316;
+  background-color: #fff7ed;
 }
 
 .radio-box:checked + div .radio-indicator {
-  border: 5px solid #BD0A0A;
+  border: 5px solid #f97316;
 }
 
 .radio-indicator {
@@ -1802,9 +1802,9 @@ onBeforeUnmount(() => {
 }
 
 .mode-btn-active {
-  background-color: #BD0A0A;
+  background-color: #1a1a2e;
   color: white;
-  box-shadow: 0 4px 6px -1px rgba(189, 10, 10, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.22);
 }
 
 .mode-btn-inactive {

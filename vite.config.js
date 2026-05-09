@@ -14,7 +14,7 @@ const buildHtml = (scriptSrc = '/src/main.js', cssFiles = []) => `<!DOCTYPE html
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/foodrush-icon.svg" />
     <link rel="apple-touch-icon" href="/foodrush-icon.svg" />
-    <meta name="theme-color" content="#BD0A0A" />
+    <meta name="theme-color" content="#1a1a2e" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="FoodRush conecta clientes con franquicias de comida, carrito, pago, checkout, soporte y seguimiento de pedidos en tiempo real." />
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>

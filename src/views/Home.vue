@@ -345,7 +345,7 @@ const filterResultText = computed(() => {
                     </div>
                 </div>
 
-                <button v-else @click="router.push('/login')" class="bg-primary text-white px-3 sm:px-5 py-2 rounded-full font-bold hover:bg-red-700 transition flex items-center gap-2 shadow-sm text-xs sm:text-sm whitespace-nowrap">
+                <button v-else @click="router.push('/login')" class="bg-primary text-white px-3 sm:px-5 py-2 rounded-full font-bold hover:bg-[#111827] transition flex items-center gap-2 shadow-sm text-xs sm:text-sm whitespace-nowrap">
                     <i class="fa-solid fa-user text-xs"></i> <span class="hidden sm:inline">Iniciar Sesión</span><span class="sm:hidden">Entrar</span>
                 </button>
             </div>
@@ -460,7 +460,7 @@ const filterResultText = computed(() => {
                     </div>
                     <div class="flex items-center justify-between border-t border-orange-100 bg-white/70 px-4 py-3">
                         <span class="text-xs font-bold uppercase tracking-wide text-gray-400">{{ item.offer.title }}</span>
-                        <button @click="goToFranchise(item.id, item.name)" class="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition hover:bg-red-700">
+                        <button @click="goToFranchise(item.id, item.name)" class="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white transition hover:bg-[#111827]">
                             Ver oferta
                         </button>
                     </div>
@@ -620,16 +620,16 @@ const filterResultText = computed(() => {
 .bg-cream { background-color: #FAFAF5; }
 .bg-dark { background-color: #1a1a2e; }
 .text-dark { color: #1a1a2e; }
-.text-primary { color: #D90429; }
-.bg-primary { background-color: #D90429; }
-.border-primary { border-color: #D90429; }
+.text-primary { color: #c2410c; }
+.bg-primary { background-color: #1a1a2e; }
+.border-primary { border-color: #c2410c; }
 .text-accent { color: #F48C06; }
 .bg-accent { background-color: #F48C06; }
 .font-display { font-family: 'Titan One', cursive; }
 
 /* ── Bolt Animation ── */
 @keyframes electric-blink {
-    0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 2px #D90429); }
+    0%, 100% { opacity: 1; transform: scale(1); filter: drop-shadow(0 0 2px #c2410c); }
     50% { opacity: 0.4; transform: scale(1.1); filter: drop-shadow(0 0 8px #F48C06); }
 }
 .electric-blink { animation: electric-blink 5s infinite ease-in-out; }
@@ -774,8 +774,8 @@ const filterResultText = computed(() => {
     border: 1px solid #e5e7eb; color: #4b5563;
     background: white; transition: all 0.2s;
 }
-.filter-btn:hover { border-color: #D90429; color: #D90429; }
-.filter-btn.active { background-color: #D90429; color: white; border-color: #D90429; box-shadow: 0 4px 6px rgba(217, 4, 41, 0.2); }
+.filter-btn:hover { border-color: #c2410c; color: #c2410c; }
+.filter-btn.active { background-color: #1a1a2e; color: white; border-color: #1a1a2e; box-shadow: 0 4px 6px rgba(15, 23, 42, 0.18); }
 
 .filter-action-bar {
     margin-top: 16px;
@@ -805,7 +805,7 @@ const filterResultText = computed(() => {
 
 .filter-primary-action {
     gap: 8px;
-    background: #D90429;
+    background: #1a1a2e;
     color: #fff;
     padding: 11px 16px;
     box-shadow: 0 8px 18px rgba(217, 4, 41, 0.18);
@@ -820,7 +820,7 @@ const filterResultText = computed(() => {
 .filter-secondary-action {
     border: 1px solid rgba(217, 4, 41, 0.16);
     background: #fff5f6;
-    color: #D90429;
+    color: #c2410c;
     padding: 10px 14px;
 }
 

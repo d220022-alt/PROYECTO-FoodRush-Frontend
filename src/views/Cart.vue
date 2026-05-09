@@ -72,8 +72,8 @@ const totalPrice = computed(() => {
     <div class="flex-1 p-6 overflow-y-auto">
         <div v-if="cart.length === 0" class="text-center py-20 flex flex-col items-center">
             <i class="fa-solid fa-basket-shopping text-6xl text-gray-200 mb-4 font-bold"></i>
-            <p class="text-xl text-gray-400 font-bold">Tu carrito está vacío</p>
-            <button @click="router.push('/')" class="mt-6 text-orange-500 font-bold hover:text-orange-600 hover:underline transition-all">
+            <p class="text-xl text-slate-500 font-bold">Tu carrito está vacío</p>
+            <button @click="router.push('/')" class="mt-6 text-[#c2410c] font-bold hover:text-[#9a3412] hover:underline transition-all">
                 Explorar restaurantes
             </button>
         </div>
@@ -117,7 +117,7 @@ const totalPrice = computed(() => {
                     
                     <button 
                         @click="removeItem(item.lineKey || item.id)" 
-                        class="text-xs text-red-500 mt-3 hover:text-red-700 hover:underline ml-auto block text-right font-bold transition-colors" 
+                        class="text-xs text-slate-500 mt-3 hover:text-slate-900 hover:underline ml-auto block text-right font-bold transition-colors"
                         :aria-label="`Eliminar ${item.name} del carrito`">
                         Eliminar
                     </button>
@@ -139,10 +139,10 @@ const totalPrice = computed(() => {
         </button>
     </div>
 
-    <footer class="bg-[#BD0A0A] text-white p-8">
+    <footer class="bg-[#1a1a2e] text-white p-8 border-t-4 border-[#fbbf24]">
          <div class="flex items-center gap-2 mb-4">
             <div class="flex flex-col items-center leading-none bg-white p-2 rounded shadow-sm">
-                <span class="text-orange-500 font-bold text-sm italic tracking-tighter">Food</span>
+                <span class="text-[#c2410c] font-bold text-sm italic tracking-tighter">Food</span>
                 <span class="text-slate-800 font-bold text-sm italic tracking-tighter -mt-1">Rush</span>
             </div>
          </div>

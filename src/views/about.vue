@@ -32,18 +32,18 @@ const desktopLinkClasses = (path) => [
     'rounded-full px-4 py-2 text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
         ? isSolid.value
-            ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
+            ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
             : 'bg-white/14 text-white ring-1 ring-white/20 backdrop-blur-md'
         : isSolid.value
-            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+            ? 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
             : 'text-white/85 hover:bg-white/10 hover:text-white'
 ];
 
 const mobileLinkClasses = (path) => [
     'rounded-2xl px-4 py-3 text-center text-sm font-semibold transition-all duration-300 ease-out',
     route.path === path
-        ? 'bg-[#BD0A0A] text-white shadow-lg shadow-red-200/70'
-        : 'text-slate-700 hover:bg-slate-100 hover:text-[#BD0A0A]'
+        ? 'bg-[#1a1a2e] text-white shadow-lg shadow-slate-200/70'
+        : 'text-slate-700 hover:bg-slate-100 hover:text-[#1a1a2e]'
 ];
 
 const navigate = (path) => {
@@ -64,6 +64,10 @@ const navigate = (path) => {
 };
 
 const goHome = () => navigate('/');
+
+const scrollToOverview = () => {
+    document.getElementById('vision-estrategica')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 
 const setupObserver = () => {
     const observer = new IntersectionObserver((entries) => {
@@ -94,21 +98,21 @@ onUnmounted(() => {
 });
 
 const teamMembers = [
-    { name: "Rardiel", role: "Chief Architect, Backend & Multi-tenancy", image: "/images/page-media/about-1.webp", icon: "fa-server", social: "#" },
-    { name: "Yirbert", role: "Head of Product, Frontend & Interface", image: "/images/page-media/about-2.webp", icon: "fa-code", social: "#" },
-    { name: "Aysmar", role: "Director of Operations & Documentation", image: "/images/page-media/about-3.webp", icon: "fa-pen-nib", social: "#" }
+    { name: "Rardiel", role: "Arquitectura, backend y multi-tenant", image: "/images/page-media/about-1.webp", icon: "fa-server", social: "#" },
+    { name: "Yirbert", role: "Producto, frontend e interfaz", image: "/images/page-media/about-2.webp", icon: "fa-code", social: "#" },
+    { name: "Aysmar", role: "Operaciones y documentación", image: "/images/page-media/about-3.webp", icon: "fa-pen-nib", social: "#" }
 ];
 
 const cultureValues = [
-    { title: "Innovación Disruptiva", desc: "No nos conformamos con mejorar lo existente; reinventamos los procesos logísticos desde la raíz utilizando lógica avanzada.", icon: "fa-lightbulb", themeClasses: "bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white" },
-    { title: "Pasión por la Ejecución", desc: "La estrategia sin ejecución es alucinación. Nos obsesiona la rapidez y la precisión en cada pedido entregado.", icon: "fa-heart", themeClasses: "bg-red-50 text-red-700 group-hover:bg-red-600 group-hover:text-white" },
-    { title: "Colaboración Radical", desc: "Nuestra plataforma es fuerte porque unifica. Fomentamos la sinergia entre franquicias, repartidores y clientes finales.", icon: "fa-users", themeClasses: "bg-yellow-50 text-yellow-800 group-hover:bg-yellow-500 group-hover:text-white" },
-    { title: "Seguridad Militar", desc: "La integridad de los datos es innegociable. Implementamos cifrado punta a punta y aislamiento total de tenants.", icon: "fa-shield-alt", themeClasses: "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white" }
+    { title: "Innovación aplicada", desc: "Mejoramos los procesos de pedidos, carrito, checkout y seguimiento con soluciones claras y medibles.", icon: "fa-lightbulb", themeClasses: "bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white" },
+    { title: "Ejecución responsable", desc: "Priorizamos que cada flujo funcione de forma estable, rápida y comprensible para clientes, administradores y repartidores.", icon: "fa-heart", themeClasses: "bg-orange-50 text-orange-700 group-hover:bg-orange-500 group-hover:text-white" },
+    { title: "Colaboración", desc: "El proyecto une franquicias, clientes, soporte y delivery en una experiencia coherente de principio a fin.", icon: "fa-users", themeClasses: "bg-yellow-50 text-yellow-800 group-hover:bg-yellow-500 group-hover:text-white" },
+    { title: "Seguridad de datos", desc: "La información se maneja con autenticación, separación por tenant y validaciones acordes al alcance académico del proyecto.", icon: "fa-shield-alt", themeClasses: "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white" }
 ];
 </script>
 
 <template>
-<div class="font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
+<div class="about-page font-sans antialiased bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
     <nav
         :class="[
@@ -123,7 +127,7 @@ const cultureValues = [
                 <i
                     :class="[
                         'fas fa-bolt text-2xl transition-all duration-300 ease-out group-hover:scale-110 animate-pulse',
-                        isSolid ? 'text-[#BD0A0A]' : 'text-[#fbbf24]',
+                        isSolid ? 'text-[#c2410c]' : 'text-[#fbbf24]',
                     ]"
                 ></i>
                 <span
@@ -132,7 +136,7 @@ const cultureValues = [
                         isSolid ? 'text-slate-900' : 'text-white',
                     ]"
                 >
-                    FOOD<span class="text-[#BD0A0A]">RUSH</span>
+                    FOOD<span :class="isSolid ? 'text-[#c2410c]' : 'text-[#fbbf24]'">RUSH</span>
                 </span>
             </a>
 
@@ -187,7 +191,7 @@ const cultureValues = [
 
                 <button
                     type="button"
-                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#BD0A0A] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-red-700"
+                    class="mt-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#1a1a2e] px-6 py-3 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:bg-[#111827]"
                     @click="goHome"
                 >
                     <i class="fa-solid fa-house text-xs"></i>
@@ -201,34 +205,34 @@ const cultureValues = [
         <div class="absolute inset-0 bg-gradient-to-b from-[#0f172a]/95 via-[#0f172a]/80 to-[#0f172a]/40"></div>
         <div class="absolute inset-0 subtle-dot-pattern opacity-10"></div>
         <div class="relative z-10 container mx-auto px-4 md:px-6 text-center text-white scroll-animate">
-            <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-xs md:text-sm mb-4 md:mb-6 block">Infraestructura Logística Global</span>
+            <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-xs md:text-sm mb-4 md:mb-6 block">Proyecto FoodRush</span>
             <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 md:mb-8 leading-tight md:leading-[0.95] font-display drop-shadow-2xl">
-                Redefiniendo el <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#BD0A0A]">Ecosistema Gastronómico</span>
+                Conoce <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-[#fbbf24] to-[#c2410c]">FoodRush</span>
             </h1>
             <p class="text-lg md:text-2xl font-light text-gray-200 max-w-4xl mx-auto leading-relaxed md:leading-relaxed opacity-90 px-2">
-                FoodRush opera en la intersección de la tecnología avanzada y la logística de última milla. Somos la columna vertebral digital para franquicias de alto rendimiento.
+                FoodRush integra franquicias, clientes, administradores y repartidores en una plataforma clara para pedidos, pagos, seguimiento y soporte.
             </p>
         </div>
-        <div class="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 text-white/50 text-3xl md:text-4xl animate-bounce">
+        <button type="button" class="absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 text-white/70 text-3xl md:text-4xl animate-bounce transition hover:text-white focus:outline-none focus:ring-2 focus:ring-white/70 rounded-full p-2" aria-label="Ir a la información del proyecto" @click="scrollToOverview">
             <i class="fa-solid fa-angle-down"></i>
-        </div>
+        </button>
     </header>
 
-    <section class="py-16 md:py-32 bg-white relative overflow-hidden">
+    <section id="vision-estrategica" class="py-16 md:py-32 bg-white relative overflow-hidden">
         <div class="container mx-auto px-6 md:px-16 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 md:gap-16 items-center">
                 <div class="lg:col-span-6 scroll-animate">
-                    <span class="text-[#BD0A0A] font-bold tracking-widest uppercase text-sm">Visión Estratégica</span>
-                    <h2 class="text-3xl md:text-5xl font-extrabold text-[#0f172a] mt-2 mb-6 md:mb-10 leading-tight">La Necesidad de un Nuevo Paradigma Operativo</h2>
+                    <span class="text-[#c2410c] font-bold tracking-widest uppercase text-sm">Visión Estratégica</span>
+                    <h2 class="text-3xl md:text-5xl font-extrabold text-[#0f172a] mt-2 mb-6 md:mb-10 leading-tight">Una operación de pedidos más clara y medible</h2>
                     <div class="space-y-4 md:space-y-6 text-gray-600 md:text-gray-700 text-base md:text-lg leading-relaxed">
                         <p>
-                            En el panorama actual de la industria gastronómica, la digitalización no es opcional, es imperativa. Sin embargo, las soluciones existentes a menudo fragmentan la operación, elevando los costos de capital y diluyendo el control de la marca. Las franquicias exitosas requieren sistemas unificados que garanticen la consistencia operativa.
+                            En FoodRush organizamos en una sola experiencia lo que el usuario necesita para comprar: catálogo por franquicia, carrito, checkout, tracking y soporte. La idea es que cada pantalla tenga una función clara y pueda defenderse con evidencia real.
                         </p>
-                        <p class="font-semibold text-[#0f172a] border-l-4 border-[#BD0A0A] pl-4 md:pl-0 md:border-0">
-                            Nuestra misión fundamental es democratizar el acceso a infraestructuras tecnológicas de clase empresarial para el sector de comida rápida, permitiendo a los operadores centrarse en la excelencia del producto.
+                        <p class="font-semibold text-[#0f172a] border-l-4 border-[#c2410c] pl-4 md:pl-0 md:border-0">
+                            Nuestra meta es ofrecer una plataforma académica funcional, accesible y bien conectada con los flujos de backend y base de datos definidos para el proyecto.
                         </p>
                         <p>
-                            FoodRush no es simplemente una herramienta de software; es un socio estratégico diseñado para optimizar el rendimiento de los activos y maximizar el valor de vida del cliente a través de datos accionables e inteligencia predictiva. Abordamos los desafíos operativos con una mentalidad de 'plataforma como servicio', asegurando que cada 'tenant' reciba las actualizaciones automáticamente.
+                            El proyecto mantiene separación por franquicia, validaciones visibles, moneda consistente y rutas preparadas para revisar cliente, administración, delivery, soporte y seguimiento sin depender de explicaciones externas.
                         </p>
                     </div>
                 </div>
@@ -236,7 +240,7 @@ const cultureValues = [
                     <div class="aspect-square bg-gray-100 rounded-3xl p-4 md:p-6 shadow-inner relative overflow-hidden group">
                         <img src="/images/page-media/about-5.webp" class="w-full h-full object-cover rounded-2xl transform group-hover:scale-110 transition-transform duration-700" alt="Gestión operativa moderna">
                         <div class="absolute inset-0 bg-[#0f172a]/60 flex items-end p-6 md:p-10 text-white md:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <h4 class="text-2xl md:text-3xl font-bold font-display">Eficiencia Medible</h4>
+                            <h3 class="text-2xl md:text-3xl font-bold font-display">Eficiencia Medible</h3>
                         </div>
                     </div>
                     <img src="/images/page-media/about-6.webp" class="absolute -bottom-8 -left-4 md:-bottom-16 md:-left-16 w-32 h-32 md:w-64 md:h-64 object-cover rounded-full border-4 md:border-8 border-white shadow-xl md:shadow-2xl scroll-animate" style="transition-delay: 0.4s" alt="Colaboración operativa">
@@ -255,7 +259,7 @@ const cultureValues = [
                     <span class="text-[#fbbf24] font-bold tracking-widest uppercase text-sm">Ingeniería de Plataforma</span>
                     <h2 class="text-4xl md:text-5xl font-extrabold mt-2 mb-6 md:mb-8 font-display leading-tight">Arquitectura <br class="hidden md:block">Multi-Tenant <br class="hidden md:block">Aislada</h2>
                     <p class="text-gray-300 text-base md:text-lg leading-relaxed mb-8 md:mb-10">
-                        Nuestra arquitectura Multi-Tenant de núcleo compartido ofrece un rendimiento de clase empresarial con un aislamiento estricto. Cada franquicia opera en un entorno lógico independiente, garantizando la seguridad de los datos y la privacidad.
+                        La plataforma usa una lógica multi-tenant para separar información y comportamiento por franquicia. Esto permite mostrar catálogos, pedidos y flujos administrativos de forma ordenada durante la revisión del proyecto.
                     </p>
                     <img src="/images/page-media/about-7.webp" class="hidden md:block rounded-3xl shadow-xl border border-white/10" alt="Hardware de servidor moderno">
                 </div>
@@ -263,31 +267,31 @@ const cultureValues = [
                 <div class="lg:col-span-7 space-y-6 md:space-y-12 scroll-animate" style="transition-delay: 0.3s;">
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
                         <i class="fa-solid fa-database text-4xl md:text-5xl text-[#fbbf24] mb-6 block"></i>
-                        <h4 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Aislamiento y Cifrado</h4>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Aislamiento y Cifrado</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
-                                A diferencia de las implementaciones estándar, FoodRush utiliza capas de abstracción lógica de última generación para separar rigurosamente los datos de los inquilinos. Cada tenant tiene su propio espacio de claves de cifrado y esquemas de base de datos aislados.
+                                FoodRush separa los datos por tenant y aplica validaciones de acceso para que cada flujo consulte la información que le corresponde.
                             </p>
                             <p>
-                                Implementamos cifrado en reposo y en tránsito utilizando estándares de grado militar, asegurando el cumplimiento de las normativas de privacidad de datos más estrictas a nivel global.
+                                El proyecto evita exponer información sensible en el frontend y usa tokens/autenticación para los endpoints protegidos.
                             </p>
                         </div>
                     </div>
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
-                        <i class="fa-solid fa-network-wired text-4xl md:text-5xl text-[#BD0A0A] mb-6 block"></i>
-                        <h4 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Escalabilidad Horizontal</h4>
+                        <i class="fa-solid fa-network-wired text-4xl md:text-5xl text-[#c2410c] mb-6 block"></i>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Escalabilidad Horizontal</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
-                                Nuestra plataforma ha sido diseñada desde cero para responder automáticamente a las fluctuaciones de la demanda, aprovisionando recursos en tiempo real para garantizar un rendimiento óptimo durante las horas punta.
+                                La interfaz está organizada para responder de forma estable en vistas de catálogo, carrito, checkout, tracking y administración.
                             </p>
                         </div>
                     </div>
                     <div class="bg-white/5 border border-white/10 p-6 md:p-10 rounded-3xl backdrop-blur-sm group hover:bg-white/10 transition">
                         <i class="fa-solid fa-chart-line text-4xl md:text-5xl text-[#42b883] mb-6 block"></i>
-                        <h4 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Inteligencia Operativa</h4>
+                        <h3 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 text-white">Inteligencia Operativa</h3>
                         <div class="text-gray-300 space-y-4 text-sm md:text-base leading-relaxed">
                             <p>
-                                Recopilamos telemetría operativa de extremo a extremo, proporcionando a los operadores una visibilidad sin precedentes del rendimiento de su negocio. Desde la latencia de cocina hasta la eficiencia de entrega.
+                                Las pantallas administrativas y de seguimiento muestran estados, totales y datos operativos suficientes para validar el flujo completo.
                             </p>
                         </div>
                     </div>
@@ -303,7 +307,7 @@ const cultureValues = [
                 <div class="md:col-span-8 scroll-animate">
                     <h2 class="text-3xl md:text-4xl font-extrabold text-[#0f172a] mb-6 md:mb-8">El Impacto en la Última Milla</h2>
                     <p class="text-gray-600 text-base md:text-lg leading-relaxed max-w-3xl mb-8 md:mb-12">
-                        La eficiencia logística es el factor determinante del éxito en el sector de comida rápida. FoodRush optimiza radicalmente la logística de última milla a través de una integración vertical inteligente, permitiendo a las franquicias controlar cada aspecto de la experiencia del cliente final sin incurrir en altos costos.
+                        La eficiencia logística es importante, pero también lo es que el usuario entienda qué está pasando. FoodRush muestra estados claros del pedido, costos separados y acciones visibles para que la experiencia sea fácil de revisar.
                     </p>
                     <div class="grid grid-cols-2 gap-3 md:gap-6">
                         <img src="/images/page-media/about-8.webp" class="w-full h-28 md:h-40 object-cover rounded-xl shadow-md" alt="Dashboard operativo">
@@ -313,12 +317,12 @@ const cultureValues = [
                     </div>
                 </div>
                 <div class="md:col-span-4 bg-[#F5F5F5] p-8 md:p-10 rounded-3xl border border-gray-100 flex flex-col justify-center scroll-animate mt-8 md:mt-0" style="transition-delay: 0.2s;">
-                    <i class="fas fa-quote-left text-4xl md:text-5xl text-[#BD0A0A]/20 mb-6 md:mb-8"></i>
+                    <i class="fas fa-quote-left text-4xl md:text-5xl text-[#c2410c]/20 mb-6 md:mb-8"></i>
                     <p class="text-xl md:text-2xl font-light text-[#0f172a] leading-snug mb-6 md:mb-8">
-                        "FoodRush no es solo software; es la ventaja competitiva que necesitábamos para escalar nuestra franquicia."
+                        "FoodRush nos permite mostrar el pedido, el pago y el seguimiento de una forma mucho más organizada."
                     </p>
                     <div class="flex items-center gap-4">
-                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-12 h-12 rounded-full border-2 border-[#BD0A0A]/30" alt="Testimonio de cliente">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-12 h-12 rounded-full border-2 border-[#c2410c]/30" alt="Testimonio de cliente">
                         <div>
                             <p class="font-bold text-[#0f172a]">Carlos Méndez</p>
                             <p class="text-sm text-gray-500">Propietario, 'El Sabor Local'</p>
@@ -332,7 +336,7 @@ const cultureValues = [
     <section class="py-16 md:py-24 bg-[#F5F5F5]">
         <div class="container mx-auto px-6 md:px-16">
             <div class="text-center mb-12 md:mb-16 max-w-3xl mx-auto scroll-animate">
-                <span class="text-[#BD0A0A] font-bold tracking-widest uppercase text-sm">ADN Organizacional</span>
+                <span class="text-[#c2410c] font-bold tracking-widest uppercase text-sm">ADN Organizacional</span>
                 <h2 class="text-3xl md:text-5xl font-extrabold text-[#0f172a] mt-2 mb-4 md:mb-6 font-display">Los Pilares que Nos Impulsan</h2>
                 <p class="text-gray-500 mt-4 text-lg md:text-xl px-4">Construimos un ecosistema basado en confianza, agilidad y resultados.</p>
             </div>
@@ -356,10 +360,10 @@ const cultureValues = [
         <div class="container mx-auto px-6 md:px-16 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 md:gap-16 items-start">
                 <div class="lg:col-span-4 lg:sticky lg:top-32 scroll-animate text-center md:text-left">
-                    <span class="text-[#BD0A0A] font-bold tracking-widest uppercase text-sm">Liderazgo</span>
+                    <span class="text-[#c2410c] font-bold tracking-widest uppercase text-sm">Liderazgo</span>
                     <h2 class="text-3xl md:text-5xl font-extrabold text-[#0f172a] mt-2 mb-6 md:mb-8 leading-tight font-display">El Equipo Fundador</h2>
                     <p class="text-gray-600 text-base md:text-lg leading-relaxed max-w-sm mx-auto md:mx-0">
-                        Combinamos experiencia en arquitectura de sistemas distribuidos, diseño de producto y operaciones logísticas para ofrecer una solución integral de clase mundial.
+                        Organizamos el trabajo entre backend, frontend, operaciones y documentación para que el proyecto pueda explicarse y probarse con claridad.
                     </p>
                 </div>
 
@@ -370,16 +374,16 @@ const cultureValues = [
                         </div>
                         <div class="flex-grow text-center md:text-left">
                             <div class="flex flex-col md:flex-row items-center gap-3 md:gap-4 mb-4 justify-center md:justify-start">
-                                <div class="hidden md:flex w-12 h-12 md:w-14 md:h-14 bg-[#BD0A0A] rounded-full items-center justify-center text-white border-4 border-white shadow-md">
+                                <div class="hidden md:flex w-12 h-12 md:w-14 md:h-14 bg-[#1a1a2e] rounded-full items-center justify-center text-white border-4 border-white shadow-md">
                                     <i :class="`fas ${member.icon} text-xl`"></i>
                                 </div>
                                 <div>
-                                    <h5 class="text-2xl md:text-3xl font-bold text-gray-900">{{ member.name }}</h5>
-                                    <p class="text-[#BD0A0A] font-bold uppercase text-xs md:text-sm tracking-wider mt-1">{{ member.role }}</p>
+                                    <h3 class="text-2xl md:text-3xl font-bold text-gray-900">{{ member.name }}</h3>
+                                    <p class="text-[#c2410c] font-bold uppercase text-xs md:text-sm tracking-wider mt-1">{{ member.role }}</p>
                                 </div>
                             </div>
                             <p class="text-gray-600 leading-relaxed text-sm md:text-base">
-                                Dedicado a construir infraestructura tecnológica resiliente. En FoodRush, su objetivo es garantizar que la plataforma soporte la demanda de miles de transacciones por minuto sin latencia, manteniendo una experiencia perfecta para las franquicias.
+                                Aporta al desarrollo y revisión del flujo completo: datos, interfaz, navegación, pruebas y documentación. Su trabajo ayuda a que la aplicación se pueda demostrar sin pasos confusos.
                             </p>
                         </div>
                     </div>
@@ -388,23 +392,23 @@ const cultureValues = [
         </div>
     </section>
 
-    <footer class="bg-[#BD0A0A] text-white mt-auto border-t-4 border-[#fbbf24]">
+    <footer class="bg-[#1a1a2e] text-white mt-auto border-t-4 border-[#fbbf24]">
         <div class="container mx-auto px-6 md:px-10 py-12 md:py-16 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-12 text-center sm:text-left">
             <div class="col-span-1 sm:col-span-2 md:col-span-1 flex flex-col items-center sm:items-start">
                  <div class="flex items-center justify-center sm:justify-start gap-2 mb-6 bg-white w-fit px-4 py-1.5 rounded-full shadow-lg">
-                    <span class="text-[#fbbf24] font-bold text-xl md:text-2xl italic font-display">Food</span>
+                    <span class="text-[#c2410c] font-bold text-xl md:text-2xl italic font-display">Food</span>
                     <span class="text-slate-800 font-bold text-xl md:text-2xl italic -ml-1 font-display">Rush</span>
                 </div>
                 <p class="text-white/80 text-sm font-medium mb-6 max-w-xs">La mejor comida de tus franquicias directo a tu puerta.</p>
                 <div class="flex gap-4">
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-instagram"></i></a>
-                    <a href="#" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#BD0A0A]"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" aria-label="Facebook de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" aria-label="Instagram de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-instagram"></i></a>
+                    <a href="#" aria-label="GitHub de FoodRush" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white transition hover:text-[#1a1a2e]"><i class="fa-brands fa-github"></i></a>
                 </div>
             </div>
 
             <div class="col-span-1">
-                <h5 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Plataforma</h5>
+                <h3 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Plataforma</h3>
                 <ul class="space-y-3 text-sm text-white/80">
                     <li><a href="#" class="hover:text-white transition">Funcionalidades Multi-tenant</a></li>
                     <li><a href="#" class="hover:text-white transition">Seguridad y Cumplimiento</a></li>
@@ -412,7 +416,7 @@ const cultureValues = [
                 </ul>
             </div>
             <div class="col-span-1">
-                <h5 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Empresa</h5>
+                <h3 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Empresa</h3>
                 <ul class="space-y-3 text-sm text-white/80">
                     <li><a href="#" class="hover:text-white transition">Nuestra Filosofía</a></li>
                     <li><a href="#" class="hover:text-white transition">El Equipo</a></li>
@@ -420,14 +424,14 @@ const cultureValues = [
                 </ul>
             </div>
             <div class="col-span-1">
-                <h5 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Soporte</h5>
+                <h3 class="font-bold text-lg md:text-xl text-[#fbbf24] mb-4">Soporte</h3>
                 <ul class="space-y-3 text-sm text-white/80">
                     <li><router-link to="/support" class="hover:text-white transition">Preguntas Frecuentes</router-link></li>
                     <li><router-link to="/terms" class="hover:text-white transition">Términos y Condiciones</router-link></li>
                 </ul>
             </div>
         </div>
-        <div class="border-t border-white/10 bg-[#9B0808] py-4 text-center">
+        <div class="border-t border-white/10 bg-[#111827] py-4 text-center">
              <div class="text-xs text-white/60 font-medium px-4">
                 &copy; {{ currentYear }} FoodRush Inc. Todos los derechos reservados.
             </div>
@@ -444,7 +448,7 @@ const cultureValues = [
 
 @keyframes electric-blink {
     0%, 100% { opacity: 1; filter: drop-shadow(0 0 2px rgba(251, 191, 36, 0.7)); }
-    50% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(189, 10, 10, 0.9)); }
+    50% { opacity: 0.8; filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.55)); }
 }
 .electric-blink { animation: electric-blink 3s infinite ease-in-out; }
 

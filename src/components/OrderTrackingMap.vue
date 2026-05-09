@@ -35,7 +35,7 @@ const routeModel = computed(() => (props.order ? buildDeliveryRoute(props.order,
 const trackingCopy = computed(() => getTrackingCopy(routeModel.value?.stage, props.order || {}));
 const canShowDriver = computed(() => !['cancelled', 'delivered'].includes(routeModel.value?.stage));
 
-const createIcon = (iconClass, color = '#D90429') =>
+const createIcon = (iconClass, color = '#c2410c') =>
   leaflet.divIcon({
     className: '',
     html: `<div class="foodrush-map-pin" style="--pin-color:${color}"><i class="${iconClass}"></i></div>`,
@@ -114,7 +114,7 @@ const renderRoute = async () => {
   markerLayer = leaflet.layerGroup().addTo(map);
 
   leaflet.polyline(routePoints, {
-    color: '#D90429',
+    color: '#c2410c',
     weight: 5,
     opacity: 0.9,
     lineCap: 'round',
@@ -180,10 +180,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="overflow-hidden rounded-[1.75rem] border border-red-100 bg-white shadow-sm">
-    <div class="flex flex-col gap-3 border-b border-red-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+  <section class="overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white shadow-sm">
+    <div class="flex flex-col gap-3 border-b border-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p class="text-xs font-black uppercase tracking-[0.25em] text-red-500">Mapa en vivo</p>
+        <p class="text-xs font-black uppercase tracking-[0.25em] text-orange-600">Mapa en vivo</p>
         <h2 class="mt-1 text-xl font-black text-slate-900">{{ trackingCopy }}</h2>
       </div>
       <div class="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-600">
