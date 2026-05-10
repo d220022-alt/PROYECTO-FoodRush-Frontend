@@ -1613,7 +1613,7 @@ onBeforeUnmount(() => {
           <div v-if="sizeModifier" class="w-full bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
             <h3 class="font-bold text-lg text-slate-800 mb-5 font-heading flex items-center gap-2">
               <i class="fa-solid fa-up-right-and-down-left-from-center" :style="{ color: 'var(--brand-primary)' }"></i>
-              Elige el tamano
+              Elige el tamaño
             </h3>
             <div class="grid gap-3 md:gap-4" :class="sizeOptionsGridClass">
               <button
