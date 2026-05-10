@@ -1,7 +1,7 @@
 <!--
   Guia rápida para presentar:
   Vista de Support. Agrupa pantalla, estado visual y acciones que ve el usuario en esa seccion.
-  Buscar en VS Code: soporte, preguntas frecuentes, ticket, asistente, buildSupportReply.
+  Buscar en VS Code: soporte, preguntas frecuentes, ticket, chat, buildSupportReply.
   Mantener estos comentarios actualizados si cambia el flujo.
 -->
 <script setup>
@@ -182,15 +182,15 @@ const submitTicket = () => {
 };
 
 // ==========================================
-// 4. ASISTENTE DE SOPORTE
+// 4. CHAT DE SOPORTE
 // ==========================================
 const isChatOpen = ref(false);
 const chatInput = ref('');
 const chatContainer = ref(null);
-const isBotTyping = ref(false);
+const isSupportTyping = ref(false);
 
 const chatMessages = ref([
-    { text: 'Hola. Soy el Asistente FoodRush y puedo orientarte con pedidos, restaurantes, pagos y tiempos de entrega. ¿Qué necesitas revisar?', sender: 'bot' }
+    { text: 'Hola. Estás en Soporte FoodRush. Podemos orientarte con pedidos, restaurantes, pagos y tiempos de entrega. ¿Qué necesitas revisar?', sender: 'support' }
 ]);
 
 const scrollToBottom = async () => {
@@ -214,18 +214,18 @@ const sendChatMessage = async () => {
     chatInput.value = '';
     scrollToBottom();
 
-    isBotTyping.value = true;
+    isSupportTyping.value = true;
     scrollToBottom();
 
     const response = await buildSupportReply(text);
 
-    isBotTyping.value = false;
-    chatMessages.value.push({ text: response, sender: 'bot' });
+    isSupportTyping.value = false;
+    chatMessages.value.push({ text: response, sender: 'support' });
     scrollToBottom();
 };
 
 // Respuestas locales del chat de soporte. No depende de servicios externos: solo orienta y manda a rutas internas.
-// Para presentar: respuesta del asistente de soporte con reglas locales, sin depender de servicios externos.
+// Para presentar: respuesta del chat de soporte con reglas locales, sin depender de servicios externos.
 const buildSupportReply = async (userMessage) => {
     const lowerInput = userMessage.toLowerCase();
 
@@ -372,7 +372,7 @@ const buildSupportReply = async (userMessage) => {
                 <div class="w-16 h-16 bg-blue-50 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors rounded-2xl flex items-center justify-center mb-6 text-3xl shadow-sm">
                     <i class="fas fa-headset"></i>
                 </div>
-                <h2 class="text-2xl font-bold mb-3 text-slate-800">Asistente FoodRush</h2>
+                <h2 class="text-2xl font-bold mb-3 text-slate-800">Soporte FoodRush</h2>
                 <p class="text-gray-500 text-base mb-6 leading-relaxed">Respuestas rápidas para dudas sobre pedidos, pagos, tiempos de entrega o restaurantes disponibles.</p>
                 <span class="text-blue-600 font-bold text-sm flex items-center gap-2 group-hover:gap-4 transition-all uppercase tracking-wider">Interactuar <i class="fas fa-arrow-right"></i></span>
             </div>
@@ -497,7 +497,7 @@ const buildSupportReply = async (userMessage) => {
                         <i class="fas fa-headset text-[#fbbf24]"></i>
                     </div>
                     <div>
-                        <h4 class="leading-none text-lg">Asistente FoodRush</h4>
+                        <h4 class="leading-none text-lg">Soporte FoodRush</h4>
                         <span class="text-xs text-green-400 font-normal flex items-center gap-1 mt-1"><span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> En línea</span>
                     </div>
                 </div>
@@ -511,7 +511,7 @@ const buildSupportReply = async (userMessage) => {
                     <span v-html="formatMessage(msg.text)"></span>
                 </div>
 
-                <div v-if="isBotTyping" class="bg-white border border-gray-100 text-gray-500 max-w-[85%] p-4 rounded-2xl self-start mr-auto rounded-tl-none shadow-sm flex items-center gap-2">
+                <div v-if="isSupportTyping" class="bg-white border border-gray-100 text-gray-500 max-w-[85%] p-4 rounded-2xl self-start mr-auto rounded-tl-none shadow-sm flex items-center gap-2">
                     <div class="flex space-x-1">
                         <div class="w-2 h-2 bg-[#1a1a2e] rounded-full animate-bounce"></div>
                         <div class="w-2 h-2 bg-[#1a1a2e] rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
