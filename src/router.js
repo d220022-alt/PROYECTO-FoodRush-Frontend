@@ -56,6 +56,19 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) return savedPosition
+
+        if (to.hash) {
+            return {
+                el: to.hash,
+                top: 96,
+                behavior: 'smooth'
+            }
+        }
+
+        return { left: 0, top: 0 }
+    },
 })
 
 // Guardia central. Si el usuario no tiene sesion, protege pantallas con datos personales u operativos.
