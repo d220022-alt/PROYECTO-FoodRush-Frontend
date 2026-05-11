@@ -34,6 +34,7 @@ let routeAbortController = null;
 const routeModel = computed(() => (props.order ? buildDeliveryRoute(props.order, props.statusLabel) : null));
 const trackingCopy = computed(() => getTrackingCopy(routeModel.value?.stage, props.order || {}));
 const canShowDriver = computed(() => !['cancelled', 'delivered'].includes(routeModel.value?.stage));
+const storeLabel = computed(() => props.order?.pickup_label || props.order?.pickupLabel || routeModel.value?.store?.label || 'Local FoodRush');
 
 const createIcon = (iconClass, color = '#c2410c') =>
   leaflet.divIcon({
@@ -202,7 +203,7 @@ onBeforeUnmount(() => {
         <p class="text-[11px] font-black uppercase tracking-wide text-slate-400">
           {{ routeSource === 'street' ? 'Ruta por calles' : 'Ruta estimada' }}
         </p>
-        <p class="text-sm font-black text-slate-900">Local -> cliente</p>
+        <p class="text-sm font-black text-slate-900">Sale de {{ storeLabel }}</p>
       </div>
     </div>
   </section>

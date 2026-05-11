@@ -88,8 +88,26 @@ const parseCoordinates = (value = '') => {
 
 export const getStoreLocation = (order = {}) => {
   const tenantId = safeText(order.tenantId || order.tenant_id || order.tenant?.id);
-  if (STORE_LOCATIONS[tenantId]) return STORE_LOCATIONS[tenantId];
-  return { ...SANTIAGO_CENTER, label: safeText(order.tenantName, 'FoodRush Santiago') };
+  const explicitLat = Number(order.store_lat ?? order.storeLat);
+  const explicitLng = Number(order.store_lng ?? order.storeLng);
+  const explicitLabel = safeText(order.pickup_label || order.pickupLabel);
+
+  if (Number.isFinite(explicitLat) && Number.isFinite(explicitLng)) {
+    return {
+      lat: explicitLat,
+      lng: explicitLng,
+      label: explicitLabel || safeText(order.tenantName, 'FoodRush Santiago'),
+    };
+  }
+
+  if (STORE_LOCATIONS[tenantId]) {
+    return {
+      ...STORE_LOCATIONS[tenantId],
+      label: explicitLabel || STORE_LOCATIONS[tenantId].label,
+    };
+  }
+
+  return { ...SANTIAGO_CENTER, label: explicitLabel || safeText(order.tenantName, 'FoodRush Santiago') };
 };
 
 export const getCustomerLocation = (order = {}) => {

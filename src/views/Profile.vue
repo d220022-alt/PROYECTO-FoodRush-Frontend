@@ -19,6 +19,7 @@ import {
 import {
     DELIVERY_ZONE_OPTIONS,
     normalizeDominicanAddressInput,
+    resolveDominicanAddressZone,
     validateDominicanAddress,
 } from '../utils/addressValidation';
 import {
@@ -44,7 +45,7 @@ const { isDarkMode, toggleTheme } = useTheme();
 const user = ref({
     name: session.userName || "Invitado",
     email: session.userEmail || "No registrado",
-    address: "",
+    address: session.userAddress || localStorage.getItem('user_address') || "",
     avatar: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png",
     phone: session.userPhone || ""
 });
@@ -69,20 +70,20 @@ onMounted(async () => {
                 user.value.name = userData.nombre;
                 user.value.email = userData.correo;
                 user.value.phone = userData.telefono || "";
-                user.value.address = userData.direccion || localStorage.getItem('user_address') || "Sin dirección registrada";
+                user.value.address = userData.direccion || session.userAddress || localStorage.getItem('user_address') || "Sin dirección registrada";
                 updateSessionProfile(userData);
             } else {
-                if (!user.value.address) user.value.address = "Sin dirección registrada";
+                if (!user.value.address) user.value.address = session.userAddress || localStorage.getItem('user_address') || "Sin dirección registrada";
             }
         } catch (e) {
             console.error("Error fetching profile", e);
-            if (!user.value.address) user.value.address = "Sin dirección registrada";
+            if (!user.value.address) user.value.address = session.userAddress || localStorage.getItem('user_address') || "Sin dirección registrada";
         } finally {
             isLoading.value = false;
         }
     } else {
         isLoading.value = false;
-        if (!user.value.address) user.value.address = "Sin dirección registrada";
+        if (!user.value.address) user.value.address = session.userAddress || localStorage.getItem('user_address') || "Sin dirección registrada";
     }
 });
 
@@ -132,6 +133,75 @@ const editForm = ref({ name: '', phone: '', address: '', zone: '', currencyCode:
 const activeCurrencyOption = computed(() => getCurrencyOption(currencyPreference.value.code));
 const currencyPreview = computed(() => formatCurrency(304));
 
+const normalizeFullNameInput = (value = '') =>
+    String(value || '')
+        .replace(/[^a-zA-ZÀ-ÿÑñ\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trimStart();
+
+const validateFullName = (value = '') => {
+    const sanitized = normalizeFullNameInput(value).trim();
+    const words = sanitized.split(/\s+/).filter(Boolean);
+    const normalized = sanitized
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+
+    if (!sanitized) {
+        return { valid: false, sanitized, message: 'El nombre completo es obligatorio.' };
+    }
+
+    if (/[^a-zA-ZÀ-ÿÑñ\s]/.test(String(value || ''))) {
+        return { valid: false, sanitized, message: 'Usa solo letras y espacios en el nombre.' };
+    }
+
+    if (words.length < 2 || words.some((word) => word.length < 2)) {
+        return { valid: false, sanitized, message: 'Escribe nombre y apellido reales.' };
+    }
+
+    if (['foodrush', 'usuario', 'invitado', 'cliente', 'admin'].includes(normalized)) {
+        return { valid: false, sanitized, message: 'Escribe el nombre del cliente, no el nombre de la app.' };
+    }
+
+    return { valid: true, sanitized, message: '' };
+};
+
+const validateProfileEmail = (value = '') => {
+    const sanitized = String(value || '').trim().toLowerCase();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    if (!sanitized) {
+        return { valid: false, sanitized, message: 'El correo es obligatorio.' };
+    }
+
+    if (!emailPattern.test(sanitized)) {
+        return { valid: false, sanitized, message: 'El correo guardado no tiene un formato valido.' };
+    }
+
+    return { valid: true, sanitized, message: '' };
+};
+
+const findDeliveryZone = (zoneKey = '') =>
+    DELIVERY_ZONE_OPTIONS.find((zone) => zone.key === String(zoneKey || '').trim());
+
+const validateDeliveryZone = (zoneKey = '', address = editForm.value.address) => {
+    const selectedZone = findDeliveryZone(zoneKey);
+    const detectedZone = resolveDominicanAddressZone(address);
+
+    if (!selectedZone) {
+        return { valid: false, message: 'Selecciona una zona de entrega.' };
+    }
+
+    if (detectedZone && detectedZone.key !== selectedZone.key) {
+        return {
+            valid: false,
+            message: `La direccion parece pertenecer a ${detectedZone.label}. Ajusta la zona o corrige la direccion.`,
+        };
+    }
+
+    return { valid: true, message: '' };
+};
+
 const openEditModal = () => {
     const activeCode = currencyPreference.value.code;
     const addressMissing = String(user.value.address || '').toLowerCase().includes('sin direcci');
@@ -148,7 +218,23 @@ const openEditModal = () => {
 
 const closeEditModal = () => isEditModalOpen.value = false;
 const editPhoneDigitsCount = computed(() => countDominicanPhoneDigits(editForm.value.phone));
+const editNameValidation = computed(() => validateFullName(editForm.value.name));
+const editEmailValidation = computed(() => validateProfileEmail(editForm.value.email));
 const editPhoneValidation = computed(() => validateDominicanPhone(editForm.value.phone));
+const editAddressValidation = computed(() => validateDominicanAddress(editForm.value.address));
+const editDetectedZone = computed(() => resolveDominicanAddressZone(editForm.value.address));
+const editZoneValidation = computed(() => validateDeliveryZone(editForm.value.zone, editAddressValidation.value.sanitized || editForm.value.address));
+const isEditFormValid = computed(() =>
+    editNameValidation.value.valid &&
+    editEmailValidation.value.valid &&
+    editPhoneValidation.value.valid &&
+    editAddressValidation.value.valid &&
+    editZoneValidation.value.valid,
+);
+
+const onEditNameInput = (event) => {
+    editForm.value.name = normalizeFullNameInput(event.target.value);
+};
 
 const onEditPhoneInput = (event) => {
     editForm.value.phone = formatDominicanPhone(event.target.value);
@@ -161,10 +247,23 @@ const onEditAddressInput = (event) => {
 // Para presentar: guarda datos del perfil remoto si hay usuario_id y siempre actualiza la sesion local.
 const saveProfile = async () => {
     let savedRemotely = false;
+    const nameValidation = validateFullName(editForm.value.name);
+    const emailValidation = validateProfileEmail(editForm.value.email);
     const phoneValidation = validateDominicanPhone(editForm.value.phone);
     const addressValidation = validateDominicanAddress(editForm.value.address);
+    const zoneValidation = validateDeliveryZone(editForm.value.zone, addressValidation.sanitized || editForm.value.address);
     const currencyCode = editForm.value.currencyCode;
 
+    if (!nameValidation.valid) {
+        Swal.fire('Nombre invalido', nameValidation.message, 'error');
+        editForm.value.name = nameValidation.sanitized;
+        return;
+    }
+    if (!emailValidation.valid) {
+        Swal.fire('Correo invalido', emailValidation.message, 'error');
+        editForm.value.email = emailValidation.sanitized;
+        return;
+    }
     if (!phoneValidation.valid) {
         Swal.fire('Telefono invalido', phoneValidation.message, 'error');
         return;
@@ -174,7 +273,13 @@ const saveProfile = async () => {
         editForm.value.address = addressValidation.sanitized;
         return;
     }
+    if (!zoneValidation.valid) {
+        Swal.fire('Zona invalida', zoneValidation.message, 'error');
+        return;
+    }
 
+    editForm.value.name = nameValidation.sanitized;
+    editForm.value.email = emailValidation.sanitized;
     editForm.value.phone = normalizeDominicanPhone(editForm.value.phone);
     editForm.value.address = addressValidation.sanitized;
     saveCurrencyPreference({ code: currencyCode });
@@ -408,32 +513,53 @@ const saveProfile = async () => {
     </div>
 
     <!-- Edit Modal -->
-    <div v-if="isEditModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div class="bg-white rounded-3xl p-6 w-full max-w-md shadow-2xl relative">
+    <div v-if="isEditModalOpen" class="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto p-4 py-8 fade-in sm:items-center" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="relative max-h-[calc(100vh-4rem)] w-full max-w-lg overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
             <button @click="closeEditModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700" aria-label="Cerrar modal">
                 <i class="fa-solid fa-xmark text-xl" aria-hidden="true"></i>
             </button>
-            <h2 id="modal-title" class="text-2xl font-bold text-slate-800 mb-6 font-bold">Editar Perfil</h2>
+            <h2 id="modal-title" class="text-2xl font-bold text-slate-800 mb-1">Editar Perfil</h2>
+            <p class="mb-6 text-sm font-semibold text-slate-500">Estos datos se usan para confirmar pedidos, ubicar la entrega y contactar al cliente.</p>
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
-                    <input v-model="editForm.name" type="text" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <label for="profile-edit-name" class="block text-sm font-bold text-gray-700 mb-1">Nombre Completo</label>
+                    <input
+                        id="profile-edit-name"
+                        :value="editForm.name"
+                        @input="onEditNameInput"
+                        type="text"
+                        autocomplete="name"
+                        class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
+                        :class="{ 'border-red-400 bg-red-50': editForm.name && !editNameValidation.valid }"
+                    >
+                    <p v-if="editForm.name && !editNameValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editNameValidation.message }}</p>
+                    <p v-else class="mt-1 text-xs font-bold text-gray-400">Nombre y apellido del cliente.</p>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Email</label>
-                    <input v-model="editForm.email" type="email" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500 text-gray-500 bg-gray-50 cursor-not-allowed" readonly>
+                    <label for="profile-edit-email" class="block text-sm font-bold text-gray-700 mb-1">Email</label>
+                    <input
+                        id="profile-edit-email"
+                        v-model="editForm.email"
+                        type="email"
+                        autocomplete="email"
+                        class="w-full rounded-lg border p-3 text-gray-500 outline-none focus:border-orange-500 bg-gray-50 cursor-not-allowed"
+                        :class="{ 'border-red-400 bg-red-50': !editEmailValidation.valid }"
+                        readonly
+                    >
+                    <p v-if="!editEmailValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editEmailValidation.message }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Teléfono</label>
                     <input
+                        id="profile-edit-phone"
                         :value="editForm.phone"
                         @input="onEditPhoneInput"
                         type="tel"
                         inputmode="numeric"
                         autocomplete="tel"
                         maxlength="12"
-                        class="w-full border rounded-lg p-3 outline-none focus:border-orange-500"
+                        class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
                         :class="{ 'border-red-400 bg-red-50': editForm.phone && !editPhoneValidation.valid }"
                     >
                     <p v-if="editForm.phone && !editPhoneValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editPhoneValidation.message }}</p>
@@ -441,19 +567,36 @@ const saveProfile = async () => {
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Dirección</label>
-                    <input :value="editForm.address" @input="onEditAddressInput" type="text" placeholder="Calle 5 Gurabo Santiago" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
-                    <p class="mt-1 text-xs font-bold text-gray-400">Solo letras, numeros y espacios. Debe ser una direccion real de RD.</p>
+                    <input
+                        id="profile-edit-address"
+                        :value="editForm.address"
+                        @input="onEditAddressInput"
+                        type="text"
+                        autocomplete="street-address"
+                        placeholder="Calle 5 Gurabo Santiago"
+                        class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
+                        :class="{ 'border-red-400 bg-red-50': editForm.address && !editAddressValidation.valid }"
+                    >
+                    <p v-if="editForm.address && !editAddressValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editAddressValidation.message }}</p>
+                    <p v-else-if="editDetectedZone" class="mt-1 text-xs font-bold text-emerald-600">Zona detectada: {{ editDetectedZone.label }}</p>
+                    <p v-else class="mt-1 text-xs font-bold text-gray-400">Debe incluir ciudad o sector, calle o referencia real de RD.</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Zona de Entrega</label>
-                    <select v-model="editForm.zone" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <select
+                        id="profile-edit-zone"
+                        v-model="editForm.zone"
+                        class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
+                        :class="{ 'border-red-400 bg-red-50': editForm.zone && !editZoneValidation.valid }"
+                    >
                         <option value="" disabled>Selecciona tu zona</option>
-                        <option v-for="zone in DELIVERY_ZONE_OPTIONS" :key="zone.key" :value="zone.key">{{ zone.label }} ({{ formatCurrency(zone.fee) }})</option>
+                        <option v-for="zone in DELIVERY_ZONE_OPTIONS" :key="zone.key" :value="zone.key">{{ zone.label }} ({{ formatCurrency(zone.fee, { code: editForm.currencyCode }) }})</option>
                     </select>
+                    <p v-if="!editZoneValidation.valid" class="mt-1 text-xs font-bold text-red-500">{{ editZoneValidation.message }}</p>
                 </div>
                 <div>
                     <label class="block text-sm font-bold text-gray-700 mb-1">Tipo de moneda</label>
-                    <select v-model="editForm.currencyCode" class="w-full border rounded-lg p-3 outline-none focus:border-orange-500">
+                    <select id="profile-edit-currency" v-model="editForm.currencyCode" class="w-full rounded-lg border p-3 outline-none focus:border-orange-500">
                         <option v-for="currency in currencyOptions" :key="currency.code" :value="currency.code">
                             {{ currency.label }}
                         </option>
@@ -462,7 +605,12 @@ const saveProfile = async () => {
                 <p class="text-xs font-bold text-gray-500">
                     Vista previa: {{ formatCurrency(304, { code: editForm.currencyCode }) }}
                 </p>
-                <button @click="saveProfile" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition shadow-lg mt-2">
+                <button
+                    @click="saveProfile"
+                    class="w-full rounded-xl py-3 font-bold text-white shadow-lg transition mt-2"
+                    :class="isEditFormValid ? 'bg-slate-900 hover:bg-slate-800' : 'cursor-not-allowed bg-slate-400'"
+                    :disabled="!isEditFormValid"
+                >
                     Guardar Cambios
                 </button>
             </div>

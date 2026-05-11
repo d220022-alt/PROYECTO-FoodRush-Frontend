@@ -490,6 +490,24 @@ const resolveTenantHeaders = () => ({
   'X-Tenant-ID': String(resolveTenantId()),
 });
 
+const resolvePrimaryFranchiseName = () =>
+  cartFranchiseNames.value[0] || cartItems.value[0]?.place || cartItems.value[0]?.restaurantName || 'FoodRush';
+
+const resolvePickupLocation = () => {
+  const franchiseName = resolvePrimaryFranchiseName();
+  const storeLocation = getStoreLocation({
+    tenant_id: resolveTenantId(),
+    tenantName: franchiseName,
+  });
+  const label = storeLocation.label || `${franchiseName} Santiago`;
+
+  return {
+    ...storeLocation,
+    label,
+    address: `${label}, Santiago de los Caballeros`,
+  };
+};
+
 const resolveUserIdentity = () => {
   const session = getSession();
 
@@ -630,12 +648,15 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       'card': 'Tarjeta (Pagado)',
       'paypal': 'PayPal (Pagado)'
   };
+  const primaryFranchiseName = resolvePrimaryFranchiseName();
+  const pickupLocation = resolvePickupLocation();
   const deliveryAddress = currentMode.value === 'pickup' ? 'Recogida en tienda' : normalizeDominicanAddressInput(addressDetails.value);
   const deliveryLocation = resolveOrderLocationPayload();
   const deliveryNotes = [
       `Pago via: ${methodMap[paymentMethod.value] || paymentMethod.value}`,
       `Instrucciones: ${instructionsText.value}`,
       currentMode.value === 'delivery' ? `Ubicacion marcada: ${addressTitle.value} - ${addressDetails.value}` : '',
+      currentMode.value === 'pickup' ? `Recogida en: ${pickupLocation.label}` : `Local de preparación: ${pickupLocation.label}`,
       `Servicio FoodRush: ${serviceFee.value} DOP`,
       currentMode.value === 'delivery' ? `Delivery Fee: ${deliveryFee.value} DOP por ${deliveryDistanceKm.value.toFixed(1)} km` : '',
       currentMode.value === 'delivery' ? `Propina delivery: ${deliveryTip.value} DOP` : '',
@@ -648,8 +669,14 @@ const buildOrderPayload = ({ clientId = null, items = [], orderTotal = total.val
       tenant_id: resolveTenantId(),
       tenant_ids: cartTenantIds.value,
       franquicias: cartFranchiseNames.value,
+      tenant_name: primaryFranchiseName,
+      tenantName: primaryFranchiseName,
       multi_franquicia: isMultiFranchiseCart.value,
       direccion_entrega: deliveryAddress,
+      pickup_label: pickupLocation.label,
+      pickup_address: pickupLocation.address,
+      store_lat: pickupLocation.lat,
+      store_lng: pickupLocation.lng,
       notas: deliveryNotes,
       estado_id: 'pendiente',
       items: items.map(normalizeOrderItemForPayload),
@@ -781,6 +808,15 @@ const processOrder = async () => {
                   ...orderParams.data,
                   total: orderPayload.total,
                   tenant_id: orderParams.data.tenant_id || orderPayload.tenant_id,
+                  tenantId: orderParams.data.tenantId || orderParams.data.tenant_id || orderPayload.tenant_id,
+                  tenantName: orderParams.data.tenantName || orderParams.data.tenant?.nombre || orderPayload.tenantName,
+                  tenant_name: orderParams.data.tenant_name || orderParams.data.tenant?.nombre || orderPayload.tenant_name,
+                  tenant_ids: orderParams.data.tenant_ids || orderPayload.tenant_ids,
+                  franquicias: orderParams.data.franquicias || orderPayload.franquicias,
+                  pickup_label: orderParams.data.pickup_label || orderPayload.pickup_label,
+                  pickup_address: orderParams.data.pickup_address || orderPayload.pickup_address,
+                  store_lat: orderParams.data.store_lat || orderPayload.store_lat,
+                  store_lng: orderParams.data.store_lng || orderPayload.store_lng,
                   items: orderParams.data.items || orderPayload.items,
                   user_email: identity.email,
                   user_name: identity.name,

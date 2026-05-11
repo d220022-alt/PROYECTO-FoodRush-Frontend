@@ -13,7 +13,9 @@ import { connectRealtime } from '../services/realtime';
 import { APP_EVENTS, getCachedOrderById, getSession, saveCachedOrder } from '../services/storage';
 import { resolveDeliveryCode } from '../utils/deliveryCode';
 import { useCurrency } from '../utils/currency';
+import { getStoreLocation } from '../utils/deliveryMap';
 import OrderTrackingMap from '../components/OrderTrackingMap.vue';
+import { franchiseConfigs } from './franchiseConfigs';
 
 const route = useRoute();
 const router = useRouter();
@@ -54,6 +56,65 @@ const toNumber = (value, fallback = 0) => {
     const parsed = Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : fallback;
 };
+const normalizeLookupText = (value = '') =>
+    safeText(value)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/_/g, ' ')
+        .toLowerCase();
+
+const franchiseMetaByTenantId = new Map(
+    Object.values(franchiseConfigs).map((config) => [String(config.tenantId), config]),
+);
+
+const resolveTenantIdFromOrder = (entry = {}) =>
+    safeText(
+        entry.tenantId ||
+        entry.tenant_id ||
+        entry.tenant?.id ||
+        entry.tenant_ids?.[0] ||
+        entry.items?.[0]?.tenantId ||
+        entry.items?.[0]?.tenant_id ||
+        entry.itemsDetailed?.[0]?.tenantId ||
+        route.query.tenant,
+    );
+
+const resolveFranchiseNames = (entry = {}) => {
+    const rawNames = [
+        ...(Array.isArray(entry.franquicias) ? entry.franquicias : []),
+        entry.tenantName,
+        entry.tenant_name,
+        entry.tenant?.nombre,
+        entry.restaurantName,
+        entry.place,
+        ...(Array.isArray(entry.items) ? entry.items.map((item) => item.place || item.restaurantName) : []),
+    ];
+
+    return [...new Set(rawNames.map((name) => safeText(name)).filter(Boolean))];
+};
+
+const resolveTenantNameFromOrder = (entry = {}) => {
+    const tenantId = resolveTenantIdFromOrder(entry);
+    const meta = franchiseMetaByTenantId.get(String(tenantId)) || {};
+    const names = resolveFranchiseNames(entry);
+    return safeText(names[0] || meta.name, 'FoodRush');
+};
+
+const resolvePickupLocationFromOrder = (entry = {}) => {
+    const tenantId = resolveTenantIdFromOrder(entry);
+    const tenantName = resolveTenantNameFromOrder({ ...entry, tenantId });
+    const fallbackLocation = getStoreLocation({ ...entry, tenantId, tenant_id: tenantId, tenantName });
+    const explicitLat = Number(entry.store_lat ?? entry.storeLat);
+    const explicitLng = Number(entry.store_lng ?? entry.storeLng);
+    const label = safeText(entry.pickup_label || entry.pickupLabel || fallbackLocation.label, `${tenantName} Santiago`);
+
+    return {
+        lat: Number.isFinite(explicitLat) ? explicitLat : fallbackLocation.lat,
+        lng: Number.isFinite(explicitLng) ? explicitLng : fallbackLocation.lng,
+        label,
+        address: safeText(entry.pickup_address || entry.pickupAddress, `${label}, Santiago de los Caballeros`),
+    };
+};
 // Los IDs numericos vienen de la DB; los qa-* o local-* se resuelven en el dataset operativo.
 const isBackendOrderId = (value) => /^\d+$/.test(safeText(value));
 
@@ -91,6 +152,22 @@ const deliveryCodeHelpText = computed(() => {
     if (canConfirmDeliveryCode.value) return 'Comparte este código solo cuando el repartidor esté frente a ti y tengas el pedido en tus manos.';
     return 'El código se habilita cuando el repartidor marca llegada al destino.';
 });
+const pickupLocation = computed(() => (order.value ? resolvePickupLocationFromOrder(order.value) : null));
+const franchiseNames = computed(() => (order.value ? resolveFranchiseNames(order.value) : []));
+const localDisplayName = computed(() => {
+    if (!order.value) return 'FoodRush';
+    if (franchiseNames.value.length > 1) return franchiseNames.value.join(', ');
+    return resolveTenantNameFromOrder(order.value);
+});
+const isPickupOrder = computed(() =>
+    normalizeLookupText(order.value?.tipo_entrega || order.value?.modo_entrega || order.value?.deliveryMode) === 'pickup',
+);
+const pickupInstruction = computed(() =>
+    isPickupOrder.value
+        ? 'Este es el local donde se debe buscar el pedido.'
+        : 'El repartidor debe retirar el pedido en este local antes de salir hacia tu dirección.',
+);
+
 const confirmDeliveryCode = () => {
     if (!canConfirmDeliveryCode.value) return;
     isDeliveryCodeConfirmed.value = true;
@@ -105,6 +182,9 @@ const formatDate = (value) => {
 // Los pedidos locales nacen en Checkout; aqui se adaptan al mismo formato que un pedido remoto.
 const normalizeCachedOrder = (cachedOrder) => {
     if (!cachedOrder) return null;
+    const tenantId = resolveTenantIdFromOrder(cachedOrder);
+    const tenantName = resolveTenantNameFromOrder({ ...cachedOrder, tenantId });
+    const pickup = resolvePickupLocationFromOrder({ ...cachedOrder, tenantId, tenantName });
 
     return {
         ...cachedOrder,
@@ -124,10 +204,15 @@ const normalizeCachedOrder = (cachedOrder) => {
                 quantity: Number(item.qty || item.cantidad || 1),
                 unitPrice: Number(item.price || item.precio || 0),
                 subtotal: Number(item.subtotal || (Number(item.qty || item.cantidad || 1) * Number(item.price || item.precio || 0))),
+                tenantId: item.tenantId || item.tenant_id || tenantId,
             }))
             : [],
-        tenantId: cachedOrder.tenantId || cachedOrder.tenant_id || cachedOrder.items?.[0]?.tenantId || cachedOrder.items?.[0]?.tenant_id || '',
-        tenantName: cachedOrder.tenantName || 'FoodRush',
+        tenantId,
+        tenantName,
+        pickup_label: cachedOrder.pickup_label || pickup.label,
+        pickup_address: cachedOrder.pickup_address || pickup.address,
+        store_lat: cachedOrder.store_lat || pickup.lat,
+        store_lng: cachedOrder.store_lng || pickup.lng,
         driverName: cachedOrder.repartidor_nombre || '',
         securityCode: resolveDeliveryCode(cachedOrder, cachedOrder.id || orderId.value),
         source: cachedOrder.source || 'local',
@@ -139,6 +224,13 @@ const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta
     const mergedOrder = { ...baseOrder, ...remoteOrder };
     const id = safeText(remoteOrder.id || baseOrder.id || orderId.value);
     const tenantId = safeText(remoteOrder.tenant_id || remoteOrder.tenantId || baseOrder.tenantId || tenantMeta.id || route.query.tenant);
+    const tenantName = resolveTenantNameFromOrder({
+        ...baseOrder,
+        ...remoteOrder,
+        tenantId,
+        tenantName: baseOrder.tenantName || tenantMeta.name || remoteOrder.tenant?.nombre,
+    });
+    const pickup = resolvePickupLocationFromOrder({ ...baseOrder, ...remoteOrder, tenantId, tenantName });
     const statusId = Number.parseInt(remoteOrder.estado_id ?? remoteOrder.estado?.id ?? baseOrder.statusId, 10) || 1;
     const statusLabel = getStatusLabel({
         ...mergedOrder,
@@ -168,7 +260,11 @@ const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta
         ...mergedOrder,
         id,
         tenantId,
-        tenantName: safeText(baseOrder.tenantName || tenantMeta.name || remoteOrder.tenant?.nombre, 'FoodRush'),
+        tenantName,
+        pickup_label: safeText(remoteOrder.pickup_label || baseOrder.pickup_label, pickup.label),
+        pickup_address: safeText(remoteOrder.pickup_address || baseOrder.pickup_address, pickup.address),
+        store_lat: remoteOrder.store_lat || baseOrder.store_lat || pickup.lat,
+        store_lng: remoteOrder.store_lng || baseOrder.store_lng || pickup.lng,
         customerName: safeText(remoteOrder.cliente?.nombre || baseOrder.customerName || remoteOrder.user_name, 'Cliente FoodRush'),
         customerPhone: safeText(remoteOrder.cliente?.telefono || baseOrder.customerPhone || remoteOrder.telefono),
         customerEmail: safeText(remoteOrder.cliente?.correo || baseOrder.customerEmail || remoteOrder.user_email),
@@ -489,10 +585,27 @@ const goBack = () => router.push('/orders');
                     </div>
                 </div>
 
+            <div class="rounded-[1.75rem] border border-orange-200 bg-orange-50 p-5 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-white text-lg text-orange-600 shadow-sm">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-orange-600">
+                            {{ isPickupOrder ? 'Local de recogida' : 'Local de preparación' }}
+                        </p>
+                        <p class="mt-1 break-words text-lg font-black text-slate-900">{{ localDisplayName }}</p>
+                        <p class="mt-1 text-sm font-bold text-slate-700">{{ pickupLocation?.label || 'FoodRush Santiago' }}</p>
+                        <p class="mt-1 text-xs font-semibold leading-relaxed text-slate-500">{{ pickupLocation?.address || 'Santiago de los Caballeros' }}</p>
+                        <p class="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-bold text-orange-700">{{ pickupInstruction }}</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="space-y-4 rounded-[1.75rem] border border-gray-100 bg-white p-6 shadow-sm">
                 <div class="flex items-start justify-between gap-4">
-                    <span class="text-gray-500">Local</span>
-                    <span class="text-right font-bold text-slate-800">{{ order.tenantName || 'FoodRush' }}</span>
+                    <span class="text-gray-500">Restaurante</span>
+                    <span class="text-right font-bold text-slate-800">{{ localDisplayName }}</span>
                 </div>
 
                 <div class="flex items-start justify-between gap-4">
