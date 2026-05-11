@@ -120,19 +120,42 @@ const resolveTenantNameFromOrder = (entry = {}) => {
     return safeText(names[0] || meta.name, 'FoodRush');
 };
 
+const isPickupLabelCompatibleWithTenant = (label = '', tenantId = '') => {
+    const labelTenant = findFranchiseMetaByName(label);
+    return !labelTenant || String(labelTenant.tenantId) === String(tenantId);
+};
+
 const resolvePickupLocationFromOrder = (entry = {}) => {
     const tenantId = resolveTenantIdFromOrder(entry);
     const tenantName = resolveTenantNameFromOrder({ ...entry, tenantId });
-    const fallbackLocation = getStoreLocation({ ...entry, tenantId, tenant_id: tenantId, tenantName });
-    const explicitLat = Number(entry.store_lat ?? entry.storeLat);
-    const explicitLng = Number(entry.store_lng ?? entry.storeLng);
-    const label = safeText(entry.pickup_label || entry.pickupLabel || fallbackLocation.label, `${tenantName} Santiago`);
+    const explicitLabel = safeText(entry.pickup_label || entry.pickupLabel);
+    const canUseExplicitPickup = isPickupLabelCompatibleWithTenant(explicitLabel, tenantId);
+    const locationEntry = canUseExplicitPickup
+        ? entry
+        : {
+            ...entry,
+            pickup_label: '',
+            pickupLabel: '',
+            pickup_address: '',
+            pickupAddress: '',
+            store_lat: undefined,
+            store_lng: undefined,
+            storeLat: undefined,
+            storeLng: undefined,
+        };
+    const fallbackLocation = getStoreLocation({ ...locationEntry, tenantId, tenant_id: tenantId, tenantName });
+    const explicitLat = canUseExplicitPickup ? Number(entry.store_lat ?? entry.storeLat) : Number.NaN;
+    const explicitLng = canUseExplicitPickup ? Number(entry.store_lng ?? entry.storeLng) : Number.NaN;
+    const label = safeText(canUseExplicitPickup ? explicitLabel : '', fallbackLocation.label || `${tenantName} Santiago`);
 
     return {
         lat: Number.isFinite(explicitLat) ? explicitLat : fallbackLocation.lat,
         lng: Number.isFinite(explicitLng) ? explicitLng : fallbackLocation.lng,
         label,
-        address: safeText(entry.pickup_address || entry.pickupAddress, `${label}, Santiago de los Caballeros`),
+        address: safeText(
+            canUseExplicitPickup ? entry.pickup_address || entry.pickupAddress : '',
+            `${label}, Santiago de los Caballeros`,
+        ),
     };
 };
 // Los IDs numericos vienen de la DB; los qa-* o local-* se resuelven en el dataset operativo.
@@ -261,10 +284,10 @@ const normalizeCachedOrder = (cachedOrder) => {
             : [],
         tenantId,
         tenantName,
-        pickup_label: cachedOrder.pickup_label || pickup.label,
-        pickup_address: cachedOrder.pickup_address || pickup.address,
-        store_lat: cachedOrder.store_lat || pickup.lat,
-        store_lng: cachedOrder.store_lng || pickup.lng,
+        pickup_label: pickup.label,
+        pickup_address: pickup.address,
+        store_lat: pickup.lat,
+        store_lng: pickup.lng,
         driverName: cachedOrder.repartidor_nombre || '',
         securityCode: resolveDeliveryCode(cachedOrder, cachedOrder.id || orderId.value),
         source: cachedOrder.source || 'local',
@@ -313,10 +336,10 @@ const normalizeRemoteOrderDetail = (remoteOrder = {}, baseOrder = {}, tenantMeta
         id,
         tenantId,
         tenantName,
-        pickup_label: safeText(remoteOrder.pickup_label || baseOrder.pickup_label, pickup.label),
-        pickup_address: safeText(remoteOrder.pickup_address || baseOrder.pickup_address, pickup.address),
-        store_lat: remoteOrder.store_lat || baseOrder.store_lat || pickup.lat,
-        store_lng: remoteOrder.store_lng || baseOrder.store_lng || pickup.lng,
+        pickup_label: pickup.label,
+        pickup_address: pickup.address,
+        store_lat: pickup.lat,
+        store_lng: pickup.lng,
         customerName: safeText(remoteOrder.cliente?.nombre || baseOrder.customerName || remoteOrder.user_name, 'Cliente FoodRush'),
         customerPhone: safeText(remoteOrder.cliente?.telefono || baseOrder.customerPhone || remoteOrder.telefono),
         customerEmail: safeText(remoteOrder.cliente?.correo || baseOrder.customerEmail || remoteOrder.user_email),
