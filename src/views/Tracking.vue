@@ -67,8 +67,30 @@ const franchiseMetaByTenantId = new Map(
     Object.values(franchiseConfigs).map((config) => [String(config.tenantId), config]),
 );
 
-const resolveTenantIdFromOrder = (entry = {}) =>
-    safeText(
+const franchiseConfigList = Object.values(franchiseConfigs);
+
+const getFranchiseNameCandidates = (entry = {}) => [
+    ...(Array.isArray(entry.franquicias) ? entry.franquicias : []),
+    entry.tenantName,
+    entry.tenant_name,
+    entry.tenant?.nombre,
+    entry.restaurantName,
+    entry.place,
+    ...(Array.isArray(entry.items) ? entry.items.map((item) => item.place || item.restaurantName) : []),
+];
+
+const findFranchiseMetaByName = (value = '') => {
+    const normalized = normalizeLookupText(value);
+    if (!normalized) return null;
+
+    return franchiseConfigList.find((config) => {
+        const names = [config.name, config.slug].map(normalizeLookupText).filter(Boolean);
+        return names.some((name) => normalized === name || normalized.includes(name) || name.includes(normalized));
+    }) || null;
+};
+
+const resolveTenantIdFromOrder = (entry = {}) => {
+    const explicitTenantId = safeText(
         entry.tenantId ||
         entry.tenant_id ||
         entry.tenant?.id ||
@@ -78,19 +100,17 @@ const resolveTenantIdFromOrder = (entry = {}) =>
         entry.itemsDetailed?.[0]?.tenantId ||
         route.query.tenant,
     );
+    const namedTenant = getFranchiseNameCandidates(entry).map(findFranchiseMetaByName).find(Boolean);
+
+    if (namedTenant && String(namedTenant.tenantId) !== explicitTenantId) {
+        return String(namedTenant.tenantId);
+    }
+
+    return explicitTenantId;
+};
 
 const resolveFranchiseNames = (entry = {}) => {
-    const rawNames = [
-        ...(Array.isArray(entry.franquicias) ? entry.franquicias : []),
-        entry.tenantName,
-        entry.tenant_name,
-        entry.tenant?.nombre,
-        entry.restaurantName,
-        entry.place,
-        ...(Array.isArray(entry.items) ? entry.items.map((item) => item.place || item.restaurantName) : []),
-    ];
-
-    return [...new Set(rawNames.map((name) => safeText(name)).filter(Boolean))];
+    return [...new Set(getFranchiseNameCandidates(entry).map((name) => safeText(name)).filter(Boolean))];
 };
 
 const resolveTenantNameFromOrder = (entry = {}) => {
@@ -167,6 +187,38 @@ const pickupInstruction = computed(() =>
         ? 'Este es el local donde se debe buscar el pedido.'
         : 'El repartidor debe retirar el pedido en este local antes de salir hacia tu dirección.',
 );
+
+const escapeRegExp = (value = '') => safeText(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const normalizeDisplayToken = (value = '') => normalizeLookupText(value).replace(/[^a-z0-9]/g, '');
+const splitDisplayTokens = (value = '') =>
+    safeText(value)
+        .split(/\s+/)
+        .map(normalizeDisplayToken)
+        .filter(Boolean);
+
+const pickupBranchLabel = computed(() => {
+    const label = safeText(pickupLocation.value?.label, 'FoodRush Santiago');
+    const franchiseTokens = new Set(splitDisplayTokens(localDisplayName.value));
+    const branchWords = label
+        .split(/\s+/)
+        .filter((word) => !franchiseTokens.has(normalizeDisplayToken(word)));
+    const branch = branchWords.join(' ').replace(/^[,\s-]+|[,\s-]+$/g, '');
+
+    if (branch && normalizeLookupText(branch) !== normalizeLookupText(label)) {
+        return /^sucursal|local/i.test(branch) ? branch : `Sucursal ${branch}`;
+    }
+
+    return label;
+});
+
+const pickupAddressDisplay = computed(() => {
+    const address = safeText(pickupLocation.value?.address, 'Santiago de los Caballeros');
+    const label = safeText(pickupLocation.value?.label);
+    if (!label) return address;
+
+    const cleaned = address.replace(new RegExp(`^\\s*${escapeRegExp(label)}\\s*,?\\s*`, 'i'), '').trim();
+    return cleaned || address;
+});
 
 const confirmDeliveryCode = () => {
     if (!canConfirmDeliveryCode.value) return;
@@ -595,8 +647,8 @@ const goBack = () => router.push('/orders');
                             {{ isPickupOrder ? 'Local de recogida' : 'Local de preparación' }}
                         </p>
                         <p class="mt-1 break-words text-lg font-black text-slate-900">{{ localDisplayName }}</p>
-                        <p class="mt-1 text-sm font-bold text-slate-700">{{ pickupLocation?.label || 'FoodRush Santiago' }}</p>
-                        <p class="mt-1 text-xs font-semibold leading-relaxed text-slate-500">{{ pickupLocation?.address || 'Santiago de los Caballeros' }}</p>
+                        <p class="mt-1 text-sm font-bold text-slate-700">{{ pickupBranchLabel }}</p>
+                        <p class="mt-1 text-xs font-semibold leading-relaxed text-slate-500">{{ pickupAddressDisplay }}</p>
                         <p class="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-bold text-orange-700">{{ pickupInstruction }}</p>
                     </div>
                 </div>
