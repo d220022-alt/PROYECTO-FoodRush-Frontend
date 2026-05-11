@@ -21,6 +21,15 @@ import {
     normalizeDominicanAddressInput,
     validateDominicanAddress,
 } from '../utils/addressValidation';
+import {
+    ADDRESS_INPUT_CHAR_PATTERN,
+    DIGIT_INPUT_CHAR_PATTERN,
+    NAME_INPUT_CHAR_PATTERN,
+    pasteAllowedInput,
+    preventDisallowedInput,
+    sanitizeAllowedCharacters,
+    syncTargetValue,
+} from '../utils/strictInputGuards';
 
 const router = useRouter();
 
@@ -164,19 +173,48 @@ const validateEmail = (email) => {
         .match(/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
 };
 
+const normalizeRegisterNameInput = (value = '') =>
+    String(value || '')
+        .replace(/[^a-zA-Z\u00C0-\u00FF\u00D1\u00F1\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trimStart();
+
 const togglePanel = (active) => {
     isRegisterActive.value = active; 
     loginError.value = '';
     registerError.value = '';
 };
 
-const onRegisterPhoneInput = (event) => {
-    registerForm.value.phone = formatDominicanPhone(event.target.value);
+const applyRegisterNameValue = (target, value) => {
+    const nextValue = normalizeRegisterNameInput(
+        sanitizeAllowedCharacters(value, NAME_INPUT_CHAR_PATTERN, ' '),
+    );
+    registerForm.value.name = nextValue;
+    syncTargetValue(target, nextValue);
 };
 
-const onRegisterAddressInput = (event) => {
-    registerForm.value.address = normalizeDominicanAddressInput(event.target.value);
+const applyRegisterPhoneValue = (target, value) => {
+    const nextValue = formatDominicanPhone(
+        sanitizeAllowedCharacters(value, DIGIT_INPUT_CHAR_PATTERN),
+    );
+    registerForm.value.phone = nextValue;
+    syncTargetValue(target, nextValue);
 };
+
+const applyRegisterAddressValue = (target, value) => {
+    const nextValue = normalizeDominicanAddressInput(
+        sanitizeAllowedCharacters(value, ADDRESS_INPUT_CHAR_PATTERN, ' '),
+    );
+    registerForm.value.address = nextValue;
+    syncTargetValue(target, nextValue);
+};
+
+const onRegisterNameInput = (event) => applyRegisterNameValue(event.target, event.target.value);
+const onRegisterPhoneInput = (event) => applyRegisterPhoneValue(event.target, event.target.value);
+const onRegisterAddressInput = (event) => applyRegisterAddressValue(event.target, event.target.value);
+const onRegisterNamePaste = (event) => pasteAllowedInput(event, NAME_INPUT_CHAR_PATTERN, applyRegisterNameValue, ' ');
+const onRegisterPhonePaste = (event) => pasteAllowedInput(event, DIGIT_INPUT_CHAR_PATTERN, applyRegisterPhoneValue);
+const onRegisterAddressPaste = (event) => pasteAllowedInput(event, ADDRESS_INPUT_CHAR_PATTERN, applyRegisterAddressValue, ' ');
 
 // Para presentar: flujo de inicio de sesion; llama api.login, guarda token y redirige segun rol/correo.
 const handleLogin = async () => {
@@ -213,7 +251,7 @@ const handleLogin = async () => {
 const handleRegister = async () => {
     registerError.value = '';
     const email = String(registerForm.value.email || '').trim().toLowerCase();
-    const name = String(registerForm.value.name || '').trim();
+    const name = normalizeRegisterNameInput(registerForm.value.name).trim();
     const password = registerForm.value.password;
     const confirmPassword = registerForm.value.confirmPassword;
     const address = normalizeDominicanAddressInput(registerForm.value.address);
@@ -346,7 +384,17 @@ const handleRegister = async () => {
                     <form @submit.prevent="handleRegister">
                         <div class="input-group">
                             <label for="reg-name">Nombre completo</label>
-                            <input id="reg-name" v-model="registerForm.name" type="text" placeholder="Tu nombre" aria-required="true">
+                            <input
+                                id="reg-name"
+                                :value="registerForm.name"
+                                @beforeinput="preventDisallowedInput($event, NAME_INPUT_CHAR_PATTERN)"
+                                @input="onRegisterNameInput"
+                                @paste="onRegisterNamePaste"
+                                @drop.prevent
+                                type="text"
+                                placeholder="Tu nombre"
+                                aria-required="true"
+                            >
                         </div>
 
                         <div class="input-row">
@@ -359,9 +407,13 @@ const handleRegister = async () => {
                                 <input
                                     id="reg-phone"
                                     :value="registerForm.phone"
+                                    @beforeinput="preventDisallowedInput($event, DIGIT_INPUT_CHAR_PATTERN)"
                                     @input="onRegisterPhoneInput"
+                                    @paste="onRegisterPhonePaste"
+                                    @drop.prevent
                                     type="tel"
                                     inputmode="numeric"
+                                    pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                                     autocomplete="tel"
                                     maxlength="12"
                                     placeholder="809-000-0000"
@@ -390,7 +442,17 @@ const handleRegister = async () => {
                         
                         <div class="input-group">
                             <label for="reg-address">Dirección de Entrega</label>
-                            <input id="reg-address" :value="registerForm.address" @input="onRegisterAddressInput" type="text" placeholder="Calle 5 Gurabo Santiago" aria-required="true">
+                            <input
+                                id="reg-address"
+                                :value="registerForm.address"
+                                @beforeinput="preventDisallowedInput($event, ADDRESS_INPUT_CHAR_PATTERN)"
+                                @input="onRegisterAddressInput"
+                                @paste="onRegisterAddressPaste"
+                                @drop.prevent
+                                type="text"
+                                placeholder="Calle 5 Gurabo Santiago"
+                                aria-required="true"
+                            >
                             <span v-if="detectedZone" class="zone-hint">
                                 <i class="fa-solid fa-location-dot"></i>
                                 Zona: <strong>{{ detectedZone.label }}</strong> - Envio {{ $money(detectedZone.fee) }}

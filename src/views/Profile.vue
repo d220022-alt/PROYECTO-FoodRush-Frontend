@@ -23,6 +23,15 @@ import {
     validateDominicanAddress,
 } from '../utils/addressValidation';
 import {
+    ADDRESS_INPUT_CHAR_PATTERN,
+    DIGIT_INPUT_CHAR_PATTERN,
+    NAME_INPUT_CHAR_PATTERN,
+    pasteAllowedInput,
+    preventDisallowedInput,
+    sanitizeAllowedCharacters,
+    syncTargetValue,
+} from '../utils/strictInputGuards';
+import {
     getCurrencyOption,
     refreshCurrencyRates,
     saveCurrencyPreference,
@@ -232,17 +241,36 @@ const isEditFormValid = computed(() =>
     editZoneValidation.value.valid,
 );
 
-const onEditNameInput = (event) => {
-    editForm.value.name = normalizeFullNameInput(event.target.value);
+const applyEditNameValue = (target, value) => {
+    const nextValue = normalizeFullNameInput(
+        sanitizeAllowedCharacters(value, NAME_INPUT_CHAR_PATTERN, ' '),
+    );
+    editForm.value.name = nextValue;
+    syncTargetValue(target, nextValue);
 };
 
-const onEditPhoneInput = (event) => {
-    editForm.value.phone = formatDominicanPhone(event.target.value);
+const applyEditPhoneValue = (target, value) => {
+    const nextValue = formatDominicanPhone(
+        sanitizeAllowedCharacters(value, DIGIT_INPUT_CHAR_PATTERN),
+    );
+    editForm.value.phone = nextValue;
+    syncTargetValue(target, nextValue);
 };
 
-const onEditAddressInput = (event) => {
-    editForm.value.address = normalizeDominicanAddressInput(event.target.value);
+const applyEditAddressValue = (target, value) => {
+    const nextValue = normalizeDominicanAddressInput(
+        sanitizeAllowedCharacters(value, ADDRESS_INPUT_CHAR_PATTERN, ' '),
+    );
+    editForm.value.address = nextValue;
+    syncTargetValue(target, nextValue);
 };
+
+const onEditNameInput = (event) => applyEditNameValue(event.target, event.target.value);
+const onEditPhoneInput = (event) => applyEditPhoneValue(event.target, event.target.value);
+const onEditAddressInput = (event) => applyEditAddressValue(event.target, event.target.value);
+const onEditNamePaste = (event) => pasteAllowedInput(event, NAME_INPUT_CHAR_PATTERN, applyEditNameValue, ' ');
+const onEditPhonePaste = (event) => pasteAllowedInput(event, DIGIT_INPUT_CHAR_PATTERN, applyEditPhoneValue);
+const onEditAddressPaste = (event) => pasteAllowedInput(event, ADDRESS_INPUT_CHAR_PATTERN, applyEditAddressValue, ' ');
 
 // Para presentar: guarda datos del perfil remoto si hay usuario_id y siempre actualiza la sesion local.
 const saveProfile = async () => {
@@ -527,7 +555,10 @@ const saveProfile = async () => {
                     <input
                         id="profile-edit-name"
                         :value="editForm.name"
+                        @beforeinput="preventDisallowedInput($event, NAME_INPUT_CHAR_PATTERN)"
                         @input="onEditNameInput"
+                        @paste="onEditNamePaste"
+                        @drop.prevent
                         type="text"
                         autocomplete="name"
                         class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
@@ -554,9 +585,13 @@ const saveProfile = async () => {
                     <input
                         id="profile-edit-phone"
                         :value="editForm.phone"
+                        @beforeinput="preventDisallowedInput($event, DIGIT_INPUT_CHAR_PATTERN)"
                         @input="onEditPhoneInput"
+                        @paste="onEditPhonePaste"
+                        @drop.prevent
                         type="tel"
                         inputmode="numeric"
+                        pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
                         autocomplete="tel"
                         maxlength="12"
                         class="w-full rounded-lg border p-3 outline-none focus:border-orange-500"
@@ -570,7 +605,10 @@ const saveProfile = async () => {
                     <input
                         id="profile-edit-address"
                         :value="editForm.address"
+                        @beforeinput="preventDisallowedInput($event, ADDRESS_INPUT_CHAR_PATTERN)"
                         @input="onEditAddressInput"
+                        @paste="onEditAddressPaste"
+                        @drop.prevent
                         type="text"
                         autocomplete="street-address"
                         placeholder="Calle 5 Gurabo Santiago"

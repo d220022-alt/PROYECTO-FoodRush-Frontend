@@ -34,6 +34,13 @@ import {
   resolveDominicanAddressZone,
   validateDominicanAddress,
 } from '../utils/addressValidation';
+import {
+  ADDRESS_INPUT_CHAR_PATTERN,
+  pasteAllowedInput,
+  preventDisallowedInput,
+  sanitizeAllowedCharacters,
+  syncTargetValue,
+} from '../utils/strictInputGuards';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import 'sweetalert2/dist/sweetalert2.min.css';
 
@@ -438,6 +445,22 @@ const selectPayPal = () => {
   connectPayPal();
 };
 
+const applyStrictAddressInputValue = (target, value) => {
+  const nextValue = normalizeDominicanAddressInput(
+    sanitizeAllowedCharacters(value, ADDRESS_INPUT_CHAR_PATTERN, ' '),
+  );
+  syncTargetValue(target, nextValue);
+};
+
+const attachStrictAddressGuards = (input) => {
+  if (!input) return;
+
+  input.addEventListener('beforeinput', (event) => preventDisallowedInput(event, ADDRESS_INPUT_CHAR_PATTERN));
+  input.addEventListener('input', (event) => applyStrictAddressInputValue(event.target, event.target.value));
+  input.addEventListener('paste', (event) => pasteAllowedInput(event, ADDRESS_INPUT_CHAR_PATTERN, applyStrictAddressInputValue, ' '));
+  input.addEventListener('drop', (event) => event.preventDefault());
+};
+
 const editAddress = async () => {
   const { value } = await Swal.fire({
     title: 'Editar Direccion',
@@ -448,6 +471,7 @@ const editAddress = async () => {
       autocomplete: 'street-address',
       autocapitalize: 'words',
     },
+    didOpen: () => attachStrictAddressGuards(Swal.getInput()),
     inputValidator: (inputValue) => {
       const validation = validateDominicanAddress(inputValue);
       return validation.valid ? undefined : validation.message;
